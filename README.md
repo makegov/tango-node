@@ -258,21 +258,27 @@ Useful scripts:
 ## Requirements
 
 - Node 18 or higher.
-- A valid Tango API key.
+- A valid [Tango API key](https://tango.makegov.com/).
 
 ## License
 
-MIT – same as the Tango Python SDK.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ## Support
 
-For questions or issues:
+For questions, issues, or feature requests:
 
-- Open an issue in the GitHub repo.
-- Or contact the MakeGov team through the normal Tango support channels.
+- **Email**: [tango@makegov.com](mailto:tango@makegov.com)
+- **Issues**: [GitHub Issues](https://github.com/makegov/tango-node/issues)
+- **Documentation**: [https://tango.makegov.com/docs/tango-node](https://tango.makegov.com/docs/tango-node)
 
 ## Contributing
 
-Pull requests are welcome. For substantial changes, please open an issue first to discuss what you want to change.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Make sure to add or update tests where appropriate, and run the full test suite before submitting a PR.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Run tests (`TO DO`)
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
