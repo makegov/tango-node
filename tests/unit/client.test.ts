@@ -1,6 +1,6 @@
 import { TangoClient } from "../../src/client";
 import { ShapeConfig } from "../../src/config.js";
-import { TangoValidationError } from "../../src/errors.js";
+import { TangoNotFoundError, TangoValidationError } from "../../src/errors.js";
 
 describe("TangoClient", () => {
   it("maps high-level contract filters to API query params", async () => {
@@ -135,5 +135,123 @@ describe("TangoClient", () => {
     await expect(client.getAgency("")).rejects.toBeInstanceOf(TangoValidationError);
     // @ts-expect-error
     await expect(client.getEntity("")).rejects.toBeInstanceOf(TangoValidationError);
+  });
+
+  it("propagates not found errors from getAgency", async () => {
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl: async (): Promise<any> => ({
+        ok: false,
+        status: 404,
+        async text() {
+          return JSON.stringify({ detail: "missing" });
+        },
+      }),
+    });
+
+    await expect(client.getAgency("XYZ")).rejects.toBeInstanceOf(TangoNotFoundError);
+  });
+
+  it("caps listContracts limit and merges filters", async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+
+    const fetchImpl = async (url: string | URL, init?: RequestInit): Promise<any> => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({ results: [] });
+        },
+      };
+    };
+
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl,
+    });
+
+    await client.listContracts({
+      limit: 120,
+      shape: null,
+      sort: "award_date",
+      order: "asc",
+      filters: { foo: "bar" },
+      extra: "value",
+    });
+
+    const search = new URL(calls[0].url).searchParams;
+    expect(search.get("limit")).toBe("100"); // capped
+    expect(search.get("ordering")).toBe("award_date");
+    expect(search.get("foo")).toBe("bar");
+    expect(search.get("extra")).toBe("value");
+    expect(search.get("shape")).toBe(ShapeConfig.CONTRACTS_MINIMAL);
+  });
+
+  it("unflattens entity when flat=true and applies default shapes", async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+
+    const fetchImpl = async (url: string | URL, init?: RequestInit): Promise<any> => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({ "recipient.display_name": "Acme" });
+        },
+      };
+    };
+
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl,
+    });
+
+    const entity = await client.getEntity("UEI123", { flat: true });
+    expect((entity as any).recipient.display_name).toBe("Acme");
+
+    const search = new URL(calls[0].url).searchParams;
+    expect(search.get("shape")).toBe(ShapeConfig.ENTITIES_COMPREHENSIVE);
+    expect(search.get("flat")).toBe("true");
+  });
+
+  it("sends shape flags for forecasts, opportunities, notices, and grants", async () => {
+    const calls: string[] = [];
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl: async (url: string | URL): Promise<any> => ({
+        ok: true,
+        status: 200,
+        async text() {
+          calls.push(String(url));
+          return JSON.stringify({ results: [] });
+        },
+      }),
+    });
+
+    await client.listForecasts({ flat: true, flatLists: true });
+    await client.listOpportunities({ flat: true });
+    await client.listNotices({ flat: true });
+    await client.listGrants({ flatLists: true });
+
+    expect(calls).toHaveLength(4);
+    const params = calls.map((u) => new URL(u).searchParams);
+
+    expect(params[0].get("shape")).toBe(ShapeConfig.FORECASTS_MINIMAL);
+    expect(params[0].get("flat")).toBe("true");
+    expect(params[0].get("flat_lists")).toBe("true");
+
+    expect(params[1].get("shape")).toBe(ShapeConfig.OPPORTUNITIES_MINIMAL);
+    expect(params[1].get("flat")).toBe("true");
+
+    expect(params[2].get("shape")).toBe(ShapeConfig.NOTICES_MINIMAL);
+    expect(params[2].get("flat")).toBe("true");
+
+    expect(params[3].get("shape")).toBe(ShapeConfig.GRANTS_MINIMAL);
+    expect(params[3].get("flat_lists")).toBe("true");
   });
 });

@@ -3,6 +3,7 @@ import {
   TangoAuthError,
   TangoNotFoundError,
   TangoRateLimitError,
+  TangoTimeoutError,
   TangoValidationError,
 } from "../errors.js";
 import { DEFAULT_BASE_URL } from "../config.js";
@@ -21,6 +22,22 @@ export interface RequestOptions {
   body?: unknown;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isSafePrimitive(value: unknown): value is string | number | boolean | symbol | bigint {
+  const type = typeof value;
+  return type === "string" || type === "number" || type === "boolean" || type === "symbol" || type === "bigint";
+}
+
+function toParamValue(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  if (value === null || value === undefined) return "";
+  if (isSafePrimitive(value)) return String(value);
+  return JSON.stringify(value);
+}
+
 function buildSearchParams(params?: Record<string, unknown>): string {
   if (!params) return "";
   const search = new URLSearchParams();
@@ -31,10 +48,10 @@ function buildSearchParams(params?: Record<string, unknown>): string {
     if (Array.isArray(value)) {
       for (const item of value) {
         if (item === undefined || item === null) continue;
-        search.append(key, String(item));
+        search.append(key, toParamValue(item));
       }
     } else {
-      search.append(key, String(value));
+      search.append(key, toParamValue(value));
     }
   }
 
@@ -49,25 +66,16 @@ export class HttpClient {
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: HttpClientOptions = {}) {
-    const {
-      baseUrl = DEFAULT_BASE_URL,
-      apiKey = null,
-      timeoutMs = 30000,
-      fetchImpl,
-    } = options;
+    const { baseUrl = DEFAULT_BASE_URL, apiKey = null, timeoutMs = 30000, fetchImpl } = options;
 
     this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.apiKey = apiKey;
     this.timeoutMs = timeoutMs;
 
-    const globalFetch = (typeof fetch !== "undefined" ? fetch : undefined) as
-      | typeof fetch
-      | undefined;
+    const globalFetch: typeof fetch | undefined = typeof fetch !== "undefined" ? fetch : undefined;
 
     if (!fetchImpl && !globalFetch) {
-      throw new Error(
-        "No fetch implementation available. Use Node 18+ (global fetch) or provide fetchImpl.",
-      );
+      throw new Error("No fetch implementation available. Use Node 18+ (global fetch) or provide fetchImpl.");
     }
 
     this.fetchImpl = (fetchImpl ?? globalFetch)!;
@@ -76,10 +84,7 @@ export class HttpClient {
   async request<T = unknown>(options: RequestOptions): Promise<T> {
     const { method, path, query, body } = options;
 
-    const url = new URL(
-      path.replace(/^\//, ""),
-      this.baseUrl.endsWith("/") ? `${this.baseUrl}` : `${this.baseUrl}/`,
-    );
+    const url = new URL(path.replace(/^\//, ""), this.baseUrl.endsWith("/") ? `${this.baseUrl}` : `${this.baseUrl}/`);
 
     const queryString = buildSearchParams(query);
     if (queryString) {
@@ -120,6 +125,10 @@ export class HttpClient {
       });
     } catch (err) {
       if (timeoutId) clearTimeout(timeoutId);
+      const name = (err as { name?: string } | null)?.name ?? null;
+      if (name === "AbortError") {
+        throw new TangoTimeoutError(`Request timed out after ${this.timeoutMs}ms`, 408, undefined);
+      }
       const msg = err instanceof Error ? err.message : String(err);
       throw new TangoAPIError(`Request failed: ${msg}`);
     } finally {
@@ -136,11 +145,7 @@ export class HttpClient {
     }
 
     if (res.status === 401) {
-      throw new TangoAuthError(
-        "Invalid API key or authentication required",
-        res.status,
-        data,
-      );
+      throw new TangoAuthError("Invalid API key or authentication required", res.status, data);
     }
 
     if (res.status === 404) {
@@ -183,11 +188,12 @@ export class HttpClient {
     }
 
     if (!res.ok) {
-      throw new TangoAPIError(
-        `API request failed with status ${res.status}`,
-        res.status,
-        data,
-      );
+      throw new TangoAPIError(`API request failed with status ${res.status}`, res.status, data);
+    }
+
+    if (res.ok && isRecord(data) && typeof data.error === "string") {
+      // The API occasionally signals errors in a 200 payload; surface as TangoAPIError.
+      throw new TangoAPIError(data.error, res.status, data);
     }
 
     return (data ?? {}) as T;

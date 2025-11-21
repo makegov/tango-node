@@ -121,9 +121,7 @@ export class ShapeParser {
     }
 
     if (expectField && fields.length > 0) {
-      throw new ShapeParseError(
-        "Expected field after comma but reached end of shape string",
-      );
+      throw new ShapeParseError("Expected field after comma but reached end of shape string");
     }
 
     return [fields, pos];
@@ -158,9 +156,7 @@ export class ShapeParser {
     // Parse optional alias
     if (input.slice(pos, pos + 2) === "::") {
       if (isWildcard) {
-        throw new ShapeParseError(
-          'Wildcard fields cannot have aliases ("*::alias" is invalid)',
-        );
+        throw new ShapeParseError('Wildcard fields cannot have aliases ("*::alias" is invalid)');
       }
       pos += 2;
       [alias, pos] = this.parseIdentifier(input, pos);
@@ -183,9 +179,7 @@ export class ShapeParser {
       }
 
       if (pos >= input.length || input[pos] !== ")") {
-        throw new ShapeParseError(
-          `Expected ')' to close nested field list for "${name}"`,
-        );
+        throw new ShapeParseError(`Expected ')' to close nested field list for "${name}"`);
       }
       pos += 1;
       nestedFields = nested;
@@ -200,9 +194,7 @@ export class ShapeParser {
     const first = input[pos];
 
     if (!isIdentifierStart(first)) {
-      throw new ShapeParseError(
-        `Invalid identifier start '${first}' at position ${pos}`,
-      );
+      throw new ShapeParseError(`Invalid identifier start '${first}' at position ${pos}`);
     }
 
     let ident = first;

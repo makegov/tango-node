@@ -1,4 +1,4 @@
-import type { FieldSchema, FieldSchemaMap, ExplicitSchemas } from "./schemaTypes.js";
+import type { FieldSchemaMap, ExplicitSchemas } from "./schemaTypes.js";
 
 // NOTE: This file is generated from the Tango Python SDK's explicit_schemas.py.
 // It provides explicit schema information for all resource types.

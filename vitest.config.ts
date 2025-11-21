@@ -5,6 +5,11 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["tests/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      exclude: [".*", "*.config.*s", "dist/**/**", "src/index.ts", "src/shapes/index.ts", "tests/**/**"],
+    },
   },
   esbuild: {
     loader: "ts",

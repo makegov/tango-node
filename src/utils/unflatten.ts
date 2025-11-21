@@ -7,10 +7,7 @@
  *
  * This mirrors the behavior of the Python client's `_unflatten_response`.
  */
-export function unflattenResponse<T extends Record<string, unknown>>(
-  data: T,
-  joiner = ".",
-): Record<string, unknown> {
+export function unflattenResponse<T extends Record<string, unknown>>(data: T, joiner = "."): Record<string, unknown> {
   if (!data || typeof data !== "object") {
     return data as unknown as Record<string, unknown>;
   }

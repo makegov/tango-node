@@ -81,10 +81,7 @@ export class TypeGenerator {
     return model;
   }
 
-  private buildModelDescriptor(
-    modelName: string,
-    shapeSpec: ShapeSpec,
-  ): GeneratedModel {
+  private buildModelDescriptor(modelName: string, shapeSpec: ShapeSpec): GeneratedModel {
     const schema = this.schemaRegistry.getSchema(modelName);
     const fields: GeneratedField[] = [];
 
@@ -114,20 +111,14 @@ export class TypeGenerator {
     };
   }
 
-  private buildGeneratedField(
-    requestedName: string,
-    spec: FieldSpec,
-    fieldSchema: FieldSchema,
-  ): GeneratedField {
+  private buildGeneratedField(requestedName: string, spec: FieldSpec, fieldSchema: FieldSchema): GeneratedField {
     const alias = spec.alias ?? fieldSchema.name;
 
     let nestedModel: GeneratedModel | null = null;
 
     if (spec.nestedFields && spec.nestedFields.length > 0) {
       const nestedModelName =
-        fieldSchema.nestedModel &&
-        typeof fieldSchema.nestedModel === "string" &&
-        fieldSchema.nestedModel.trim() !== ""
+        fieldSchema.nestedModel && typeof fieldSchema.nestedModel === "string" && fieldSchema.nestedModel.trim() !== ""
           ? fieldSchema.nestedModel
           : this.inferNestedModelName(fieldSchema);
 
@@ -155,17 +146,7 @@ export class TypeGenerator {
   }
 
   private inferNestedModelName(fieldSchema: FieldSchema): string | null {
-    const primitiveTypes = new Set([
-      "str",
-      "int",
-      "float",
-      "bool",
-      "Decimal",
-      "date",
-      "datetime",
-      "dict",
-      "Any",
-    ]);
+    const primitiveTypes = new Set(["str", "int", "float", "bool", "Decimal", "date", "datetime", "dict", "Any"]);
 
     if (!primitiveTypes.has(fieldSchema.type)) {
       return fieldSchema.type;

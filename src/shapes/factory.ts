@@ -28,42 +28,21 @@ export class ModelFactory {
   /**
    * Create a list of shaped objects from a list response.
    */
-  createList(
-    baseModelName: string,
-    shapeSpec: ShapeSpec,
-    rawItems: unknown[],
-  ): AnyRecord[] {
-    const descriptor = this.typeGenerator.generateModelDescriptor(
-      baseModelName,
-      shapeSpec,
-    );
-    return rawItems.map((item, index) =>
-      this.createOneFromDescriptor(descriptor, item, `index ${index}`),
-    );
+  createList(baseModelName: string, shapeSpec: ShapeSpec, rawItems: unknown[]): AnyRecord[] {
+    const descriptor = this.typeGenerator.generateModelDescriptor(baseModelName, shapeSpec);
+    return rawItems.map((item, index) => this.createOneFromDescriptor(descriptor, item, `index ${index}`));
   }
 
   /**
    * Create a single shaped object from a detail response.
    */
   createOne(baseModelName: string, shapeSpec: ShapeSpec, rawItem: unknown): AnyRecord {
-    const descriptor = this.typeGenerator.generateModelDescriptor(
-      baseModelName,
-      shapeSpec,
-    );
+    const descriptor = this.typeGenerator.generateModelDescriptor(baseModelName, shapeSpec);
     return this.createOneFromDescriptor(descriptor, rawItem, "root");
   }
 
-  private createOneFromDescriptor(
-    model: GeneratedModel,
-    raw: unknown,
-    context: string,
-  ): AnyRecord {
-    if (
-      raw === null ||
-      raw === undefined ||
-      typeof raw !== "object" ||
-      Array.isArray(raw)
-    ) {
+  private createOneFromDescriptor(model: GeneratedModel, raw: unknown, context: string): AnyRecord {
+    if (raw === null || raw === undefined || typeof raw !== "object" || Array.isArray(raw)) {
       throw new ModelInstantiationError(
         `Expected object for model "${model.modelName}" at ${context}, got ${typeof raw}`,
       );
@@ -90,11 +69,7 @@ export class ModelFactory {
     return result;
   }
 
-  private parseFieldValue(
-    field: GeneratedField,
-    rawValue: unknown,
-    context: string,
-  ): unknown {
+  private parseFieldValue(field: GeneratedField, rawValue: unknown, context: string): unknown {
     const { field: fieldSchema, nestedModel } = field;
 
     const parseScalar = (value: unknown): unknown => {
@@ -130,9 +105,7 @@ export class ModelFactory {
       }
 
       if (typeof rawValue !== "object" || Array.isArray(rawValue)) {
-        throw new ModelInstantiationError(
-          `Expected object for nested field "${fieldSchema.name}" at ${context}`,
-        );
+        throw new ModelInstantiationError(`Expected object for nested field "${fieldSchema.name}" at ${context}`);
       }
 
       return this.createOneFromDescriptor(nestedModel, rawValue, context);

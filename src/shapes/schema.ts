@@ -1,5 +1,5 @@
 import { ShapeValidationError } from "../errors.js";
-import type { FieldSchema, FieldSchemaMap, ExplicitSchemas } from "./schemaTypes.js";
+import type { FieldSchema, FieldSchemaMap } from "./schemaTypes.js";
 import { EXPLICIT_SCHEMAS } from "./explicitSchemas.js";
 
 export interface ModelSchema {

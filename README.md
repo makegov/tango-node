@@ -127,13 +127,13 @@ const contracts = await client.listContracts({
 });
 ```
 
-Shapes:
+**Shapes:**
 
 - Reduce payload size (often massively).
 - Keep responses focused on what your app actually uses.
 - Drive type safety – the SDK maps the shape to a TypeScript type.
 
-The Node SDK includes:
+**The Node SDK includes:**
 
 - A **shape parser** that validates shape strings.
 - A **schema registry** that knows what fields exist on each resource.
@@ -228,14 +228,48 @@ try {
 
 ## Project Structure
 
-The Node project mirrors the Python SDK layout:
-
-- `src/client.ts` – Main `TangoClient` implementation.
-- `src/models/` – Core models, pagination, search filters, reference data.
-- `src/shapes/` – Shape parser, schema registry, type generator, model factory.
-- `src/utils/` – HTTP helpers, date/number parsing, unflattening, caching.
-- `tests/` – Unit and integration tests, aligned with the Python test suite.
-- `docs/` – API reference and shape documentation.
+```text
+tango-node/
+├── src/                         # Source TypeScript
+│   ├── client.ts                # TangoClient implementation
+│   ├── config.ts                # Default base URL + shape presets
+│   ├── errors.ts                # Error classes (API, auth, validation, etc.)
+│   ├── index.ts                 # Public API exports
+│   ├── types.ts                 # Shared types (options, PaginatedResponse)
+│   ├── shapes/                  # Shape system (parser, generator, factory)
+│   │   ├── explicitSchemas.ts   # Predefined schemas for resources
+│   │   ├── factory.ts           # Instantiate typed models from data
+│   │   ├── generator.ts         # Type generation from shape specs
+│   │   ├── index.ts             # Shapes exports
+│   │   ├── parser.ts            # Shape string parser
+│   │   ├── schema.ts            # Schema registry + validation
+│   │   ├── schemaTypes.ts       # Schema data structures
+│   │   └── types.ts             # Shape spec types
+│   └── utils/                   # Helpers
+│       ├── dates.ts             # Date/time parsing utilities
+│       ├── http.ts              # HTTP client wrapper
+│       ├── number.ts            # Numeric parsing/formatting
+│       └── unflatten.ts         # Unflatten dotted-key responses
+├── tests/                       # Test suite (Vitest)
+│   └── unit/
+│       ├── client.test.ts
+│       ├── errors.test.ts
+│       ├── shapes.factory.test.ts
+│       ├── shapes.generator.test.ts
+│       ├── shapes.parser.test.ts
+│       ├── shapes.schema.test.ts
+│       ├── utils.dates.test.ts
+│       ├── utils.http.test.ts
+│       ├── utils.number.test.ts
+│       └── utils.unflatten.test.ts
+├── dist/                        # Build output (compiled JS + d.ts) from `npm run build`
+├── package.json                 # Package metadata/scripts
+├── tsconfig.json                # TypeScript config
+├── README.md                    # Usage docs
+├── CHANGELOG.md                 # Version history
+├── ROADMAP.md                   # Planned work
+└── LICENSE                      # MIT license
+```
 
 ## Development
 

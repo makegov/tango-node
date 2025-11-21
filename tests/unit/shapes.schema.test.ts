@@ -21,8 +21,6 @@ describe("SchemaRegistry", () => {
   });
 
   it("throws for unknown field", () => {
-    expect(() => registry.getField("Contract", "not_a_field")).toThrow(
-      ShapeValidationError,
-    );
+    expect(() => registry.getField("Contract", "not_a_field")).toThrow(ShapeValidationError);
   });
 });

@@ -40,4 +40,28 @@ describe("ShapeParser", () => {
     expect(spec.isFlatLists).toBe(false);
     expect(spec.fields.map((f) => f.name)).toEqual(["key", "piid"]);
   });
+
+  it("caches parse results when enabled", () => {
+    const cachedParser = new ShapeParser({ cacheEnabled: true });
+    const spec1 = cachedParser.parse("uei,recipient(display_name)");
+    const spec2 = cachedParser.parse("uei,recipient(display_name)");
+    expect(spec1).toBe(spec2);
+  });
+
+  it("rejects empty or whitespace-only shapes", () => {
+    const emptyParser = new ShapeParser({ cacheEnabled: false });
+    expect(() => emptyParser.parse("   ")).toThrow(ShapeParseError);
+  });
+
+  it("rejects invalid identifier starts and wildcard aliases", () => {
+    const p = new ShapeParser({ cacheEnabled: false });
+    expect(() => p.parse("1abc")).toThrow(ShapeParseError);
+    expect(() => p.parse("*::alias")).toThrow(ShapeParseError);
+  });
+
+  it("errors on unexpected trailing characters or missing parentheses", () => {
+    const p = new ShapeParser({ cacheEnabled: false });
+    expect(() => p.parse("key)")).toThrow(ShapeParseError);
+    expect(() => p.parse("recipient(display_name")).toThrow(ShapeParseError);
+  });
 });
