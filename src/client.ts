@@ -1,5 +1,8 @@
 import { DEFAULT_BASE_URL, ShapeConfig } from "./config.js";
 import { TangoNotFoundError, TangoValidationError } from "./errors.js";
+import { ModelFactory } from "./shapes/factory.js";
+import { ShapeParser } from "./shapes/parser.js";
+import type { ShapeSpec } from "./shapes/types.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
 import { PaginatedResponse, TangoClientOptions } from "./types.js";
@@ -13,8 +16,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedResponse<T> {
   const results = Array.isArray(raw?.results) ? (raw.results as T[]) : [];
   const rawCount = raw?.count;
-  const count =
-    typeof rawCount === "number" ? rawCount : Number.isFinite(Number(rawCount)) ? Number(rawCount) : results.length;
+  const count = typeof rawCount === "number" ? rawCount : Number.isFinite(Number(rawCount)) ? Number(rawCount) : results.length;
 
   const nextVal = raw?.next;
   const previousVal = raw?.previous;
@@ -99,6 +101,8 @@ export interface ListEntitiesOptions extends ListOptionsBase {
 
 export class TangoClient {
   private readonly http: HttpClient;
+  private readonly shapeParser: ShapeParser;
+  private readonly modelFactory: ModelFactory;
 
   constructor(options: TangoClientOptions = {}) {
     const { apiKey, baseUrl = DEFAULT_BASE_URL, timeoutMs = 30000, fetchImpl } = options;
@@ -121,6 +125,9 @@ export class TangoClient {
       timeoutMs,
       fetchImpl,
     });
+
+    this.shapeParser = new ShapeParser();
+    this.modelFactory = new ModelFactory();
   }
 
   // ---------------------------------------------------------------------------
@@ -177,6 +184,7 @@ export class TangoClient {
     };
 
     const shapeToUse = shape ?? ShapeConfig.CONTRACTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) {
@@ -194,12 +202,9 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>("/api/contracts/", params);
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = this.materializeList("Contract", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({
-      ...data,
-      results,
-    } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
   }
@@ -217,6 +222,7 @@ export class TangoClient {
     };
 
     const shapeToUse = shape ?? ShapeConfig.ENTITIES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) {
@@ -236,20 +242,14 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>("/api/entities/", params);
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = this.materializeList("Entity", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({
-      ...data,
-      results,
-    } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
   }
 
-  async getEntity(
-    key: string,
-    options: { shape?: string | null; flat?: boolean; flatLists?: boolean } = {},
-  ): Promise<Record<string, unknown>> {
+  async getEntity(key: string, options: { shape?: string | null; flat?: boolean; flatLists?: boolean } = {}): Promise<Record<string, unknown>> {
     if (!key) {
       throw new TangoValidationError("Entity key (UEI or CAGE) is required");
     }
@@ -258,6 +258,7 @@ export class TangoClient {
     const params: AnyRecord = {};
 
     const shapeToUse = shape ?? ShapeConfig.ENTITIES_COMPREHENSIVE;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) {
@@ -270,17 +271,15 @@ export class TangoClient {
 
     const data = await this.http.get<AnyRecord>(`/api/entities/${encodeURIComponent(key)}/`, params);
 
-    const result: Record<string, unknown> = flat ? unflattenResponse(data) : data;
-    return result;
+    const result = this.materializeOne("Entity", shapeSpec, data, flat);
+    return result as Record<string, unknown>;
   }
 
   // ---------------------------------------------------------------------------
   // Forecasts
   // ---------------------------------------------------------------------------
 
-  async listForecasts(
-    options: ListOptionsBase & Record<string, unknown> = {},
-  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listForecasts(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -289,6 +288,7 @@ export class TangoClient {
     };
 
     const shapeToUse = shape ?? ShapeConfig.FORECASTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) params.flat = "true";
@@ -300,12 +300,9 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>("/api/forecasts/", params);
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = this.materializeList("Forecast", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({
-      ...data,
-      results,
-    } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
   }
@@ -314,9 +311,7 @@ export class TangoClient {
   // Opportunities
   // ---------------------------------------------------------------------------
 
-  async listOpportunities(
-    options: ListOptionsBase & Record<string, unknown> = {},
-  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listOpportunities(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -325,6 +320,7 @@ export class TangoClient {
     };
 
     const shapeToUse = shape ?? ShapeConfig.OPPORTUNITIES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) params.flat = "true";
@@ -336,12 +332,9 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>("/api/opportunities/", params);
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = this.materializeList("Opportunity", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({
-      ...data,
-      results,
-    } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
   }
@@ -350,9 +343,7 @@ export class TangoClient {
   // Notices
   // ---------------------------------------------------------------------------
 
-  async listNotices(
-    options: ListOptionsBase & Record<string, unknown> = {},
-  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listNotices(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -361,6 +352,7 @@ export class TangoClient {
     };
 
     const shapeToUse = shape ?? ShapeConfig.NOTICES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) params.flat = "true";
@@ -372,12 +364,9 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>("/api/notices/", params);
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = this.materializeList("Notice", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({
-      ...data,
-      results,
-    } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
   }
@@ -386,9 +375,7 @@ export class TangoClient {
   // Grants
   // ---------------------------------------------------------------------------
 
-  async listGrants(
-    options: ListOptionsBase & Record<string, unknown> = {},
-  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listGrants(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -397,6 +384,7 @@ export class TangoClient {
     };
 
     const shapeToUse = shape ?? ShapeConfig.GRANTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
     if (shapeToUse) {
       params.shape = shapeToUse;
       if (flat) params.flat = "true";
@@ -408,13 +396,28 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>("/api/grants/", params);
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = this.materializeList("Grant", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({
-      ...data,
-      results,
-    } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
+  }
+
+  private parseShape(shape: string | null | undefined, defaultShape: string | null, flat: boolean, flatLists: boolean): ShapeSpec | null {
+    const shapeToUse = shape ?? defaultShape;
+    if (!shapeToUse) return null;
+    return this.shapeParser.parseWithFlags(shapeToUse, flat, flatLists);
+  }
+
+  private materializeList(baseModel: string, shapeSpec: ShapeSpec | null, rawItems: AnyRecord[], flat: boolean): AnyRecord[] {
+    const prepared = flat ? rawItems.map((item) => unflattenResponse(item)) : rawItems;
+    if (!shapeSpec) return prepared;
+    return this.modelFactory.createList(baseModel, shapeSpec, prepared);
+  }
+
+  private materializeOne(baseModel: string, shapeSpec: ShapeSpec | null, rawItem: AnyRecord, flat: boolean): AnyRecord {
+    const prepared = flat ? unflattenResponse(rawItem) : rawItem;
+    if (!shapeSpec) return prepared;
+    return this.modelFactory.createOne(baseModel, shapeSpec, prepared);
   }
 }

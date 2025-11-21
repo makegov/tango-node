@@ -9,7 +9,7 @@ A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring d
 - **Dynamic Response Shaping** – Ask Tango for exactly the fields you want using a simple shape syntax.
 - **Type-Safe by Design** – Shape strings are validated against Tango schemas and mapped to generated TypeScript types.
 - **Comprehensive API Coverage** – Agencies, business types, entities, contracts, forecasts, opportunities, notices, and grants.
-- **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing.
+- **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing, materialized via the dynamic model pipeline.
 - **Modern Node** – Built for Node 18+ with native `fetch` and ESM-first design.
 - **Tested Against the Real API** – Integration tests (mirroring the Python SDK) keep behavior aligned.
 
@@ -236,6 +236,7 @@ tango-node/
 │   ├── errors.ts                # Error classes (API, auth, validation, etc.)
 │   ├── index.ts                 # Public API exports
 │   ├── types.ts                 # Shared types (options, PaginatedResponse)
+│   ├── models/                  # Lightweight model interfaces (Contract, Entity, etc.)
 │   ├── shapes/                  # Shape system (parser, generator, factory)
 │   │   ├── explicitSchemas.ts   # Predefined schemas for resources
 │   │   ├── factory.ts           # Instantiate typed models from data
@@ -250,6 +251,10 @@ tango-node/
 │       ├── http.ts              # HTTP client wrapper
 │       ├── number.ts            # Numeric parsing/formatting
 │       └── unflatten.ts         # Unflatten dotted-key responses
+├── docs/                        # Documentation
+│   ├── API_REFERENCE.md
+│   ├── DYNAMIC_MODELS.md
+│   └── SHAPED.md
 ├── tests/                       # Test suite (Vitest)
 │   └── unit/
 │       ├── client.test.ts
@@ -263,11 +268,12 @@ tango-node/
 │       ├── utils.number.test.ts
 │       └── utils.unflatten.test.ts
 ├── dist/                        # Build output (compiled JS + d.ts) from `npm run build`
+├── eslint.config.js             # ESLint flat config
+├── .prettierrc                  # Prettier config
 ├── package.json                 # Package metadata/scripts
 ├── tsconfig.json                # TypeScript config
 ├── README.md                    # Usage docs
 ├── CHANGELOG.md                 # Version history
-├── ROADMAP.md                   # Planned work
 └── LICENSE                      # MIT license
 ```
 
@@ -285,6 +291,7 @@ Useful scripts:
 
 - `npm run build` – Compile TypeScript to `dist/`.
 - `npm test` – Run unit and integration tests.
+- `npm run coverage` – Get test coverage report.
 - `npm run lint` – Run ESLint.
 - `npm run format` – Run Prettier.
 - `npm run typecheck` – TS type checking without emit.
@@ -293,6 +300,12 @@ Useful scripts:
 
 - Node 18 or higher.
 - A valid [Tango API key](https://tango.makegov.com/).
+
+## Documentation
+
+- [API Reference](docs/API_REFERENCE.md) - Detailed API documentation
+- [Shape System Guide](docs/SHAPES.md) - Comprehensive guide to response shaping
+- [Dynamic Models Guide](docs/DYNAMIC_MODELS.md) - ynamic shaping system\*\* works.
 
 ## License
 
@@ -304,7 +317,7 @@ For questions, issues, or feature requests:
 
 - **Email**: [tango@makegov.com](mailto:tango@makegov.com)
 - **Issues**: [GitHub Issues](https://github.com/makegov/tango-node/issues)
-- **Documentation**: [https://tango.makegov.com/docs/tango-node](https://tango.makegov.com/docs/tango-node)
+- **Documentation**: [https://tango.makegov.com/docs/tango-node](https://tango.makegov.com/docs/tango-node) _(Coming Soon!)_
 
 ## Contributing
 

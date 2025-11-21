@@ -5,7 +5,7 @@ It is a full translation of the Python `DEVELOPERS.md` shaping guide.
 
 ---
 
-# Overview
+## Overview
 
 Tango’s dynamic modeling allows you to:
 
@@ -21,9 +21,9 @@ Tango’s dynamic modeling allows you to:
 
 ---
 
-# Components
+## Components
 
-## ShapeParser
+### ShapeParser
 
 Parses shape strings into a `ShapeSpec`.
 
@@ -34,7 +34,7 @@ const parser = new ShapeParser();
 const spec = parser.parse("key,piid,recipient(display_name)");
 ```
 
-## SchemaRegistry
+### SchemaRegistry
 
 Holds the field schemas for all models.
 
@@ -45,7 +45,7 @@ const registry = new SchemaRegistry();
 registry.getField("Contract", "award_date");
 ```
 
-## TypeGenerator
+### TypeGenerator
 
 Builds a `GeneratedModel` descriptor from `(baseModel, shapeSpec)`.
 
@@ -56,20 +56,27 @@ const gen = new TypeGenerator();
 const model = gen.generateModelDescriptor("Contract", spec);
 ```
 
-## ModelFactory
+### ModelFactory
 
-Takes a descriptor + raw API JSON and produces typed shaped objects.
+Takes a descriptor + raw API JSON and produces typed shaped objects. The TangoClient now uses this pipeline automatically after fetching data.
 
 ```ts
-import { ModelFactory } from "@makegov/tango-node/shapes";
+import { TangoClient } from "@makegov/tango-node";
 
-const factory = new ModelFactory();
-const shaped = factory.createOne("Contract", spec, rawRecord);
+const client = new TangoClient({ apiKey: process.env.TANGO_API_KEY });
+const contracts = await client.listContracts({
+  shape: "key,award_date,recipient(display_name)",
+});
+
+// contracts.results are materialized via ModelFactory:
+// - date/datetime parsed to Date
+// - decimals normalized to string
+// - nested structures enforced
 ```
 
 ---
 
-# Example: Full Shaping Pipeline
+## Example: Full Shaping Pipeline (manual)
 
 ```ts
 const parser = new ShapeParser();
@@ -98,16 +105,13 @@ const shaped = factory.createOne("Contract", spec, {
 
 ---
 
-# Type Safety
+## Type Safety
 
-Node SDK cannot generate TypeScript interfaces at runtime, but it _does_
-enforce shape correctness at runtime and guarantees nested structures.
-
-Future versions may include codegen for shape-derived TypeScript interfaces.
+Node SDK enforces shape correctness at runtime and guarantees nested structures. The client materializes responses through ModelFactory, so the shape schema is applied automatically. TypeScript interfaces are not codegenerated per shape at build time; the SDK exports lightweight model interfaces in `@makegov/tango-node/models` for convenience.
 
 ---
 
-# Caching
+## Caching
 
 TypeGenerator caches descriptors with FIFO eviction.
 
@@ -115,7 +119,7 @@ ShapeParser also caches parse results.
 
 ---
 
-# Nested Models
+## Nested Models
 
 If a field is nested in the schema (e.g. `"recipient"` → `RecipientProfile`),
 the generator recursively builds the nested descriptor.

@@ -12,6 +12,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./models": {
+      "import": "./dist/models/index.js",
+      "types": "./dist/models/index.d.ts",
+      "default": "./dist/models/index.js"
+    },
     "./shapes": {
       "import": "./dist/shapes/index.js",
       "types": "./dist/shapes/index.d.ts",

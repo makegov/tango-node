@@ -1,6 +1,7 @@
 import { TangoClient } from "../../src/client";
 import { ShapeConfig } from "../../src/config.js";
 import { TangoNotFoundError, TangoValidationError } from "../../src/errors.js";
+import type { Contract } from "../../src/models/Contract.js";
 
 describe("TangoClient", () => {
   it("maps high-level contract filters to API query params", async () => {
@@ -199,7 +200,10 @@ describe("TangoClient", () => {
         ok: true,
         status: 200,
         async text() {
-          return JSON.stringify({ "recipient.display_name": "Acme" });
+          return JSON.stringify({
+            uei: "UEI123",
+            legal_business_name: "Acme Corp",
+          });
         },
       };
     };
@@ -211,7 +215,7 @@ describe("TangoClient", () => {
     });
 
     const entity = await client.getEntity("UEI123", { flat: true });
-    expect((entity as any).recipient.display_name).toBe("Acme");
+    expect((entity as any).legal_business_name).toBe("Acme Corp");
 
     const search = new URL(calls[0].url).searchParams;
     expect(search.get("shape")).toBe(ShapeConfig.ENTITIES_COMPREHENSIVE);
@@ -253,5 +257,38 @@ describe("TangoClient", () => {
 
     expect(params[3].get("shape")).toBe(ShapeConfig.GRANTS_MINIMAL);
     expect(params[3].get("flat_lists")).toBe("true");
+  });
+
+  it("materializes shaped contract responses via ModelFactory", async () => {
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl: async (): Promise<any> => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            count: 1,
+            results: [
+              {
+                key: "C-1",
+                piid: "PIID-1",
+                award_date: "2024-01-02",
+                total_contract_value: 123.45,
+                recipient: { display_name: "Acme" },
+              },
+            ],
+          });
+        },
+      }),
+    });
+
+    const resp = await client.listContracts({ limit: 1 });
+    const contract = resp.results[0] as Contract;
+
+    expect(contract.piid).toBe("PIID-1");
+    expect(contract.award_date).toBeInstanceOf(Date);
+    expect(contract.recipient?.display_name).toBe("Acme");
+    expect((contract as any).total_contract_value).toBe("123.45");
   });
 });

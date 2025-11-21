@@ -4,7 +4,7 @@ A complete translation of the Python SHAPES.md document for Node.
 
 ---
 
-# Why Shapes?
+## Why Shapes?
 
 Tango resources can have hundreds of fields. Shapes let you request:
 
@@ -16,7 +16,7 @@ Tango resources can have hundreds of fields. Shapes let you request:
 
 ---
 
-# Shape Grammar
+## Shape Grammar
 
 ```
 shape       := field_list
@@ -30,33 +30,33 @@ identifier  := [a-zA-Z_][a-zA-Z0-9_]*
 
 ---
 
-# Examples
+## Examples
 
-## Simple
+### Simple
 
 ```ts
 shape: "key,piid,award_date";
 ```
 
-## Nested
+### Nested
 
 ```ts
 shape: "recipient(display_name,uei)";
 ```
 
-## Aliases
+### Aliases
 
 ```ts
 shape: "recipient::vendor(display_name)";
 ```
 
-## Wildcard
+### Wildcard
 
 ```ts
 shape: "*";
 ```
 
-## Wildcard nested
+### Wildcard nested
 
 ```ts
 shape: "recipient(*)";
@@ -64,7 +64,7 @@ shape: "recipient(*)";
 
 ---
 
-# Flat Responses
+## Flat Responses
 
 ```ts
 shape: ShapeConfig.CONTRACTS_MINIMAL,
@@ -73,13 +73,13 @@ flat: true
 
 The Tango API returns dotted keys; the SDK unflattens them:
 
-```
+```ts
 recipient.display_name → recipient.display_name
 ```
 
 ---
 
-# Validation
+## Validation
 
 ShapeParser enforces syntax.
 
@@ -87,7 +87,7 @@ TypeGenerator enforces semantic model rules (existence of fields, nested models)
 
 ---
 
-# Performance Tips
+## Performance Tips
 
 - Use minimal shapes in production.
 - Avoid full-wildcard unless you need all fields.

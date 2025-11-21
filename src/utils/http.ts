@@ -1,11 +1,4 @@
-import {
-  TangoAPIError,
-  TangoAuthError,
-  TangoNotFoundError,
-  TangoRateLimitError,
-  TangoTimeoutError,
-  TangoValidationError,
-} from "../errors.js";
+import { TangoAPIError, TangoAuthError, TangoNotFoundError, TangoRateLimitError, TangoTimeoutError, TangoValidationError } from "../errors.js";
 import { DEFAULT_BASE_URL } from "../config.js";
 
 export interface HttpClientOptions {
@@ -157,11 +150,7 @@ export class HttpClient {
 
       if (data && typeof data === "object") {
         const record = data as Record<string, unknown>;
-        let detail =
-          (record.detail as string | undefined) ??
-          (record.message as string | undefined) ??
-          (record.error as string | undefined) ??
-          null;
+        let detail = (record.detail as string | undefined) ?? (record.message as string | undefined) ?? (record.error as string | undefined) ?? null;
 
         if (!detail) {
           const keys = Object.keys(record);

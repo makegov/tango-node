@@ -9,15 +9,17 @@ type system.
 
 ```ts
 import { TangoClient, ShapeConfig } from "@makegov/tango-node";
+// Models (optional)
+import type { Contract } from "@makegov/tango-node/models";
 ```
 
 All methods are async and return Promises.
 
 ---
 
-# Agencies
+## Agencies
 
-## `listAgencies(options?)`
+### `listAgencies(options?)`
 
 List federal departments and subagencies.
 
@@ -25,20 +27,20 @@ List federal departments and subagencies.
 const resp = await client.listAgencies({ page: 1, limit: 25 });
 ```
 
-### Parameters
+#### Parameters
 
 | Name    | Type     | Description                                 |
 | ------- | -------- | ------------------------------------------- |
 | `page`  | `number` | Page number (default 1).                    |
 | `limit` | `number` | Max results per page (default 25, max 100). |
 
-### Returns
+#### Returns
 
 `PaginatedResponse<AgencyLike>`
 
 ---
 
-## `getAgency(code)`
+### `getAgency(code)`
 
 Fetch a single agency by its code.
 
@@ -46,13 +48,13 @@ Fetch a single agency by its code.
 const agency = await client.getAgency("2000");
 ```
 
-Returns a plain object containing the full agency record as defined by the schema.
+Returns a shaped Agency object. Responses are materialized via the dynamic model pipeline (dates parsed, nested objects built).
 
 ---
 
-# Business Types
+## Business Types
 
-## `listBusinessTypes(options?)`
+### `listBusinessTypes(options?)`
 
 Lists SBA/USASpending business type entries.
 
@@ -62,9 +64,9 @@ const types = await client.listBusinessTypes();
 
 ---
 
-# Contracts
+## Contracts
 
-## `listContracts(options)`
+### `listContracts(options)`
 
 Search and list contract records.
 
@@ -77,7 +79,7 @@ const resp = await client.listContracts({
 });
 ```
 
-### Search / Filter Parameters
+#### Search / Filter Parameters
 
 These mirror the Python SDK:
 
@@ -107,17 +109,15 @@ page: number,
 limit: number
 ```
 
-### Returns
+#### Returns
 
-`PaginatedResponse<ContractShaped>`
-
-Where ContractShaped depends on the shape string used.
+`PaginatedResponse<Contract>` materialized according to the requested shape. Date/datetime fields are parsed, decimals normalized to strings, nested recipients, agencies, and locations are objects.
 
 ---
 
-# Entities
+## Entities
 
-## `listEntities(options)`
+### `listEntities(options)`
 
 ```ts
 const resp = await client.listEntities({
@@ -131,43 +131,43 @@ Filters:
 - `search`
 - any field names supported by the API
 
-## `getEntity(uei, options?)`
+### `getEntity(uei, options?)`
 
 Fetch a single entity by UEI or CAGE.
 
-Returns a shaped entity object.
+Returns a shaped entity object with nested addresses/fields based on the shape.
 
 ---
 
-# Forecasts
+## Forecasts
 
-## `listForecasts(options)`
+### `listForecasts(options)`
 
 Forecast search, with optional shaping.
 
 ---
 
-# Opportunities
+## Opportunities
 
-## `listOpportunities(options)`
+### `listOpportunities(options)`
 
 Search SAM.gov opportunities with shaping.
 
 ---
 
-# Notices
+## Notices
 
-## `listNotices(options)`
-
----
-
-# Grants
-
-## `listGrants(options)`
+### `listNotices(options)`
 
 ---
 
-# Error Types
+## Grants
+
+### `listGrants(options)`
+
+---
+
+## Error Types
 
 All thrown by async methods:
 
@@ -184,7 +184,7 @@ All thrown by async methods:
 
 ---
 
-# Pagination
+## Pagination
 
 All list endpoints return:
 

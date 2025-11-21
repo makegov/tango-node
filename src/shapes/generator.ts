@@ -123,9 +123,7 @@ export class TypeGenerator {
           : this.inferNestedModelName(fieldSchema);
 
       if (!nestedModelName) {
-        throw new ShapeValidationError(
-          `Field "${requestedName}" on model "${fieldSchema.name}" does not support nested fields.`,
-        );
+        throw new ShapeValidationError(`Field "${requestedName}" on model "${fieldSchema.name}" does not support nested fields.`);
       }
 
       const nestedShapeFields = this.normalizeNestedShapeFields(spec.nestedFields);

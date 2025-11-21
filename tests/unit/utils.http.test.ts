@@ -1,12 +1,5 @@
 import { HttpClient } from "../../src/utils/http.js";
-import {
-  TangoAPIError,
-  TangoAuthError,
-  TangoNotFoundError,
-  TangoRateLimitError,
-  TangoTimeoutError,
-  TangoValidationError,
-} from "../../src/errors.js";
+import { TangoAPIError, TangoAuthError, TangoNotFoundError, TangoRateLimitError, TangoTimeoutError, TangoValidationError } from "../../src/errors.js";
 
 describe("HttpClient", () => {
   it("builds URLs with query parameters and passes headers", async () => {
@@ -76,17 +69,11 @@ describe("HttpClient", () => {
 
     await expect(makeClient(401, { detail: "nope" }).get("/api/contracts/")).rejects.toBeInstanceOf(TangoAuthError);
 
-    await expect(makeClient(404, { detail: "missing" }).get("/api/contracts/")).rejects.toBeInstanceOf(
-      TangoNotFoundError,
-    );
+    await expect(makeClient(404, { detail: "missing" }).get("/api/contracts/")).rejects.toBeInstanceOf(TangoNotFoundError);
 
-    await expect(makeClient(429, { detail: "slow down" }).get("/api/contracts/")).rejects.toBeInstanceOf(
-      TangoRateLimitError,
-    );
+    await expect(makeClient(429, { detail: "slow down" }).get("/api/contracts/")).rejects.toBeInstanceOf(TangoRateLimitError);
 
-    await expect(makeClient(400, { detail: "bad" }).get("/api/contracts/")).rejects.toBeInstanceOf(
-      TangoValidationError,
-    );
+    await expect(makeClient(400, { detail: "bad" }).get("/api/contracts/")).rejects.toBeInstanceOf(TangoValidationError);
 
     await expect(makeClient(500, { detail: "oops" }).get("/api/contracts/")).rejects.toBeInstanceOf(TangoAPIError);
   });

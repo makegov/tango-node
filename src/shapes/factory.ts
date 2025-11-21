@@ -43,9 +43,7 @@ export class ModelFactory {
 
   private createOneFromDescriptor(model: GeneratedModel, raw: unknown, context: string): AnyRecord {
     if (raw === null || raw === undefined || typeof raw !== "object" || Array.isArray(raw)) {
-      throw new ModelInstantiationError(
-        `Expected object for model "${model.modelName}" at ${context}, got ${typeof raw}`,
-      );
+      throw new ModelInstantiationError(`Expected object for model "${model.modelName}" at ${context}, got ${typeof raw}`);
     }
 
     const src = raw as AnyRecord;
@@ -95,9 +93,7 @@ export class ModelFactory {
         if (!Array.isArray(rawValue)) {
           return [];
         }
-        return (rawValue as unknown[]).map((item, index) =>
-          this.createOneFromDescriptor(nestedModel, item, `${context}[${index}]`),
-        );
+        return (rawValue as unknown[]).map((item, index) => this.createOneFromDescriptor(nestedModel, item, `${context}[${index}]`));
       }
 
       if (rawValue === null || rawValue === undefined) {
