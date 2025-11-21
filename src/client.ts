@@ -403,10 +403,9 @@ export class TangoClient {
     return paginated;
   }
 
-  private parseShape(shape: string | null | undefined, defaultShape: string | null, flat: boolean, flatLists: boolean): ShapeSpec | null {
-    const shapeToUse = shape ?? defaultShape;
-    if (!shapeToUse) return null;
-    return this.shapeParser.parseWithFlags(shapeToUse, flat, flatLists);
+  private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {
+    if (!shape) return null;
+    return this.shapeParser.parseWithFlags(shape, flat, flatLists);
   }
 
   private materializeList(baseModel: string, shapeSpec: ShapeSpec | null, rawItems: AnyRecord[], flat: boolean): AnyRecord[] {
