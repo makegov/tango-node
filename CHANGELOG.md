@@ -10,6 +10,6 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Basic project scaffolding for client, models, and shapes.
 - ESM + TypeScript build configuration.
 
-## [0.1.2] - 2025-11-21
+## [0.1.4] - 2025-11-21
 
 - Added tests and cleaned up formatting and structure of SDK.
