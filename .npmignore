@@ -11,3 +11,6 @@ scripts/
 
 # Keep dist (build output)
 src/
+
+# Other
+ROADMAP.md
