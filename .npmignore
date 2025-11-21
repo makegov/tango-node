@@ -1,0 +1,13 @@
+# Do not publish dev artifacts
+node_modules/
+coverage/
+tests/
+scripts/
+.github/
+.vscode/
+.idea/
+.env
+.env.*
+
+# Keep dist (build output)
+src/

@@ -1,0 +1,65 @@
+{
+  "name": "@makegov/tango-node",
+  "version": "0.1.0",
+  "description": "Official Node.js SDK for the Tango API \u2013 dynamic response shaping, typed models, and full endpoint coverage.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./shapes": {
+      "import": "./dist/shapes/index.js",
+      "types": "./dist/shapes/index.d.ts",
+      "default": "./dist/shapes/index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run test && npm run build"
+  },
+  "keywords": [
+    "tango",
+    "makegov",
+    "federal-contracts",
+    "procurement",
+    "grants",
+    "sdk",
+    "api-client",
+    "govtech"
+  ],
+  "author": "MakeGov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/makegov/tango-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/makegov/tango-node/issues"
+  },
+  "homepage": "https://github.com/makegov/tango-node#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {}
+}
