@@ -1,7 +1,7 @@
 {
   "name": "@makegov/tango-node",
   "version": "0.1.0",
-  "description": "Official Node.js SDK for the Tango API \u2013 dynamic response shaping, typed models, and full endpoint coverage.",
+  "description": "Official Node.js SDK for the Tango API – dynamic response shaping, typed models, and full endpoint coverage.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

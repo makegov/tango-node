@@ -4,21 +4,21 @@ import type { FieldSchema, FieldSchemaMap, ExplicitSchemas } from "./schemaTypes
 // It provides explicit schema information for all resource types.
 
 export const OFFICE_SCHEMA: FieldSchemaMap = {
-  "agency": {
+  agency: {
     name: "agency",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "code": {
+  code: {
     name: "code",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "name": {
+  name: {
     name: "name",
     type: "str",
     isOptional: true,
@@ -28,42 +28,42 @@ export const OFFICE_SCHEMA: FieldSchemaMap = {
 };
 
 export const LOCATION_SCHEMA: FieldSchemaMap = {
-  "city_name": {
+  city_name: {
     name: "city_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "country_code": {
+  country_code: {
     name: "country_code",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "country_name": {
+  country_name: {
     name: "country_name",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "state_code": {
+  state_code: {
     name: "state_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "state_name": {
+  state_name: {
     name: "state_name",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "zip_code": {
+  zip_code: {
     name: "zip_code",
     type: "str",
     isOptional: true,
@@ -73,42 +73,42 @@ export const LOCATION_SCHEMA: FieldSchemaMap = {
 };
 
 export const PLACE_OF_PERFORMANCE_SCHEMA: FieldSchemaMap = {
-  "city_name": {
+  city_name: {
     name: "city_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "state_code": {
+  state_code: {
     name: "state_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "state_name": {
+  state_name: {
     name: "state_name",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "country_code": {
+  country_code: {
     name: "country_code",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "country_name": {
+  country_name: {
     name: "country_name",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "zip_code": {
+  zip_code: {
     name: "zip_code",
     type: "str",
     isOptional: true,
@@ -118,49 +118,49 @@ export const PLACE_OF_PERFORMANCE_SCHEMA: FieldSchemaMap = {
 };
 
 export const COMPETITION_SCHEMA: FieldSchemaMap = {
-  "contract_type": {
+  contract_type: {
     name: "contract_type",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "extent_competed": {
+  extent_competed: {
     name: "extent_competed",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "number_of_offers_received": {
+  number_of_offers_received: {
     name: "number_of_offers_received",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "other_than_full_and_open_competition": {
+  other_than_full_and_open_competition: {
     name: "other_than_full_and_open_competition",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "solicitation_date": {
+  solicitation_date: {
     name: "solicitation_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "solicitation_identifier": {
+  solicitation_identifier: {
     name: "solicitation_identifier",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "solicitation_procedures": {
+  solicitation_procedures: {
     name: "solicitation_procedures",
     type: "dict",
     isOptional: false,
@@ -170,28 +170,28 @@ export const COMPETITION_SCHEMA: FieldSchemaMap = {
 };
 
 export const PARENT_AWARD_SCHEMA: FieldSchemaMap = {
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "idv_type": {
+  idv_type: {
     name: "idv_type",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "key": {
+  key: {
     name: "key",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "piid": {
+  piid: {
     name: "piid",
     type: "str",
     isOptional: true,
@@ -201,56 +201,56 @@ export const PARENT_AWARD_SCHEMA: FieldSchemaMap = {
 };
 
 export const LEGISLATIVE_MANDATES_SCHEMA: FieldSchemaMap = {
-  "clinger_cohen_act_planning": {
+  clinger_cohen_act_planning: {
     name: "clinger_cohen_act_planning",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "construction_wage_rate_requirements": {
+  construction_wage_rate_requirements: {
     name: "construction_wage_rate_requirements",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "employment_eligibility_verification": {
+  employment_eligibility_verification: {
     name: "employment_eligibility_verification",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "interagency_contracting_authority": {
+  interagency_contracting_authority: {
     name: "interagency_contracting_authority",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "labor_standards": {
+  labor_standards: {
     name: "labor_standards",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "materials_supplies_articles_equipment": {
+  materials_supplies_articles_equipment: {
     name: "materials_supplies_articles_equipment",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "other_statutory_authority": {
+  other_statutory_authority: {
     name: "other_statutory_authority",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "service_contract_inventory": {
+  service_contract_inventory: {
     name: "service_contract_inventory",
     type: "dict",
     isOptional: false,
@@ -260,14 +260,14 @@ export const LEGISLATIVE_MANDATES_SCHEMA: FieldSchemaMap = {
 };
 
 export const SUBAWARDS_SUMMARY_SCHEMA: FieldSchemaMap = {
-  "count": {
+  count: {
     name: "count",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "total_amount": {
+  total_amount: {
     name: "total_amount",
     type: "Decimal",
     isOptional: false,
@@ -277,35 +277,35 @@ export const SUBAWARDS_SUMMARY_SCHEMA: FieldSchemaMap = {
 };
 
 export const TRANSACTION_SCHEMA: FieldSchemaMap = {
-  "action_type": {
+  action_type: {
     name: "action_type",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "modification_number": {
+  modification_number: {
     name: "modification_number",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "obligated": {
+  obligated: {
     name: "obligated",
     type: "Decimal",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "transaction_date": {
+  transaction_date: {
     name: "transaction_date",
     type: "date",
     isOptional: false,
@@ -315,21 +315,21 @@ export const TRANSACTION_SCHEMA: FieldSchemaMap = {
 };
 
 export const DEPARTMENT_SCHEMA: FieldSchemaMap = {
-  "abbreviation": {
+  abbreviation: {
     name: "abbreviation",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "code": {
+  code: {
     name: "code",
     type: "int",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "name": {
+  name: {
     name: "name",
     type: "str",
     isOptional: false,
@@ -339,35 +339,35 @@ export const DEPARTMENT_SCHEMA: FieldSchemaMap = {
 };
 
 export const CONTACT_SCHEMA: FieldSchemaMap = {
-  "email": {
+  email: {
     name: "email",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "fax": {
+  fax: {
     name: "fax",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "full_name": {
+  full_name: {
     name: "full_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "phone": {
+  phone: {
     name: "phone",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "title": {
+  title: {
     name: "title",
     type: "str",
     isOptional: true,
@@ -377,56 +377,56 @@ export const CONTACT_SCHEMA: FieldSchemaMap = {
 };
 
 export const RECIPIENT_PROFILE_SCHEMA: FieldSchemaMap = {
-  "uei": {
+  uei: {
     name: "uei",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "cage_code": {
+  cage_code: {
     name: "cage_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "display_name": {
+  display_name: {
     name: "display_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "legal_business_name": {
+  legal_business_name: {
     name: "legal_business_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "parent_uei": {
+  parent_uei: {
     name: "parent_uei",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "parent_name": {
+  parent_name: {
     name: "parent_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "business_types": {
+  business_types: {
     name: "business_types",
     type: "str",
     isOptional: true,
     isList: true,
     nestedModel: null,
   },
-  "location": {
+  location: {
     name: "location",
     type: "dict",
     isOptional: true,
@@ -436,392 +436,392 @@ export const RECIPIENT_PROFILE_SCHEMA: FieldSchemaMap = {
 };
 
 export const CONTRACT_SCHEMA: FieldSchemaMap = {
-  "award_date": {
+  award_date: {
     name: "award_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "awarding_office": {
+  awarding_office: {
     name: "awarding_office",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "Office",
   },
-  "base_and_exercised_options_value": {
+  base_and_exercised_options_value: {
     name: "base_and_exercised_options_value",
     type: "Decimal",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "commercial_item_acquisition_procedures": {
+  commercial_item_acquisition_procedures: {
     name: "commercial_item_acquisition_procedures",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "competition": {
+  competition: {
     name: "competition",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "ContractOrIDVCompetition",
   },
-  "consolidated_contract": {
+  consolidated_contract: {
     name: "consolidated_contract",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "contingency_humanitarian_or_peacekeeping_operation": {
+  contingency_humanitarian_or_peacekeeping_operation: {
     name: "contingency_humanitarian_or_peacekeeping_operation",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "contract_bundling": {
+  contract_bundling: {
     name: "contract_bundling",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "contract_financing": {
+  contract_financing: {
     name: "contract_financing",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "cost_accounting_standards_clause": {
+  cost_accounting_standards_clause: {
     name: "cost_accounting_standards_clause",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "cost_or_pricing_data": {
+  cost_or_pricing_data: {
     name: "cost_or_pricing_data",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "dod_acquisition_program": {
+  dod_acquisition_program: {
     name: "dod_acquisition_program",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "dod_transaction_number": {
+  dod_transaction_number: {
     name: "dod_transaction_number",
     type: "int",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "domestic_or_foreign_entity": {
+  domestic_or_foreign_entity: {
     name: "domestic_or_foreign_entity",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "epa_designated_product": {
+  epa_designated_product: {
     name: "epa_designated_product",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "evaluated_preference": {
+  evaluated_preference: {
     name: "evaluated_preference",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "fair_opportunity_limited_sources": {
+  fair_opportunity_limited_sources: {
     name: "fair_opportunity_limited_sources",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "fed_biz_opps": {
+  fed_biz_opps: {
     name: "fed_biz_opps",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "fiscal_year": {
+  fiscal_year: {
     name: "fiscal_year",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "foreign_funding": {
+  foreign_funding: {
     name: "foreign_funding",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "funding_office": {
+  funding_office: {
     name: "funding_office",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "Office",
   },
-  "government_furnished_property": {
+  government_furnished_property: {
     name: "government_furnished_property",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "information_technology_commercial_item_category": {
+  information_technology_commercial_item_category: {
     name: "information_technology_commercial_item_category",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "inherently_governmental_functions": {
+  inherently_governmental_functions: {
     name: "inherently_governmental_functions",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "key": {
+  key: {
     name: "key",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "legislative_mandates": {
+  legislative_mandates: {
     name: "legislative_mandates",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "LegislativeMandates",
   },
-  "local_area_set_aside": {
+  local_area_set_aside: {
     name: "local_area_set_aside",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "major_program": {
+  major_program: {
     name: "major_program",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "naics_code": {
+  naics_code: {
     name: "naics_code",
     type: "int",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "number_of_actions": {
+  number_of_actions: {
     name: "number_of_actions",
     type: "int",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "number_of_offers_source": {
+  number_of_offers_source: {
     name: "number_of_offers_source",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "obligated": {
+  obligated: {
     name: "obligated",
     type: "Decimal",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "parent_award": {
+  parent_award: {
     name: "parent_award",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "ParentAward",
   },
-  "performance_based_service_acquisition": {
+  performance_based_service_acquisition: {
     name: "performance_based_service_acquisition",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "piid": {
+  piid: {
     name: "piid",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "place_of_manufacture": {
+  place_of_manufacture: {
     name: "place_of_manufacture",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "place_of_performance": {
+  place_of_performance: {
     name: "place_of_performance",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "PlaceOfPerformance",
   },
-  "price_evaluation_percent_difference": {
+  price_evaluation_percent_difference: {
     name: "price_evaluation_percent_difference",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "psc_code": {
+  psc_code: {
     name: "psc_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "purchase_card_as_payment_method": {
+  purchase_card_as_payment_method: {
     name: "purchase_card_as_payment_method",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "recipient": {
+  recipient: {
     name: "recipient",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "RecipientProfile",
   },
-  "recovered_materials_sustainability": {
+  recovered_materials_sustainability: {
     name: "recovered_materials_sustainability",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "research": {
+  research: {
     name: "research",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "sam_exception": {
+  sam_exception: {
     name: "sam_exception",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "set_aside": {
+  set_aside: {
     name: "set_aside",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "simplified_procedures_for_certain_commercial_items": {
+  simplified_procedures_for_certain_commercial_items: {
     name: "simplified_procedures_for_certain_commercial_items",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "small_business_competitiveness_demonstration_program": {
+  small_business_competitiveness_demonstration_program: {
     name: "small_business_competitiveness_demonstration_program",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "solicitation_identifier": {
+  solicitation_identifier: {
     name: "solicitation_identifier",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "subawards_summary": {
+  subawards_summary: {
     name: "subawards_summary",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "SubawardsSummary",
   },
-  "subcontracting_plan": {
+  subcontracting_plan: {
     name: "subcontracting_plan",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "total_contract_value": {
+  total_contract_value: {
     name: "total_contract_value",
     type: "Decimal",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "tradeoff_process": {
+  tradeoff_process: {
     name: "tradeoff_process",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "transactions": {
+  transactions: {
     name: "transactions",
     type: "dict",
     isOptional: false,
     isList: true,
     nestedModel: "AwardTransaction",
   },
-  "type_of_set_aside_source": {
+  type_of_set_aside_source: {
     name: "type_of_set_aside_source",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "undefinitized_action": {
+  undefinitized_action: {
     name: "undefinitized_action",
     type: "str",
     isOptional: true,
@@ -831,378 +831,378 @@ export const CONTRACT_SCHEMA: FieldSchemaMap = {
 };
 
 export const ENTITY_SCHEMA: FieldSchemaMap = {
-  "business_types": {
+  business_types: {
     name: "business_types",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "cage_code": {
+  cage_code: {
     name: "cage_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "capabilities": {
+  capabilities: {
     name: "capabilities",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "congressional_district": {
+  congressional_district: {
     name: "congressional_district",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "country_of_incorporation_code": {
+  country_of_incorporation_code: {
     name: "country_of_incorporation_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "country_of_incorporation_desc": {
+  country_of_incorporation_desc: {
     name: "country_of_incorporation_desc",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "dba_name": {
+  dba_name: {
     name: "dba_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "dodaac": {
+  dodaac: {
     name: "dodaac",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "email_address": {
+  email_address: {
     name: "email_address",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_division_name": {
+  entity_division_name: {
     name: "entity_division_name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_division_number": {
+  entity_division_number: {
     name: "entity_division_number",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_start_date": {
+  entity_start_date: {
     name: "entity_start_date",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_structure_code": {
+  entity_structure_code: {
     name: "entity_structure_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_structure_desc": {
+  entity_structure_desc: {
     name: "entity_structure_desc",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_type_code": {
+  entity_type_code: {
     name: "entity_type_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_type_desc": {
+  entity_type_desc: {
     name: "entity_type_desc",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "entity_url": {
+  entity_url: {
     name: "entity_url",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "evs_source": {
+  evs_source: {
     name: "evs_source",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "exclusion_status_flag": {
+  exclusion_status_flag: {
     name: "exclusion_status_flag",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "exclusion_url": {
+  exclusion_url: {
     name: "exclusion_url",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "federal_obligations": {
+  federal_obligations: {
     name: "federal_obligations",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "fiscal_year_end_close_date": {
+  fiscal_year_end_close_date: {
     name: "fiscal_year_end_close_date",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "highest_owner": {
+  highest_owner: {
     name: "highest_owner",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "immediate_owner": {
+  immediate_owner: {
     name: "immediate_owner",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "keywords": {
+  keywords: {
     name: "keywords",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "last_update_date": {
+  last_update_date: {
     name: "last_update_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "legal_business_name": {
+  legal_business_name: {
     name: "legal_business_name",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "mailing_address": {
+  mailing_address: {
     name: "mailing_address",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "naics_codes": {
+  naics_codes: {
     name: "naics_codes",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "organization_structure_code": {
+  organization_structure_code: {
     name: "organization_structure_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "organization_structure_desc": {
+  organization_structure_desc: {
     name: "organization_structure_desc",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "physical_address": {
+  physical_address: {
     name: "physical_address",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "primary_naics": {
+  primary_naics: {
     name: "primary_naics",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "profit_structure_code": {
+  profit_structure_code: {
     name: "profit_structure_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "profit_structure_desc": {
+  profit_structure_desc: {
     name: "profit_structure_desc",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "psc_codes": {
+  psc_codes: {
     name: "psc_codes",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "public_display_flag": {
+  public_display_flag: {
     name: "public_display_flag",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "purpose_of_registration_code": {
+  purpose_of_registration_code: {
     name: "purpose_of_registration_code",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "purpose_of_registration_desc": {
+  purpose_of_registration_desc: {
     name: "purpose_of_registration_desc",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "registered": {
+  registered: {
     name: "registered",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "registration_status": {
+  registration_status: {
     name: "registration_status",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "relationships": {
+  relationships: {
     name: "relationships",
     type: "str",
     isOptional: false,
     isList: true,
     nestedModel: null,
   },
-  "sam_activation_date": {
+  sam_activation_date: {
     name: "sam_activation_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "sam_expiration_date": {
+  sam_expiration_date: {
     name: "sam_expiration_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "sam_registration_date": {
+  sam_registration_date: {
     name: "sam_registration_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "sba_business_types": {
+  sba_business_types: {
     name: "sba_business_types",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "state_of_incorporation_code": {
+  state_of_incorporation_code: {
     name: "state_of_incorporation_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "state_of_incorporation_desc": {
+  state_of_incorporation_desc: {
     name: "state_of_incorporation_desc",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "submission_date": {
+  submission_date: {
     name: "submission_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "uei": {
+  uei: {
     name: "uei",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "uei_creation_date": {
+  uei_creation_date: {
     name: "uei_creation_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "uei_expiration_date": {
+  uei_expiration_date: {
     name: "uei_expiration_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "uei_status": {
+  uei_status: {
     name: "uei_status",
     type: "str",
     isOptional: true,
@@ -1212,112 +1212,112 @@ export const ENTITY_SCHEMA: FieldSchemaMap = {
 };
 
 export const FORECAST_SCHEMA: FieldSchemaMap = {
-  "agency": {
+  agency: {
     name: "agency",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "anticipated_award_date": {
+  anticipated_award_date: {
     name: "anticipated_award_date",
     type: "date",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "contract_vehicle": {
+  contract_vehicle: {
     name: "contract_vehicle",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "estimated_period": {
+  estimated_period: {
     name: "estimated_period",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "external_id": {
+  external_id: {
     name: "external_id",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "fiscal_year": {
+  fiscal_year: {
     name: "fiscal_year",
     type: "int",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "id": {
+  id: {
     name: "id",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "is_active": {
+  is_active: {
     name: "is_active",
     type: "bool",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "naics_code": {
+  naics_code: {
     name: "naics_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "place_of_performance": {
+  place_of_performance: {
     name: "place_of_performance",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "primary_contact": {
+  primary_contact: {
     name: "primary_contact",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "set_aside": {
+  set_aside: {
     name: "set_aside",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "source_system": {
+  source_system: {
     name: "source_system",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "status": {
+  status: {
     name: "status",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "title": {
+  title: {
     name: "title",
     type: "str",
     isOptional: false,
@@ -1327,133 +1327,133 @@ export const FORECAST_SCHEMA: FieldSchemaMap = {
 };
 
 export const OPPORTUNITY_SCHEMA: FieldSchemaMap = {
-  "active": {
+  active: {
     name: "active",
     type: "bool",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "attachments": {
+  attachments: {
     name: "attachments",
     type: "dict",
     isOptional: false,
     isList: true,
     nestedModel: "OpportunityAttachment",
   },
-  "award_number": {
+  award_number: {
     name: "award_number",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "first_notice_date": {
+  first_notice_date: {
     name: "first_notice_date",
     type: "datetime",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "last_notice_date": {
+  last_notice_date: {
     name: "last_notice_date",
     type: "datetime",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "meta": {
+  meta: {
     name: "meta",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "naics_code": {
+  naics_code: {
     name: "naics_code",
     type: "int",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "notice_history": {
+  notice_history: {
     name: "notice_history",
     type: "dict",
     isOptional: false,
     isList: true,
     nestedModel: "NoticeHistory",
   },
-  "office": {
+  office: {
     name: "office",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: "Office",
   },
-  "opportunity_id": {
+  opportunity_id: {
     name: "opportunity_id",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "place_of_performance": {
+  place_of_performance: {
     name: "place_of_performance",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "primary_contact": {
+  primary_contact: {
     name: "primary_contact",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: "Contact",
   },
-  "psc_code": {
+  psc_code: {
     name: "psc_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "response_deadline": {
+  response_deadline: {
     name: "response_deadline",
     type: "datetime",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "sam_url": {
+  sam_url: {
     name: "sam_url",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "set_aside": {
+  set_aside: {
     name: "set_aside",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "solicitation_number": {
+  solicitation_number: {
     name: "solicitation_number",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "title": {
+  title: {
     name: "title",
     type: "str",
     isOptional: false,
@@ -1463,105 +1463,105 @@ export const OPPORTUNITY_SCHEMA: FieldSchemaMap = {
 };
 
 export const NOTICE_SCHEMA: FieldSchemaMap = {
-  "active": {
+  active: {
     name: "active",
     type: "bool",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "attachment_count": {
+  attachment_count: {
     name: "attachment_count",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "award_number": {
+  award_number: {
     name: "award_number",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "last_updated": {
+  last_updated: {
     name: "last_updated",
     type: "datetime",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "naics_code": {
+  naics_code: {
     name: "naics_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "notice_id": {
+  notice_id: {
     name: "notice_id",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "opportunity": {
+  opportunity: {
     name: "opportunity",
     type: "dict",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "posted_date": {
+  posted_date: {
     name: "posted_date",
     type: "datetime",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "psc_code": {
+  psc_code: {
     name: "psc_code",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "response_deadline": {
+  response_deadline: {
     name: "response_deadline",
     type: "datetime",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "sam_url": {
+  sam_url: {
     name: "sam_url",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "set_aside": {
+  set_aside: {
     name: "set_aside",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "solicitation_number": {
+  solicitation_number: {
     name: "solicitation_number",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "title": {
+  title: {
     name: "title",
     type: "str",
     isOptional: false,
@@ -1571,28 +1571,28 @@ export const NOTICE_SCHEMA: FieldSchemaMap = {
 };
 
 export const AGENCY_SCHEMA: FieldSchemaMap = {
-  "abbreviation": {
+  abbreviation: {
     name: "abbreviation",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "code": {
+  code: {
     name: "code",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "department": {
+  department: {
     name: "department",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "name": {
+  name: {
     name: "name",
     type: "str",
     isOptional: false,
@@ -1602,14 +1602,14 @@ export const AGENCY_SCHEMA: FieldSchemaMap = {
 };
 
 export const CFDA_NUMBER_SCHEMA: FieldSchemaMap = {
-  "number": {
+  number: {
     name: "number",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "title": {
+  title: {
     name: "title",
     type: "str",
     isOptional: true,
@@ -1619,14 +1619,14 @@ export const CFDA_NUMBER_SCHEMA: FieldSchemaMap = {
 };
 
 export const CODE_DESCRIPTION_SCHEMA: FieldSchemaMap = {
-  "code": {
+  code: {
     name: "code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
@@ -1636,49 +1636,49 @@ export const CODE_DESCRIPTION_SCHEMA: FieldSchemaMap = {
 };
 
 export const GRANT_ATTACHMENT_SCHEMA: FieldSchemaMap = {
-  "attachment_id": {
+  attachment_id: {
     name: "attachment_id",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "mime_type": {
+  mime_type: {
     name: "mime_type",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "name": {
+  name: {
     name: "name",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "posted_date": {
+  posted_date: {
     name: "posted_date",
     type: "datetime",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "resource_id": {
+  resource_id: {
     name: "resource_id",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "type": {
+  type: {
     name: "type",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "url": {
+  url: {
     name: "url",
     type: "str",
     isOptional: true,
@@ -1688,126 +1688,126 @@ export const GRANT_ATTACHMENT_SCHEMA: FieldSchemaMap = {
 };
 
 export const GRANT_SCHEMA: FieldSchemaMap = {
-  "agency_code": {
+  agency_code: {
     name: "agency_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "applicant_eligibility_description": {
+  applicant_eligibility_description: {
     name: "applicant_eligibility_description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "description": {
+  description: {
     name: "description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "funding_activity_category_description": {
+  funding_activity_category_description: {
     name: "funding_activity_category_description",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "grant_id": {
+  grant_id: {
     name: "grant_id",
     type: "int",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "grantor_contact": {
+  grantor_contact: {
     name: "grantor_contact",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: null,
   },
-  "last_updated": {
+  last_updated: {
     name: "last_updated",
     type: "datetime",
     isOptional: true,
     isList: false,
     nestedModel: null,
   },
-  "opportunity_number": {
+  opportunity_number: {
     name: "opportunity_number",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "status": {
+  status: {
     name: "status",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: "CodeDescription",
   },
-  "title": {
+  title: {
     name: "title",
     type: "str",
     isOptional: false,
     isList: false,
     nestedModel: null,
   },
-  "cfda_numbers": {
+  cfda_numbers: {
     name: "cfda_numbers",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: "CFDANumber",
   },
-  "applicant_types": {
+  applicant_types: {
     name: "applicant_types",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: "CodeDescription",
   },
-  "category": {
+  category: {
     name: "category",
     type: "dict",
     isOptional: true,
     isList: false,
     nestedModel: "CodeDescription",
   },
-  "funding_categories": {
+  funding_categories: {
     name: "funding_categories",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: "CodeDescription",
   },
-  "funding_details": {
+  funding_details: {
     name: "funding_details",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: null,
   },
-  "funding_instruments": {
+  funding_instruments: {
     name: "funding_instruments",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: "CodeDescription",
   },
-  "important_dates": {
+  important_dates: {
     name: "important_dates",
     type: "dict",
     isOptional: true,
     isList: true,
     nestedModel: null,
   },
-  "attachments": {
+  attachments: {
     name: "attachments",
     type: "dict",
     isOptional: true,
@@ -1817,25 +1817,25 @@ export const GRANT_SCHEMA: FieldSchemaMap = {
 };
 
 export const EXPLICIT_SCHEMAS: ExplicitSchemas = {
-  "Office": OFFICE_SCHEMA,
-  "Location": LOCATION_SCHEMA,
-  "PlaceOfPerformance": PLACE_OF_PERFORMANCE_SCHEMA,
-  "Competition": COMPETITION_SCHEMA,
-  "ParentAward": PARENT_AWARD_SCHEMA,
-  "LegislativeMandates": LEGISLATIVE_MANDATES_SCHEMA,
-  "SubawardsSummary": SUBAWARDS_SUMMARY_SCHEMA,
-  "Transaction": TRANSACTION_SCHEMA,
-  "Department": DEPARTMENT_SCHEMA,
-  "Contact": CONTACT_SCHEMA,
-  "RecipientProfile": RECIPIENT_PROFILE_SCHEMA,
-  "Contract": CONTRACT_SCHEMA,
-  "Entity": ENTITY_SCHEMA,
-  "Forecast": FORECAST_SCHEMA,
-  "Opportunity": OPPORTUNITY_SCHEMA,
-  "Notice": NOTICE_SCHEMA,
-  "Agency": AGENCY_SCHEMA,
-  "Grant": GRANT_SCHEMA,
-  "CFDANumber": CFDA_NUMBER_SCHEMA,
-  "CodeDescription": CODE_DESCRIPTION_SCHEMA,
-  "GrantAttachment": GRANT_ATTACHMENT_SCHEMA,
+  Office: OFFICE_SCHEMA,
+  Location: LOCATION_SCHEMA,
+  PlaceOfPerformance: PLACE_OF_PERFORMANCE_SCHEMA,
+  Competition: COMPETITION_SCHEMA,
+  ParentAward: PARENT_AWARD_SCHEMA,
+  LegislativeMandates: LEGISLATIVE_MANDATES_SCHEMA,
+  SubawardsSummary: SUBAWARDS_SUMMARY_SCHEMA,
+  Transaction: TRANSACTION_SCHEMA,
+  Department: DEPARTMENT_SCHEMA,
+  Contact: CONTACT_SCHEMA,
+  RecipientProfile: RECIPIENT_PROFILE_SCHEMA,
+  Contract: CONTRACT_SCHEMA,
+  Entity: ENTITY_SCHEMA,
+  Forecast: FORECAST_SCHEMA,
+  Opportunity: OPPORTUNITY_SCHEMA,
+  Notice: NOTICE_SCHEMA,
+  Agency: AGENCY_SCHEMA,
+  Grant: GRANT_SCHEMA,
+  CFDANumber: CFDA_NUMBER_SCHEMA,
+  CodeDescription: CODE_DESCRIPTION_SCHEMA,
+  GrantAttachment: GRANT_ATTACHMENT_SCHEMA,
 };

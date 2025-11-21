@@ -33,7 +33,10 @@ export class ModelFactory {
     shapeSpec: ShapeSpec,
     rawItems: unknown[],
   ): AnyRecord[] {
-    const descriptor = this.typeGenerator.generateModelDescriptor(baseModelName, shapeSpec);
+    const descriptor = this.typeGenerator.generateModelDescriptor(
+      baseModelName,
+      shapeSpec,
+    );
     return rawItems.map((item, index) =>
       this.createOneFromDescriptor(descriptor, item, `index ${index}`),
     );
@@ -42,12 +45,11 @@ export class ModelFactory {
   /**
    * Create a single shaped object from a detail response.
    */
-  createOne(
-    baseModelName: string,
-    shapeSpec: ShapeSpec,
-    rawItem: unknown,
-  ): AnyRecord {
-    const descriptor = this.typeGenerator.generateModelDescriptor(baseModelName, shapeSpec);
+  createOne(baseModelName: string, shapeSpec: ShapeSpec, rawItem: unknown): AnyRecord {
+    const descriptor = this.typeGenerator.generateModelDescriptor(
+      baseModelName,
+      shapeSpec,
+    );
     return this.createOneFromDescriptor(descriptor, rawItem, "root");
   }
 
@@ -56,7 +58,12 @@ export class ModelFactory {
     raw: unknown,
     context: string,
   ): AnyRecord {
-    if (raw === null || raw === undefined || typeof raw !== "object" || Array.isArray(raw)) {
+    if (
+      raw === null ||
+      raw === undefined ||
+      typeof raw !== "object" ||
+      Array.isArray(raw)
+    ) {
       throw new ModelInstantiationError(
         `Expected object for model "${model.modelName}" at ${context}, got ${typeof raw}`,
       );
@@ -114,11 +121,7 @@ export class ModelFactory {
           return [];
         }
         return (rawValue as unknown[]).map((item, index) =>
-          this.createOneFromDescriptor(
-            nestedModel,
-            item,
-            `${context}[${index}]`,
-          ),
+          this.createOneFromDescriptor(nestedModel, item, `${context}[${index}]`),
         );
       }
 

@@ -68,9 +68,7 @@ describe("TangoClient", () => {
     expect(parsed.searchParams.get("uei")).toBe("UEI123");
     expect(parsed.searchParams.get("set_aside")).toBe("SB");
     expect(parsed.searchParams.get("ordering")).toBe("-award_date");
-    expect(parsed.searchParams.get("shape")).toBe(
-      ShapeConfig.CONTRACTS_MINIMAL,
-    );
+    expect(parsed.searchParams.get("shape")).toBe(ShapeConfig.CONTRACTS_MINIMAL);
     expect(parsed.searchParams.get("flat")).toBe("true");
     expect(parsed.searchParams.get("limit")).toBe("5");
     expect(parsed.searchParams.get("page")).toBe("2");

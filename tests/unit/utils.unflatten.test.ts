@@ -30,7 +30,7 @@ describe("unflattenResponse", () => {
     const src = {
       "a.b.c": 1,
       "a.b.d": 2,
-      "x": 3,
+      x: 3,
     };
 
     const result = unflattenResponse(src);
@@ -48,7 +48,7 @@ describe("unflattenResponse", () => {
 
   it("handles collisions by overwriting primitives with objects", () => {
     const src = {
-      "a": 1,
+      a: 1,
       "a.b": 2,
     };
 

@@ -81,7 +81,10 @@ export class TypeGenerator {
     return model;
   }
 
-  private buildModelDescriptor(modelName: string, shapeSpec: ShapeSpec): GeneratedModel {
+  private buildModelDescriptor(
+    modelName: string,
+    shapeSpec: ShapeSpec,
+  ): GeneratedModel {
     const schema = this.schemaRegistry.getSchema(modelName);
     const fields: GeneratedField[] = [];
 

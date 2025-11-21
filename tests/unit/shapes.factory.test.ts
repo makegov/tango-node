@@ -6,7 +6,9 @@ describe("ModelFactory", () => {
   const factory = new ModelFactory();
 
   it("creates shaped Contract objects with nested recipient", () => {
-    const spec = parser.parse("key,piid,award_date,total_contract_value,recipient(display_name,uei)");
+    const spec = parser.parse(
+      "key,piid,award_date,total_contract_value,recipient(display_name,uei)",
+    );
     const raw = {
       key: "C-1",
       piid: "PIID-1",

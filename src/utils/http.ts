@@ -49,7 +49,12 @@ export class HttpClient {
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: HttpClientOptions = {}) {
-    const { baseUrl = DEFAULT_BASE_URL, apiKey = null, timeoutMs = 30000, fetchImpl } = options;
+    const {
+      baseUrl = DEFAULT_BASE_URL,
+      apiKey = null,
+      timeoutMs = 30000,
+      fetchImpl,
+    } = options;
 
     this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.apiKey = apiKey;
@@ -131,7 +136,11 @@ export class HttpClient {
     }
 
     if (res.status === 401) {
-      throw new TangoAuthError("Invalid API key or authentication required", res.status, data);
+      throw new TangoAuthError(
+        "Invalid API key or authentication required",
+        res.status,
+        data,
+      );
     }
 
     if (res.status === 404) {

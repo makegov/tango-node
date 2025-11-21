@@ -49,12 +49,7 @@ describe("Error classes", () => {
     expect(valErr).toBeInstanceOf(ShapeError);
     expect(valErr.name).toBe("ShapeValidationError");
 
-    const instErr = new ModelInstantiationError(
-      "bad model",
-      "field",
-      "str",
-      123,
-    );
+    const instErr = new ModelInstantiationError("bad model", "field", "str", 123);
     expect(instErr).toBeInstanceOf(ShapeError);
     expect(instErr.name).toBe("ModelInstantiationError");
     expect(instErr.fieldName).toBe("field");

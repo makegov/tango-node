@@ -14,10 +14,7 @@ describe("ShapeParser", () => {
     expect(spec.fields).toHaveLength(1);
     const [recipient] = spec.fields;
     expect(recipient.name).toBe("recipient");
-    expect(recipient.nestedFields?.map((f) => f.name)).toEqual([
-      "display_name",
-      "uei",
-    ]);
+    expect(recipient.nestedFields?.map((f) => f.name)).toEqual(["display_name", "uei"]);
   });
 
   it("parses aliases", () => {

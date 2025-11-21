@@ -54,9 +54,7 @@ export class ShapeParser {
 
     if (cursor < input.length) {
       const ch = input[cursor];
-      throw new ShapeParseError(
-        `Unexpected character "${ch}" at position ${cursor}`,
-      );
+      throw new ShapeParseError(`Unexpected character "${ch}" at position ${cursor}`);
     }
 
     const spec = new ShapeSpec(fields);
@@ -103,9 +101,7 @@ export class ShapeParser {
 
       if (ch === ",") {
         if (expectField) {
-          throw new ShapeParseError(
-            `Expected field before comma at position ${pos}`,
-          );
+          throw new ShapeParseError(`Expected field before comma at position ${pos}`);
         }
         expectField = true;
         pos += 1;
@@ -163,7 +159,7 @@ export class ShapeParser {
     if (input.slice(pos, pos + 2) === "::") {
       if (isWildcard) {
         throw new ShapeParseError(
-          "Wildcard fields cannot have aliases (\"*::alias\" is invalid)",
+          'Wildcard fields cannot have aliases ("*::alias" is invalid)',
         );
       }
       pos += 2;

@@ -15,28 +15,44 @@ export class TangoAPIError extends Error {
 }
 
 export class TangoAuthError extends TangoAPIError {
-  constructor(message = "Authentication error", statusCode?: number, responseData?: unknown) {
+  constructor(
+    message = "Authentication error",
+    statusCode?: number,
+    responseData?: unknown,
+  ) {
     super(message, statusCode, responseData);
     this.name = "TangoAuthError";
   }
 }
 
 export class TangoNotFoundError extends TangoAPIError {
-  constructor(message = "Resource not found", statusCode?: number, responseData?: unknown) {
+  constructor(
+    message = "Resource not found",
+    statusCode?: number,
+    responseData?: unknown,
+  ) {
     super(message, statusCode, responseData);
     this.name = "TangoNotFoundError";
   }
 }
 
 export class TangoValidationError extends TangoAPIError {
-  constructor(message = "Invalid request parameters", statusCode?: number, responseData?: unknown) {
+  constructor(
+    message = "Invalid request parameters",
+    statusCode?: number,
+    responseData?: unknown,
+  ) {
     super(message, statusCode, responseData);
     this.name = "TangoValidationError";
   }
 }
 
 export class TangoRateLimitError extends TangoAPIError {
-  constructor(message = "Rate limit exceeded", statusCode?: number, responseData?: unknown) {
+  constructor(
+    message = "Rate limit exceeded",
+    statusCode?: number,
+    responseData?: unknown,
+  ) {
     super(message, statusCode, responseData);
     this.name = "TangoRateLimitError";
   }

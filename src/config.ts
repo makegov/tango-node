@@ -16,8 +16,7 @@ export const ShapeConfig = {
     "congressional_district",
 
   // Default for listForecasts()
-  FORECASTS_MINIMAL:
-    "id,title,anticipated_award_date,fiscal_year,naics_code,status",
+  FORECASTS_MINIMAL: "id,title,anticipated_award_date,fiscal_year,naics_code,status",
 
   // Default for listOpportunities()
   OPPORTUNITIES_MINIMAL:
@@ -27,6 +26,5 @@ export const ShapeConfig = {
   NOTICES_MINIMAL: "notice_id,title,solicitation_number,posted_date",
 
   // Default for listGrants()
-  GRANTS_MINIMAL:
-    "grant_id,opportunity_number,title,status(*),agency_code",
+  GRANTS_MINIMAL: "grant_id,opportunity_number,title,status(*),agency_code",
 } as const;

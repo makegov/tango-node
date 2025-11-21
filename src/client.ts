@@ -18,8 +18,8 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
     typeof raw?.count === "number"
       ? (raw.count as number)
       : Number.isFinite(raw?.count as number)
-      ? (raw.count as number)
-      : results.length;
+        ? (raw.count as number)
+        : results.length;
 
   const next = (raw?.next ?? null) as string | null;
   const previous = (raw?.previous ?? null) as string | null;
@@ -102,7 +102,12 @@ export class TangoClient {
   private readonly http: HttpClient;
 
   constructor(options: TangoClientOptions = {}) {
-    const { apiKey, baseUrl = DEFAULT_BASE_URL, timeoutMs = 30000, fetchImpl } = options;
+    const {
+      apiKey,
+      baseUrl = DEFAULT_BASE_URL,
+      timeoutMs = 30000,
+      fetchImpl,
+    } = options;
 
     let envKey: string | null = null;
     try {
@@ -130,9 +135,9 @@ export class TangoClient {
   // Agencies
   // ---------------------------------------------------------------------------
 
-  async listAgencies(options: { page?: number; limit?: number } = {}): Promise<
-    PaginatedResponse<AnyRecord>
-  > {
+  async listAgencies(
+    options: { page?: number; limit?: number } = {},
+  ): Promise<PaginatedResponse<AnyRecord>> {
     const { page = 1, limit = 25 } = options;
     const params: AnyRecord = {
       page,
@@ -148,7 +153,9 @@ export class TangoClient {
       throw new TangoValidationError("Agency code is required");
     }
 
-    const data = await this.http.get<AnyRecord>(`/api/agencies/${encodeURIComponent(code)}/`);
+    const data = await this.http.get<AnyRecord>(
+      `/api/agencies/${encodeURIComponent(code)}/`,
+    );
 
     if (!data) {
       throw new TangoNotFoundError(`Agency '${code}' not found`, 404, data);
@@ -158,9 +165,9 @@ export class TangoClient {
     return data;
   }
 
-  async listBusinessTypes(options: { page?: number; limit?: number } = {}): Promise<
-    PaginatedResponse<AnyRecord>
-  > {
+  async listBusinessTypes(
+    options: { page?: number; limit?: number } = {},
+  ): Promise<PaginatedResponse<AnyRecord>> {
     const { page = 1, limit = 25 } = options;
     const params: AnyRecord = {
       page,
@@ -175,9 +182,9 @@ export class TangoClient {
   // Contracts
   // ---------------------------------------------------------------------------
 
-  async listContracts(options: ListContractsOptions = {}): Promise<
-    PaginatedResponse<Record<string, unknown>>
-  > {
+  async listContracts(
+    options: ListContractsOptions = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
     const {
       page = 1,
       limit = 25,
@@ -209,7 +216,9 @@ export class TangoClient {
     Object.assign(params, apiFilterParams);
 
     const data = await this.http.get<AnyRecord>("/api/contracts/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const rawResults = Array.isArray(data?.results)
+      ? (data.results as AnyRecord[])
+      : [];
 
     const results = flat
       ? rawResults.map((item) => unflattenResponse(item))
@@ -227,9 +236,9 @@ export class TangoClient {
   // Entities
   // ---------------------------------------------------------------------------
 
-  async listEntities(options: ListEntitiesOptions = {}): Promise<
-    PaginatedResponse<Record<string, unknown>>
-  > {
+  async listEntities(
+    options: ListEntitiesOptions = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
     const {
       page = 1,
       limit = 25,
@@ -263,7 +272,9 @@ export class TangoClient {
     Object.assign(params, filters);
 
     const data = await this.http.get<AnyRecord>("/api/entities/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const rawResults = Array.isArray(data?.results)
+      ? (data.results as AnyRecord[])
+      : [];
 
     const results = flat
       ? rawResults.map((item) => unflattenResponse(item))
@@ -299,7 +310,10 @@ export class TangoClient {
       }
     }
 
-    const data = await this.http.get<AnyRecord>(`/api/entities/${encodeURIComponent(key)}/`, params);
+    const data = await this.http.get<AnyRecord>(
+      `/api/entities/${encodeURIComponent(key)}/`,
+      params,
+    );
 
     const result = flat ? unflattenResponse(data as AnyRecord) : data;
     return result as Record<string, unknown>;
@@ -336,9 +350,13 @@ export class TangoClient {
     Object.assign(params, filters);
 
     const data = await this.http.get<AnyRecord>("/api/forecasts/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const rawResults = Array.isArray(data?.results)
+      ? (data.results as AnyRecord[])
+      : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = flat
+      ? rawResults.map((item) => unflattenResponse(item))
+      : rawResults;
 
     const paginated = buildPaginatedResponse<AnyRecord>({
       ...data,
@@ -379,9 +397,13 @@ export class TangoClient {
     Object.assign(params, filters);
 
     const data = await this.http.get<AnyRecord>("/api/opportunities/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const rawResults = Array.isArray(data?.results)
+      ? (data.results as AnyRecord[])
+      : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = flat
+      ? rawResults.map((item) => unflattenResponse(item))
+      : rawResults;
 
     const paginated = buildPaginatedResponse<AnyRecord>({
       ...data,
@@ -422,9 +444,13 @@ export class TangoClient {
     Object.assign(params, filters);
 
     const data = await this.http.get<AnyRecord>("/api/notices/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const rawResults = Array.isArray(data?.results)
+      ? (data.results as AnyRecord[])
+      : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = flat
+      ? rawResults.map((item) => unflattenResponse(item))
+      : rawResults;
 
     const paginated = buildPaginatedResponse<AnyRecord>({
       ...data,
@@ -465,9 +491,13 @@ export class TangoClient {
     Object.assign(params, filters);
 
     const data = await this.http.get<AnyRecord>("/api/grants/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const rawResults = Array.isArray(data?.results)
+      ? (data.results as AnyRecord[])
+      : [];
 
-    const results = flat ? rawResults.map((item) => unflattenResponse(item)) : rawResults;
+    const results = flat
+      ? rawResults.map((item) => unflattenResponse(item))
+      : rawResults;
 
     const paginated = buildPaginatedResponse<AnyRecord>({
       ...data,

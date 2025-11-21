@@ -145,7 +145,7 @@ By default, nested fields are returned as nested objects:
 
 ```ts
 // shape:
-"key,piid,recipient(display_name,uei)"
+"key,piid,recipient(display_name,uei)";
 
 //
 contract.recipient.display_name;
