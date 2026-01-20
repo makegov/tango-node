@@ -112,6 +112,21 @@ export interface ListWebhookSubscriptionsOptions {
   pageSize?: number;
 }
 
+export interface ListVehiclesOptions extends ListOptionsBase {
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface ListIdvsOptions {
+  limit?: number;
+  cursor?: string | null;
+  shape?: string | null;
+  flat?: boolean;
+  flatLists?: boolean;
+  joiner?: string;
+  [key: string]: unknown;
+}
+
 export class TangoClient {
   private readonly http: HttpClient;
   private readonly shapeParser: ShapeParser;
@@ -417,6 +432,278 @@ export class TangoClient {
   }
 
   // ---------------------------------------------------------------------------
+  // Vehicles (Awards)
+  // ---------------------------------------------------------------------------
+
+  async listVehicles(options: ListVehiclesOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, search, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.VEHICLES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    if (search) {
+      params.search = search;
+    }
+
+    // Vehicles list currently supports `search` + pagination + shaping. We allow extra keys for forward compatibility.
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/vehicles/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("Vehicle", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+  }
+
+  async getVehicle(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string; search?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) {
+      throw new TangoValidationError("Vehicle uuid is required");
+    }
+
+    const { shape, flat = false, flatLists = false, joiner = ".", search } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.VEHICLES_COMPREHENSIVE;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    // On vehicle detail, `search` filters expanded awardees when shaping includes `awardees(...)`.
+    if (search) {
+      params.search = search;
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/vehicles/${encodeURIComponent(uuid)}/`, params);
+
+    const result = this.materializeOne("Vehicle", shapeSpec, data, flat, joiner);
+    return result as Record<string, unknown>;
+  }
+
+  async listVehicleAwardees(
+    uuid: string,
+    options: { page?: number; limit?: number; shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    if (!uuid) {
+      throw new TangoValidationError("Vehicle uuid is required");
+    }
+
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, joiner = "." } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.VEHICLE_AWARDEES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/vehicles/${encodeURIComponent(uuid)}/awardees/`, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+  }
+
+  // ---------------------------------------------------------------------------
+  // IDVs (Awards)
+  // ---------------------------------------------------------------------------
+
+  async listIdvs(options: ListIdvsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { limit = 25, cursor = null, shape, flat = false, flatLists = false, joiner = ".", ...filters } = options;
+
+    const params: AnyRecord = {
+      limit: Math.min(limit, 100),
+    };
+    if (cursor) params.cursor = cursor;
+
+    const shapeToUse = shape ?? ShapeConfig.IDVS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/idvs/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+  }
+
+  async getIdv(
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!key) {
+      throw new TangoValidationError("IDV key is required");
+    }
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.IDVS_COMPREHENSIVE;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(key)}/`, params);
+
+    const result = this.materializeOne("IDV", shapeSpec, data, flat, joiner);
+    return result as Record<string, unknown>;
+  }
+
+  async listIdvAwards(
+    key: string,
+    options: ListContractsOptions & { cursor?: string | null; joiner?: string } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    if (!key) {
+      throw new TangoValidationError("IDV key is required");
+    }
+
+    const { limit = 25, cursor = null, shape, flat = false, flatLists = false, joiner = ".", filters = {}, ...restFilters } = options;
+
+    const params: AnyRecord = {
+      limit: Math.min(limit, 100),
+    };
+    if (cursor) params.cursor = cursor;
+
+    const shapeToUse = shape ?? ShapeConfig.CONTRACTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const mergedFilters: AnyRecord = { ...(filters ?? {}), ...restFilters };
+    const apiFilterParams = buildContractFilterParams(mergedFilters);
+    Object.assign(params, apiFilterParams);
+
+    const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(key)}/awards/`, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("Contract", shapeSpec, rawResults, flat, joiner);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+  }
+
+  async listIdvChildIdvs(options: { key: string } & ListIdvsOptions): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { key, ...rest } = options;
+    if (!key) {
+      throw new TangoValidationError("IDV key is required");
+    }
+
+    const { limit = 25, cursor = null, shape, flat = false, flatLists = false, joiner = ".", ...filters } = rest;
+
+    const params: AnyRecord = {
+      limit: Math.min(limit, 100),
+    };
+    if (cursor) params.cursor = cursor;
+
+    const shapeToUse = shape ?? ShapeConfig.IDVS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(key)}/idvs/`, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+  }
+
+  async listIdvTransactions(
+    key: string,
+    options: { limit?: number; cursor?: string | null } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    if (!key) {
+      throw new TangoValidationError("IDV key is required");
+    }
+
+    const { limit = 100, cursor = null } = options;
+    const params: AnyRecord = { limit: Math.min(limit, 500) };
+    if (cursor) params.cursor = cursor;
+
+    const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(key)}/transactions/`, params);
+    return buildPaginatedResponse<Record<string, unknown>>(data);
+  }
+
+  async getIdvSummary(identifier: string): Promise<Record<string, unknown>> {
+    if (!identifier) {
+      throw new TangoValidationError("IDV solicitation identifier is required");
+    }
+    return await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(identifier)}/summary/`);
+  }
+
+  async listIdvSummaryAwards(
+    identifier: string,
+    options: { limit?: number; cursor?: string | null; ordering?: string } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    if (!identifier) {
+      throw new TangoValidationError("IDV solicitation identifier is required");
+    }
+
+    const { limit = 25, cursor = null, ordering } = options;
+    const params: AnyRecord = { limit: Math.min(limit, 100) };
+    if (cursor) params.cursor = cursor;
+    if (ordering) params.ordering = ordering;
+
+    const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(identifier)}/summary/awards/`, params);
+    return buildPaginatedResponse<Record<string, unknown>>(data);
+  }
+
+  // ---------------------------------------------------------------------------
   // Webhooks (v2)
   // ---------------------------------------------------------------------------
 
@@ -510,20 +797,21 @@ export class TangoClient {
     if (options.eventType) params.event_type = options.eventType;
     return await this.http.get<WebhookSamplePayloadResponse>("/api/webhooks/endpoints/sample-payload/", params);
   }
+  }
 
   private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {
     if (!shape) return null;
     return this.shapeParser.parseWithFlags(shape, flat, flatLists);
   }
 
-  private materializeList(baseModel: string, shapeSpec: ShapeSpec | null, rawItems: AnyRecord[], flat: boolean): AnyRecord[] {
-    const prepared = flat ? rawItems.map((item) => unflattenResponse(item)) : rawItems;
+  private materializeList(baseModel: string, shapeSpec: ShapeSpec | null, rawItems: AnyRecord[], flat: boolean, joiner = "."): AnyRecord[] {
+    const prepared = flat ? rawItems.map((item) => unflattenResponse(item, joiner)) : rawItems;
     if (!shapeSpec) return prepared;
     return this.modelFactory.createList(baseModel, shapeSpec, prepared);
   }
 
-  private materializeOne(baseModel: string, shapeSpec: ShapeSpec | null, rawItem: AnyRecord, flat: boolean): AnyRecord {
-    const prepared = flat ? unflattenResponse(rawItem) : rawItem;
+  private materializeOne(baseModel: string, shapeSpec: ShapeSpec | null, rawItem: AnyRecord, flat: boolean, joiner = "."): AnyRecord {
+    const prepared = flat ? unflattenResponse(rawItem, joiner) : rawItem;
     if (!shapeSpec) return prepared;
     return this.modelFactory.createOne(baseModel, shapeSpec, prepared);
   }

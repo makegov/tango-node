@@ -115,6 +115,106 @@ limit: number
 
 ---
 
+## Vehicles
+
+Vehicles provide a solicitation-centric grouping of related IDVs.
+
+### `listVehicles(options)`
+
+```ts
+const resp = await client.listVehicles({
+  search: "GSA schedule",
+  shape: ShapeConfig.VEHICLES_MINIMAL,
+  page: 1,
+  limit: 25,
+});
+```
+
+Supported parameters:
+
+- `search` (vehicle-level full-text search)
+- `page`, `limit` (max 100)
+- `shape`, `flat`, `flatLists`
+
+### `getVehicle(uuid, options?)`
+
+```ts
+const vehicle = await client.getVehicle("00000000-0000-0000-0000-000000000001", {
+  shape: ShapeConfig.VEHICLES_COMPREHENSIVE,
+});
+```
+
+Notes:
+
+- On vehicle detail, `search` filters expanded `awardees(...)` when included in your `shape` (it does not filter the vehicle itself).
+- When using `flat: true`, you can override the joiner with `joiner` (default `"."`).
+
+### `listVehicleAwardees(uuid, options?)`
+
+```ts
+const awardees = await client.listVehicleAwardees("00000000-0000-0000-0000-000000000001", {
+  shape: ShapeConfig.VEHICLE_AWARDEES_MINIMAL,
+});
+```
+
+---
+
+## IDVs
+
+IDVs (indefinite delivery vehicles) are the parent “vehicle award” records that can have child awards/orders under them.
+
+### `listIdvs(options)`
+
+```ts
+const idvs = await client.listIdvs({
+  limit: 25,
+  cursor: null,
+  shape: ShapeConfig.IDVS_MINIMAL,
+  awarding_agency: "4700",
+});
+```
+
+Notes:
+
+- This endpoint uses **keyset pagination** (`cursor` + `limit`) rather than `page`.
+
+### `getIdv(key, options?)`
+
+```ts
+const idv = await client.getIdv("SOME_IDV_KEY", {
+  shape: ShapeConfig.IDVS_COMPREHENSIVE,
+});
+```
+
+### `listIdvAwards(key, options?)`
+
+Lists child awards (contracts) under an IDV.
+
+```ts
+const awards = await client.listIdvAwards("SOME_IDV_KEY", { limit: 25 });
+```
+
+### `listIdvChildIdvs({ key, ...options })`
+
+```ts
+const children = await client.listIdvChildIdvs({ key: "SOME_IDV_KEY", limit: 25 });
+```
+
+### `listIdvTransactions(key, options?)`
+
+```ts
+const tx = await client.listIdvTransactions("SOME_IDV_KEY", { limit: 100 });
+```
+
+### `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options?)`
+
+```ts
+const summary = await client.getIdvSummary("SOLICITATION_IDENTIFIER");
+const awards = await client.listIdvSummaryAwards("SOLICITATION_IDENTIFIER", { limit: 25 });
+```
+
+---
+
 ## Entities
 
 ### `listEntities(options)`

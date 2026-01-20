@@ -292,6 +292,264 @@ describe("TangoClient", () => {
     expect((contract as any).total_contract_value).toBe("123.45");
   });
 
+  it("supports vehicles list + detail + awardees endpoints", async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+
+    const fetchImpl = async (url: string | URL, init?: RequestInit): Promise<any> => {
+      calls.push({ url: String(url), init: init ?? {} });
+
+      const parsed = new URL(String(url));
+
+      if (parsed.pathname.endsWith("/awardees/")) {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              count: 1,
+              results: [
+                {
+                  uuid: "00000000-0000-0000-0000-000000000002",
+                  key: "IDV-KEY",
+                  award_date: "2024-01-01",
+                  idv_obligations: 100.0,
+                  recipient: { display_name: "Acme", uei: "UEI123" },
+                },
+              ],
+            });
+          },
+        };
+      }
+
+      if (parsed.pathname === "/api/vehicles/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              count: 1,
+              results: [
+                {
+                  uuid: "00000000-0000-0000-0000-000000000001",
+                  solicitation_identifier: "47QSWA20D0001",
+                  solicitation_date: "2024-01-15",
+                  vehicle_obligations: 123.45,
+                },
+              ],
+            });
+          },
+        };
+      }
+
+      // getVehicle (detail) response with custom joiner and flat response
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            uuid: "00000000-0000-0000-0000-000000000001",
+            opportunity__title: "Test Opportunity",
+          });
+        },
+      };
+    };
+
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl,
+    });
+
+    const vehicles = await client.listVehicles({ search: "GSA" });
+    expect(vehicles.results[0]).toMatchObject({
+      uuid: "00000000-0000-0000-0000-000000000001",
+      solicitation_identifier: "47QSWA20D0001",
+    });
+    expect((vehicles.results[0] as any).solicitation_date).toBeInstanceOf(Date);
+    expect((vehicles.results[0] as any).vehicle_obligations).toBe("123.45");
+
+    const vehicle = await client.getVehicle("00000000-0000-0000-0000-000000000001", {
+      shape: "uuid,opportunity(title)",
+      flat: true,
+      joiner: "__",
+      flatLists: true,
+    });
+    expect((vehicle as any).opportunity.title).toBe("Test Opportunity");
+
+    const awardees = await client.listVehicleAwardees("00000000-0000-0000-0000-000000000001");
+    expect((awardees.results[0] as any).award_date).toBeInstanceOf(Date);
+    expect((awardees.results[0] as any).idv_obligations).toBe("100");
+
+    // Verify query params were sent for each call
+    expect(calls).toHaveLength(3);
+    const urls = calls.map((c) => new URL(c.url));
+
+    // listVehicles
+    expect(urls[0].pathname).toBe("/api/vehicles/");
+    expect(urls[0].searchParams.get("shape")).toBe(ShapeConfig.VEHICLES_MINIMAL);
+    expect(urls[0].searchParams.get("search")).toBe("GSA");
+
+    // getVehicle
+    expect(urls[1].pathname).toBe("/api/vehicles/00000000-0000-0000-0000-000000000001/");
+    expect(urls[1].searchParams.get("shape")).toBe("uuid,opportunity(title)");
+    expect(urls[1].searchParams.get("flat")).toBe("true");
+    expect(urls[1].searchParams.get("joiner")).toBe("__");
+    expect(urls[1].searchParams.get("flat_lists")).toBe("true");
+
+    // listVehicleAwardees
+    expect(urls[2].pathname).toBe("/api/vehicles/00000000-0000-0000-0000-000000000001/awardees/");
+    expect(urls[2].searchParams.get("shape")).toBe(ShapeConfig.VEHICLE_AWARDEES_MINIMAL);
+  });
+
+  it("validates required arguments for getVehicle", async () => {
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl: async () => {
+        throw new Error("should not be called");
+      },
+    });
+
+    // @ts-expect-error
+    await expect(client.getVehicle("")).rejects.toBeInstanceOf(TangoValidationError);
+  });
+
+  it("supports idv endpoints (list + retrieve + child endpoints)", async () => {
+    const calls: string[] = [];
+
+    const fetchImpl = async (url: string | URL): Promise<any> => {
+      calls.push(String(url));
+      const parsed = new URL(String(url));
+
+      if (parsed.pathname === "/api/idvs/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              count: 1,
+              next: "https://example.test/api/idvs/?cursor=next",
+              results: [
+                {
+                  key: "IDV-KEY",
+                  piid: "47QSWA20D0001",
+                  award_date: "2024-01-01",
+                  obligated: 10.0,
+                  idv_type: { code: "A", description: "GWAC" },
+                  recipient: { display_name: "Acme", uei: "UEI123" },
+                },
+              ],
+            });
+          },
+        };
+      }
+
+      if (parsed.pathname === "/api/idvs/IDV-KEY/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              key: "IDV-KEY",
+              award_date: "2024-01-01",
+              obligated: 10.0,
+            });
+          },
+        };
+      }
+
+      if (parsed.pathname === "/api/idvs/IDV-KEY/awards/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              count: 1,
+              results: [{ key: "C-1", award_date: "2024-01-02", total_contract_value: 123.45 }],
+            });
+          },
+        };
+      }
+
+      if (parsed.pathname === "/api/idvs/IDV-KEY/idvs/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              count: 0,
+              results: [],
+            });
+          },
+        };
+      }
+
+      if (parsed.pathname === "/api/idvs/IDV-KEY/transactions/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              count: 1,
+              results: [{ modification_number: "0", obligated: 1.23, transaction_date: "2024-01-03" }],
+            });
+          },
+        };
+      }
+
+      if (parsed.pathname === "/api/idvs/SOL/summary/") {
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({ solicitation_identifier: "SOL", awardee_count: 2 });
+          },
+        };
+      }
+
+      // /summary/awards/
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({ count: 0, results: [] });
+        },
+      };
+    };
+
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl,
+    });
+
+    const idvs = await client.listIdvs({ limit: 10, cursor: "abc", awarding_agency: "4700" });
+    expect(idvs.results).toHaveLength(1);
+    expect((idvs.results[0] as any).award_date).toBeInstanceOf(Date);
+    expect((idvs.results[0] as any).obligated).toBe("10");
+
+    const idv = await client.getIdv("IDV-KEY");
+    expect((idv as any).key).toBe("IDV-KEY");
+
+    const awards = await client.listIdvAwards("IDV-KEY", { limit: 5 });
+    expect((awards.results[0] as any).award_date).toBeInstanceOf(Date);
+    expect((awards.results[0] as any).total_contract_value).toBe("123.45");
+
+    await client.listIdvChildIdvs({ key: "IDV-KEY", limit: 5 });
+    await client.listIdvTransactions("IDV-KEY", { limit: 50 });
+    await client.getIdvSummary("SOL");
+    await client.listIdvSummaryAwards("SOL", { limit: 25, ordering: "-award_date" });
+
+    const parsedCalls = calls.map((u) => new URL(u));
+
+    // listIdvs
+    expect(parsedCalls[0].pathname).toBe("/api/idvs/");
+    expect(parsedCalls[0].searchParams.get("limit")).toBe("10");
+    expect(parsedCalls[0].searchParams.get("cursor")).toBe("abc");
+    expect(parsedCalls[0].searchParams.get("awarding_agency")).toBe("4700");
+    expect(parsedCalls[0].searchParams.get("shape")).toBe(ShapeConfig.IDVS_MINIMAL);
+  });
+
   it("supports webhooks v2 endpoints (event types, subscriptions, test delivery, sample payload)", async () => {
     const calls: { url: string; init: RequestInit }[] = [];
 
@@ -482,7 +740,7 @@ describe("TangoClient", () => {
     expect(endpoints.results[0].name).toBe("yoni");
 
     const created = await client.createWebhookEndpoint({ callbackUrl: "https://example.com/tango/webhooks" });
-    expect(created.secret).toBe("secret");
+    expect((created as any).secret).toBe("secret");
 
     const updated = await client.updateWebhookEndpoint(created.id, { isActive: false });
     expect(updated.is_active).toBe(false);
@@ -539,3 +797,4 @@ describe("TangoClient", () => {
     expect(deleteEndpointCall).toBeTruthy();
   });
 });
+
