@@ -9,7 +9,7 @@ export interface HttpClientOptions {
 }
 
 export interface RequestOptions {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   path: string;
   query?: Record<string, unknown>;
   body?: unknown;
@@ -194,5 +194,17 @@ export class HttpClient {
 
   post<T = unknown>(path: string, body?: unknown): Promise<T> {
     return this.request<T>({ method: "POST", path, body });
+  }
+
+  patch<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.request<T>({ method: "PATCH", path, body });
+  }
+
+  put<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.request<T>({ method: "PUT", path, body });
+  }
+
+  delete<T = unknown>(path: string, query?: Record<string, unknown>): Promise<T> {
+    return this.request<T>({ method: "DELETE", path, query });
   }
 }

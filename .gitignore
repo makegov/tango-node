@@ -13,6 +13,7 @@ dist/
 coverage/
 .build/
 .tmp/
+.npm-cache/
 
 # Editor / OS
 .DS_Store
@@ -26,3 +27,4 @@ coverage/
 
 # Other
 ROADMAP.md
+yoni/
