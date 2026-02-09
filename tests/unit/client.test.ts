@@ -797,4 +797,3 @@ describe("TangoClient", () => {
     expect(deleteEndpointCall).toBeTruthy();
   });
 });
-

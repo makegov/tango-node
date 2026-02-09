@@ -797,7 +797,6 @@ export class TangoClient {
     if (options.eventType) params.event_type = options.eventType;
     return await this.http.get<WebhookSamplePayloadResponse>("/api/webhooks/endpoints/sample-payload/", params);
   }
-  }
 
   private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {
     if (!shape) return null;
