@@ -6,6 +6,14 @@ import type { ShapeSpec } from "./shapes/types.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
 import { PaginatedResponse, TangoClientOptions } from "./types.js";
+import type {
+  WebhookEndpoint,
+  WebhookEventTypesResponse,
+  WebhookSamplePayloadResponse,
+  WebhookSubscription,
+  WebhookSubscriptionPayload,
+  WebhookTestDeliveryResult,
+} from "./models/Webhooks.js";
 
 type AnyRecord = Record<string, unknown>;
 
@@ -97,6 +105,11 @@ export interface ListContractsOptions extends ListOptionsBase {
 export interface ListEntitiesOptions extends ListOptionsBase {
   search?: string;
   [key: string]: unknown;
+}
+
+export interface ListWebhookSubscriptionsOptions {
+  page?: number;
+  pageSize?: number;
 }
 
 export class TangoClient {
@@ -401,6 +414,101 @@ export class TangoClient {
     const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
 
     return paginated;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Webhooks (v2)
+  // ---------------------------------------------------------------------------
+
+  async listWebhookEventTypes(): Promise<WebhookEventTypesResponse> {
+    return await this.http.get<WebhookEventTypesResponse>("/api/webhooks/event-types/");
+  }
+
+  async listWebhookSubscriptions(options: ListWebhookSubscriptionsOptions = {}): Promise<PaginatedResponse<WebhookSubscription>> {
+    const { page = 1, pageSize } = options;
+    const params: AnyRecord = { page };
+    if (pageSize !== undefined) params.page_size = pageSize;
+
+    const data = await this.http.get<AnyRecord>("/api/webhooks/subscriptions/", params);
+    return buildPaginatedResponse<WebhookSubscription>(data);
+  }
+
+  async getWebhookSubscription(id: string): Promise<WebhookSubscription> {
+    if (!id) throw new TangoValidationError("Webhook subscription id is required");
+    return await this.http.get<WebhookSubscription>(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`);
+  }
+
+  async createWebhookSubscription(options: { subscriptionName: string; payload: WebhookSubscriptionPayload }): Promise<WebhookSubscription> {
+    const { subscriptionName, payload } = options;
+    if (!subscriptionName) throw new TangoValidationError("Webhook subscriptionName is required");
+    return await this.http.post<WebhookSubscription>("/api/webhooks/subscriptions/", {
+      subscription_name: subscriptionName,
+      payload,
+    });
+  }
+
+  async updateWebhookSubscription(
+    id: string,
+    options: { subscriptionName?: string; payload?: WebhookSubscriptionPayload },
+  ): Promise<WebhookSubscription> {
+    if (!id) throw new TangoValidationError("Webhook subscription id is required");
+    const body: AnyRecord = {};
+    if (options.subscriptionName !== undefined) body.subscription_name = options.subscriptionName;
+    if (options.payload !== undefined) body.payload = options.payload;
+    return await this.http.patch<WebhookSubscription>(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`, body);
+  }
+
+  async deleteWebhookSubscription(id: string): Promise<void> {
+    if (!id) throw new TangoValidationError("Webhook subscription id is required");
+    await this.http.delete(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`);
+  }
+
+  async listWebhookEndpoints(options: { page?: number; limit?: number } = {}): Promise<PaginatedResponse<WebhookEndpoint>> {
+    const { page = 1, limit = 25 } = options;
+    const params: AnyRecord = { page, limit: Math.min(limit, 100) };
+    const data = await this.http.get<AnyRecord>("/api/webhooks/endpoints/", params);
+
+    // Endpoints are commonly paginated like other Tango resources, but keep this resilient.
+    if (Array.isArray(data)) {
+      return { count: data.length, next: null, previous: null, pageMetadata: null, results: data as WebhookEndpoint[] };
+    }
+    return buildPaginatedResponse<WebhookEndpoint>(data);
+  }
+
+  async getWebhookEndpoint(id: string): Promise<WebhookEndpoint> {
+    if (!id) throw new TangoValidationError("Webhook endpoint id is required");
+    return await this.http.get<WebhookEndpoint>(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`);
+  }
+
+  async createWebhookEndpoint(options: { callbackUrl: string; isActive?: boolean }): Promise<WebhookEndpoint> {
+    const { callbackUrl, isActive = true } = options;
+    if (!callbackUrl) throw new TangoValidationError("Webhook callbackUrl is required");
+    return await this.http.post<WebhookEndpoint>("/api/webhooks/endpoints/", { callback_url: callbackUrl, is_active: isActive });
+  }
+
+  async updateWebhookEndpoint(id: string, options: { callbackUrl?: string; isActive?: boolean }): Promise<WebhookEndpoint> {
+    if (!id) throw new TangoValidationError("Webhook endpoint id is required");
+    const body: AnyRecord = {};
+    if (options.callbackUrl !== undefined) body.callback_url = options.callbackUrl;
+    if (options.isActive !== undefined) body.is_active = options.isActive;
+    return await this.http.patch<WebhookEndpoint>(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`, body);
+  }
+
+  async deleteWebhookEndpoint(id: string): Promise<void> {
+    if (!id) throw new TangoValidationError("Webhook endpoint id is required");
+    await this.http.delete(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`);
+  }
+
+  async testWebhookDelivery(options: { endpointId?: string } = {}): Promise<WebhookTestDeliveryResult> {
+    const body: AnyRecord = {};
+    if (options.endpointId) body.endpoint_id = options.endpointId;
+    return await this.http.post<WebhookTestDeliveryResult>("/api/webhooks/endpoints/test-delivery/", body);
+  }
+
+  async getWebhookSamplePayload(options: { eventType?: string } = {}): Promise<WebhookSamplePayloadResponse> {
+    const params: AnyRecord = {};
+    if (options.eventType) params.event_type = options.eventType;
+    return await this.http.get<WebhookSamplePayloadResponse>("/api/webhooks/endpoints/sample-payload/", params);
   }
 
   private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {

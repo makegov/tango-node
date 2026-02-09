@@ -8,3 +8,17 @@ export type { Location } from "./Location.js";
 export type { Notice } from "./Notice.js";
 export type { Opportunity } from "./Opportunity.js";
 export type { RecipientProfile } from "./RecipientProfile.js";
+export type {
+  WebhookEndpoint,
+  WebhookEventType,
+  WebhookEventTypesResponse,
+  WebhookSamplePayloadAllResponse,
+  WebhookSamplePayloadResponse,
+  WebhookSamplePayloadSingleResponse,
+  WebhookSampleSubject,
+  WebhookSubscription,
+  WebhookSubscriptionPayload,
+  WebhookSubscriptionPayloadRecord,
+  WebhookSubjectTypeDefinition,
+  WebhookTestDeliveryResult,
+} from "./Webhooks.js";

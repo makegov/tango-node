@@ -34,7 +34,7 @@ const resp = await client.listAgencies({ page: 1, limit: 25 });
 | `page`  | `number` | Page number (default 1).                    |
 | `limit` | `number` | Max results per page (default 25, max 100). |
 
-#### Returns
+#### Returns (Agencies)
 
 `PaginatedResponse<AgencyLike>`
 
@@ -109,7 +109,7 @@ page: number,
 limit: number
 ```
 
-#### Returns
+#### Returns (Contracts)
 
 `PaginatedResponse<Contract>` materialized according to the requested shape. Date/datetime fields are parsed, decimals normalized to strings, nested recipients, agencies, and locations are objects.
 
@@ -164,6 +164,132 @@ Search SAM.gov opportunities with shaping.
 ## Grants
 
 ### `listGrants(options)`
+
+---
+
+## Webhooks (v2)
+
+Webhook APIs let **Large / Enterprise** users manage subscription filters for outbound Tango webhooks.
+
+### `listWebhookEventTypes()`
+
+Discover supported `event_type` values and subject types.
+
+```ts
+const info = await client.listWebhookEventTypes();
+```
+
+### `listWebhookSubscriptions(options?)`
+
+```ts
+const subs = await client.listWebhookSubscriptions({ page: 1, pageSize: 25 });
+```
+
+Notes:
+
+- Uses `page` + `page_size` (not `limit`) for pagination on this endpoint.
+
+### `getWebhookSubscription(id)`
+
+```ts
+const sub = await client.getWebhookSubscription("SUBSCRIPTION_UUID");
+```
+
+### `createWebhookSubscription({ subscriptionName, payload })`
+
+```ts
+await client.createWebhookSubscription({
+  subscriptionName: "Track specific vendors",
+  payload: {
+    records: [
+      { event_type: "awards.new_award", subject_type: "entity", subject_ids: ["UEI123ABC"] },
+      { event_type: "awards.new_transaction", subject_type: "entity", subject_ids: ["UEI123ABC"] },
+    ],
+  },
+});
+```
+
+Notes:
+
+- Prefer v2 fields: `subject_type` + `subject_ids`.
+- Legacy compatibility: `resource_ids` is accepted as an alias for `subject_ids` (don’t send both).
+- Catch-all: `subject_ids: []` means “all subjects” for that record and is **Enterprise-only**. Large tier users must list specific IDs.
+
+### `updateWebhookSubscription(id, patch)`
+
+```ts
+await client.updateWebhookSubscription("SUBSCRIPTION_UUID", {
+  subscriptionName: "Updated name",
+});
+```
+
+### `deleteWebhookSubscription(id)`
+
+```ts
+await client.deleteWebhookSubscription("SUBSCRIPTION_UUID");
+```
+
+### Webhook endpoints
+
+In production, MakeGov provisions the initial endpoint for you. These methods are most useful for dev/self-service.
+
+```ts
+const endpoints = await client.listWebhookEndpoints({ page: 1, limit: 25 });
+const endpoint = await client.getWebhookEndpoint("ENDPOINT_UUID");
+```
+
+```ts
+// Create (one endpoint per user)
+const created = await client.createWebhookEndpoint({ callbackUrl: "https://example.com/tango/webhooks" });
+
+// Update
+await client.updateWebhookEndpoint(created.id, { isActive: false });
+
+// Delete
+await client.deleteWebhookEndpoint(created.id);
+```
+
+### `testWebhookDelivery(options?)`
+
+Send an immediate test webhook to your configured endpoint.
+
+```ts
+const result = await client.testWebhookDelivery();
+```
+
+### `getWebhookSamplePayload(options?)`
+
+Fetch Tango-shaped sample deliveries (and sample subscription request bodies).
+
+```ts
+const sample = await client.getWebhookSamplePayload({ eventType: "awards.new_award" });
+```
+
+### Deliveries / redelivery
+
+The API does not currently expose a public `/api/webhooks/deliveries/` or redelivery endpoint. Use:
+
+- `testWebhookDelivery()` for connectivity checks
+- `getWebhookSamplePayload()` for building handlers + subscription payloads
+
+### Receiving webhooks (signature verification)
+
+Every delivery includes an HMAC signature header:
+
+- `X-Tango-Signature: sha256=<hex digest>`
+
+Compute the digest over the **raw request body bytes** using your shared secret.
+
+```ts
+import crypto from "node:crypto";
+
+export function verifyTangoWebhookSignature(secret: string, rawBody: Buffer, signatureHeader: string | null): boolean {
+  if (!signatureHeader) return false;
+  const sig = signatureHeader.startsWith("sha256=") ? signatureHeader.slice("sha256=".length) : signatureHeader;
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(sig, "hex"));
+}
+```
 
 ---
 
