@@ -4,7 +4,15 @@ All notable changes to `@makegov/tango-node` will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+<!-- markdownlint-disable MD024 -->
+
 ## [Unreleased]
+
+### Added
+
+### Changed
+
+## [0.3.0] - 2026-02-09
 
 ### Added
 
