@@ -8,11 +8,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Vehicles endpoints: `listVehicles`, `getVehicle`, and `listVehicleAwardees` (supports shaping + flattening). (refs `makegov/tango#1327`)
+- IDV endpoints: `listIdvs`, `getIdv`, `listIdvAwards`, `listIdvChildIdvs`, `listIdvTransactions`, `getIdvSummary`, `listIdvSummaryAwards`. (refs `makegov/tango#1327`)
 - Webhooks v2 client support: event type discovery, subscription CRUD, endpoint management, test delivery, and sample payload helpers. (refs `makegov/tango#1275`)
 
 ### Changed
 
 - HTTP client now supports PATCH/PUT/DELETE for non-GET endpoints.
+- `joiner` is now respected when unflattening `flat=true` responses on supported endpoints.
 
 ## [0.1.0] - 2025-11-21
 

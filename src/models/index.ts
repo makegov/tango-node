@@ -8,6 +8,8 @@ export type { Location } from "./Location.js";
 export type { Notice } from "./Notice.js";
 export type { Opportunity } from "./Opportunity.js";
 export type { RecipientProfile } from "./RecipientProfile.js";
+export type { Vehicle } from "./Vehicle.js";
+export type { IDV } from "./IDV.js";
 export type {
   WebhookEndpoint,
   WebhookEventType,
