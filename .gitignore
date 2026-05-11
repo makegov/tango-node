@@ -17,8 +17,6 @@ coverage/
 
 # Editor / OS
 .DS_Store
-.idea/
-.vscode/
 *.swp
 
 # Env
@@ -28,3 +26,24 @@ coverage/
 # Other
 ROADMAP.md
 yoni/
+# >>> mg-tools >>>
+# --- mg-tools (per-developer; re-run 'mg-tools install' after clone) ---
+.claude-plugin/plugin-pointer.json
+.claude/settings.json
+.claude/settings.local.json
+.claude/mg-tools-integration.md
+.mcp.json
+.mcp.disabled.json
+.mg-tools/
+.claude/worktrees/
+.claude/scheduled_tasks.lock
+.claude.bak.*
+.cursor.bak.*
+.mcp.json.bak.*
+# Local IDE/editor config files
+.vscode/
+*.code-workspace
+.zed/
+.idea/
+# <<< mg-tools <<<
+CLAUDE.md
