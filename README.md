@@ -8,7 +8,7 @@ A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring d
 
 - **Dynamic Response Shaping** – Ask Tango for exactly the fields you want using a simple shape syntax.
 - **Type-Safe by Design** – Shape strings are validated against Tango schemas and mapped to generated TypeScript types.
-- **Comprehensive API Coverage** – Agencies, business types, entities, contracts, vehicles, IDVs, forecasts, opportunities, notices, grants, and webhooks.
+- **Full Tango API surface** – Awards (contracts, IDVs, OTAs, OTIDVs, subawards, vehicles, GSA eLibrary), opportunities + notices, forecasts, grants, protests, IT Dashboard, entities (with sub-resources), agencies/organizations/offices/departments, lookups (NAICS, PSC, MAS SINs, assistance listings, business types), metrics, resolve/validate, webhooks. See `## API Methods` below for the full list.
 - **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing, materialized via the dynamic model pipeline.
 - **Modern Node** – Built for Node 18+ with native `fetch` and ESM-first design.
 - **Tested Against the Real API** – Integration tests (mirroring the Python SDK) keep behavior aligned.
@@ -261,6 +261,7 @@ Errors are surfaced as typed exceptions, aligned with the Python SDK:
 - `TangoNotFoundError` – Resource not found (404).
 - `TangoValidationError` – Invalid request parameters (400).
 - `TangoRateLimitError` – Rate limit exceeded (429).
+- `TangoTimeoutError` – Request exceeded the configured `timeoutMs`.
 
 Shape-related errors:
 
@@ -379,7 +380,7 @@ For questions, issues, or feature requests:
 
 - **Email**: [tango@makegov.com](mailto:tango@makegov.com)
 - **Issues**: [GitHub Issues](https://github.com/makegov/tango-node/issues)
-- **Documentation**: [https://tango.makegov.com/docs/tango-node](https://tango.makegov.com/docs/tango-node) _(Coming Soon!)_
+- **Documentation**: [https://docs.makegov.com/sdks/node/](https://docs.makegov.com/sdks/node/)
 
 ## Contributing
 

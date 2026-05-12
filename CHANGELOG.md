@@ -10,6 +10,26 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 This release brings `tango-node` to **full feature parity** with both the Tango API and the `tango-python` SDK for the surface that remains after the subject-based webhook removal (see "Removed" below). Every read method and every endpoint/alert/signing helper available on `tango_python.TangoClient` now has an idiomatic camelCase counterpart on `TangoClient`.
 
+### Docs
+
+- **README** updated for the docs-review sweep:
+  - Added `TangoTimeoutError` to the documented error class list (it has been exported from `src/errors.ts` since v0.4 but the README omitted it).
+  - Replaced the "_(Coming Soon!)_" marker on the docs link with the live `https://docs.makegov.com/sdks/node/` URL.
+  - Rewrote the "Comprehensive API Coverage" feature bullet — the old enumeration listed fewer than half of the actually-implemented domains. New bullet points at the canonical "API Methods" section for the full surface.
+
+### Known gaps (tracked, not addressed in this release)
+
+Audit against `tango-python` (`feat/api-parity`, May 2026) surfaced several intentional parity gaps that will land in subsequent minors:
+
+- **Typed `Options` interfaces for list-method filters.** Most `list*` methods currently accept filters via `[key: string]: unknown` index signatures. Python enumerates filter parameters as explicit kwargs (per `CLAUDE.md` non-negotiable). To close: enumerate the same kwargs in typed `Options` interfaces per method.
+- **`ShapeConfig` presets** missing on Node: `PROTESTS_MINIMAL`, `VEHICLE_ORDERS_MINIMAL`, `ORGANIZATIONS_MINIMAL`, `OTAS_MINIMAL`, `OTIDVS_MINIMAL`, `SUBAWARDS_MINIMAL`, `GSA_ELIBRARY_CONTRACTS_MINIMAL`, `ITDASHBOARD_INVESTMENTS_MINIMAL`, `ITDASHBOARD_INVESTMENTS_COMPREHENSIVE`. Calls to those endpoints currently send `shape=undefined` and get the server's default shape (not Python's curated minimal).
+- **Explicit schemas** missing on Node: `ORGANIZATION_SCHEMA`, `OTA_SCHEMA`, `OTIDV_SCHEMA`, `SUBAWARD_SCHEMA`, `PROTEST_SCHEMA`, `PROTEST_DOCKET_SCHEMA`, `GSA_ELIBRARY_*`, `ITDASHBOARD_INVESTMENT_SCHEMA`, `VEHICLE_METRICS_SCHEMA`, `ORGANIZATION_OFFICE_SCHEMA`. Those endpoints fall through to raw passthrough (`_genericPaginatedList`) without `modelFactory`.
+- **Typed return models** for `resolve`, `validate`, `getAgency`, `getProtest`, etc. — all currently `AnyRecord`.
+- **WebhookReceiver / CLI / simulator** — Python ships them; Node ships only signature helpers (`signing.ts`). Receiver framework and CLI are the largest gap.
+- **`rate_limit_info` + `last_response_headers`** instance properties — present on Python `TangoClient`, missing on Node.
+- **Conformance script** equivalent to `tango-python/scripts/check_filter_shape_conformance.py` — there is currently no gate validating Node against the canonical filter/shape manifest.
+- **Pagination drift on `listContracts`** — Python is cursor-based, Node is page-based. The API supports both. To be resolved as a deliberate SDK design choice in a future minor.
+
 ### Removed
 
 - **Subject-based webhook subscriptions** are gone. The Tango API is dropping the `/api/webhooks/subscriptions/` surface for subject delivery (see [makegov/tango#2267](https://github.com/makegov/tango/issues/2267)); `tango-node` mirrors that here. Removed methods: `listWebhookSubscriptions`, `getWebhookSubscription`, `createWebhookSubscription`, `updateWebhookSubscription`, `deleteWebhookSubscription`. Removed types: `WebhookSubscription`, `WebhookSubscriptionCreateInput`, `WebhookSubscriptionUpdateInput`, `WebhookSubscriptionPayload`, `WebhookSubscriptionPayloadRecord`, `WebhookSubjectTypeDefinition`, `WebhookSampleSubject`, `ListWebhookSubscriptionsOptions`. `WebhookEventTypesResponse` no longer carries `subject_types` / `subject_type_definitions`; `WebhookEventType` no longer carries `default_subject_type`; sample-payload responses no longer carry `sample_subjects` / `sample_subscription_requests`. Use `createWebhookAlert` (filter-based delivery via `/api/webhooks/alerts/`) — that's the only remaining subscription path.
