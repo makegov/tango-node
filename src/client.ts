@@ -8,10 +8,14 @@ import { unflattenResponse } from "./utils/unflatten.js";
 import { PaginatedResponse, TangoClientOptions } from "./types.js";
 import type {
   WebhookEndpoint,
+  WebhookEndpointCreateInput,
+  WebhookEndpointUpdateInput,
   WebhookEventTypesResponse,
   WebhookSamplePayloadResponse,
   WebhookSubscription,
+  WebhookSubscriptionCreateInput,
   WebhookSubscriptionPayload,
+  WebhookSubscriptionUpdateInput,
   WebhookTestDeliveryResult,
 } from "./models/Webhooks.js";
 
@@ -19,6 +23,57 @@ type AnyRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Normalize a webhook-subscription create/update input into the wire body.
+ *
+ * Accepts BOTH the canonical snake_case shape (`subscription_name`,
+ * `subject_type`, `subject_ids`, `event_type`, `query_type`,
+ * `filter_definition`, `cron_expression`, `is_active`, `endpoint`, `payload`)
+ * AND the legacy camelCase aliases used in earlier SDK versions
+ * (`subscriptionName`, `payload`). Unknown keys are passed through verbatim
+ * so future API fields don't require a client release.
+ */
+function toSubscriptionRequestBody(input: AnyRecord): AnyRecord {
+  if (!input || typeof input !== "object") return {};
+  const out: AnyRecord = {};
+
+  const legacyName = (input as AnyRecord).subscriptionName;
+  if (typeof legacyName === "string") {
+    out.subscription_name = legacyName;
+  }
+
+  for (const [k, v] of Object.entries(input as AnyRecord)) {
+    if (v === undefined) continue;
+    if (k === "subscriptionName") continue; // already handled
+    out[k] = v;
+  }
+
+  return out;
+}
+
+/**
+ * Normalize a webhook-endpoint create/update input into the wire body.
+ *
+ * Accepts the canonical shape (`name`, `callback_url`, `is_active`) and the
+ * legacy aliases (`callbackUrl`, `isActive`).
+ */
+function toEndpointRequestBody(input: AnyRecord): AnyRecord {
+  if (!input || typeof input !== "object") return {};
+  const out: AnyRecord = {};
+
+  const rec = input as AnyRecord;
+  if (typeof rec.callbackUrl === "string") out.callback_url = rec.callbackUrl;
+  if (typeof rec.isActive === "boolean") out.is_active = rec.isActive;
+
+  for (const [k, v] of Object.entries(rec)) {
+    if (v === undefined) continue;
+    if (k === "callbackUrl" || k === "isActive") continue;
+    out[k] = v;
+  }
+
+  return out;
 }
 
 function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedResponse<T> {
@@ -725,23 +780,38 @@ export class TangoClient {
     return await this.http.get<WebhookSubscription>(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`);
   }
 
-  async createWebhookSubscription(options: { subscriptionName: string; payload: WebhookSubscriptionPayload }): Promise<WebhookSubscription> {
-    const { subscriptionName, payload } = options;
-    if (!subscriptionName) throw new TangoValidationError("Webhook subscriptionName is required");
-    return await this.http.post<WebhookSubscription>("/api/webhooks/subscriptions/", {
-      subscription_name: subscriptionName,
-      payload,
-    });
+  /**
+   * Create a webhook subscription.
+   *
+   * Accepts the canonical API shape (snake_case fields like `subscription_name`,
+   * `subject_type`, `subject_ids`, `query_type`, `filter_definition`, ...) and
+   * also accepts the legacy SDK shape `{ subscriptionName, payload }` for
+   * backward compatibility.
+   *
+   * For `subscription_type: "subject"` provide `event_type` + `subject_type` +
+   * `subject_ids`. For `subscription_type: "filter"` provide `event_type` (or
+   * leave the API to derive) plus `query_type` (SINGULAR, e.g. `"contract"`)
+   * and `filter_definition`.
+   *
+   * The canonical endpoint expects the `endpoint` (UUID) field on subject
+   * subscriptions; this is required by the API.
+   */
+  async createWebhookSubscription(
+    input: WebhookSubscriptionCreateInput | { subscriptionName: string; payload: WebhookSubscriptionPayload },
+  ): Promise<WebhookSubscription> {
+    const body = toSubscriptionRequestBody(input as AnyRecord);
+    if (!body.subscription_name) {
+      throw new TangoValidationError("Webhook subscription_name is required");
+    }
+    return await this.http.post<WebhookSubscription>("/api/webhooks/subscriptions/", body);
   }
 
   async updateWebhookSubscription(
     id: string,
-    options: { subscriptionName?: string; payload?: WebhookSubscriptionPayload },
+    patch: WebhookSubscriptionUpdateInput | { subscriptionName?: string; payload?: WebhookSubscriptionPayload },
   ): Promise<WebhookSubscription> {
     if (!id) throw new TangoValidationError("Webhook subscription id is required");
-    const body: AnyRecord = {};
-    if (options.subscriptionName !== undefined) body.subscription_name = options.subscriptionName;
-    if (options.payload !== undefined) body.payload = options.payload;
+    const body = toSubscriptionRequestBody(patch as AnyRecord);
     return await this.http.patch<WebhookSubscription>(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`, body);
   }
 
@@ -767,17 +837,41 @@ export class TangoClient {
     return await this.http.get<WebhookEndpoint>(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`);
   }
 
-  async createWebhookEndpoint(options: { callbackUrl: string; isActive?: boolean }): Promise<WebhookEndpoint> {
-    const { callbackUrl, isActive = true } = options;
-    if (!callbackUrl) throw new TangoValidationError("Webhook callbackUrl is required");
-    return await this.http.post<WebhookEndpoint>("/api/webhooks/endpoints/", { callback_url: callbackUrl, is_active: isActive });
+  /**
+   * Create a webhook endpoint.
+   *
+   * Accepts canonical `{ name, callback_url, is_active }` and the legacy SDK
+   * shape `{ callbackUrl, isActive }`. `name` is required by the API; if not
+   * given via the canonical shape, falls back to the URL host as a sensible
+   * default rather than failing.
+   */
+  async createWebhookEndpoint(
+    input: WebhookEndpointCreateInput | { callbackUrl: string; isActive?: boolean; name?: string },
+  ): Promise<WebhookEndpoint> {
+    const body = toEndpointRequestBody(input as AnyRecord);
+    if (!body.callback_url) {
+      throw new TangoValidationError("Webhook callback_url is required");
+    }
+    if (!body.name) {
+      try {
+        body.name = new URL(body.callback_url as string).host || "endpoint";
+      } catch {
+        body.name = "endpoint";
+      }
+    }
+    // Preserve historical default for create: active endpoints unless caller opts out.
+    if (body.is_active === undefined) {
+      body.is_active = true;
+    }
+    return await this.http.post<WebhookEndpoint>("/api/webhooks/endpoints/", body);
   }
 
-  async updateWebhookEndpoint(id: string, options: { callbackUrl?: string; isActive?: boolean }): Promise<WebhookEndpoint> {
+  async updateWebhookEndpoint(
+    id: string,
+    patch: WebhookEndpointUpdateInput | { callbackUrl?: string; isActive?: boolean; name?: string },
+  ): Promise<WebhookEndpoint> {
     if (!id) throw new TangoValidationError("Webhook endpoint id is required");
-    const body: AnyRecord = {};
-    if (options.callbackUrl !== undefined) body.callback_url = options.callbackUrl;
-    if (options.isActive !== undefined) body.is_active = options.isActive;
+    const body = toEndpointRequestBody(patch as AnyRecord);
     return await this.http.patch<WebhookEndpoint>(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`, body);
   }
 
@@ -786,11 +880,31 @@ export class TangoClient {
     await this.http.delete(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`);
   }
 
+  /**
+   * Trigger a test delivery against an endpoint.
+   *
+   * NOTE: the request body key here is `endpoint_id` — different from the
+   * subscriptions endpoint, which takes `endpoint`. This reflects an
+   * inconsistency in the Tango API itself.
+   */
+  async testWebhookEndpoint(endpointId: string): Promise<WebhookTestDeliveryResult> {
+    if (!endpointId) throw new TangoValidationError("endpointId is required");
+    return await this.http.post<WebhookTestDeliveryResult>("/api/webhooks/endpoints/test-delivery/", {
+      endpoint_id: endpointId,
+    });
+  }
+
+  /**
+   * Legacy alias for `testWebhookEndpoint`. Accepts an options bag for
+   * historical reasons; `endpointId` may be omitted, in which case the API
+   * auto-resolves the user's only endpoint (404 if 0, 400 if >1).
+   */
   async testWebhookDelivery(options: { endpointId?: string } = {}): Promise<WebhookTestDeliveryResult> {
     const body: AnyRecord = {};
     if (options.endpointId) body.endpoint_id = options.endpointId;
     return await this.http.post<WebhookTestDeliveryResult>("/api/webhooks/endpoints/test-delivery/", body);
   }
+
 
   async getWebhookSamplePayload(options: { eventType?: string } = {}): Promise<WebhookSamplePayloadResponse> {
     const params: AnyRecord = {};

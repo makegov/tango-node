@@ -12,6 +12,8 @@ export type { Vehicle } from "./Vehicle.js";
 export type { IDV } from "./IDV.js";
 export type {
   WebhookEndpoint,
+  WebhookEndpointCreateInput,
+  WebhookEndpointUpdateInput,
   WebhookEventType,
   WebhookEventTypesResponse,
   WebhookSamplePayloadAllResponse,
@@ -19,8 +21,10 @@ export type {
   WebhookSamplePayloadSingleResponse,
   WebhookSampleSubject,
   WebhookSubscription,
+  WebhookSubscriptionCreateInput,
   WebhookSubscriptionPayload,
   WebhookSubscriptionPayloadRecord,
+  WebhookSubscriptionUpdateInput,
   WebhookSubjectTypeDefinition,
   WebhookTestDeliveryResult,
 } from "./Webhooks.js";
