@@ -1,10 +1,9 @@
+<!-- markdownlint-disable MD024, MD013 -->
 # Changelog
 
 All notable changes to `@makegov/tango-node` will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
-
-<!-- markdownlint-disable MD024 -->
 
 ## [Unreleased]
 
