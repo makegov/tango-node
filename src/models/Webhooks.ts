@@ -78,6 +78,35 @@ export interface WebhookEndpointCreateInput {
 
 export type WebhookEndpointUpdateInput = Partial<WebhookEndpointCreateInput>;
 
+/**
+ * Filter-based subscription via the convenience `/api/webhooks/alerts/` API.
+ *
+ * Note the field naming differs from the canonical subscriptions endpoint:
+ * - `name` (here) vs `subscription_name` (canonical)
+ * - `filters` (here) vs `filter_definition` (canonical)
+ * - `query_type` is SINGULAR in both ("contract" not "contracts").
+ */
+export interface WebhookAlertCreateInput {
+  name: string;
+  query_type: string;
+  filters: Record<string, unknown>;
+  frequency?: string;
+  cron_expression?: string;
+}
+
+export interface WebhookAlert {
+  alert_id: string;
+  name: string;
+  query_type: string;
+  filters: Record<string, unknown>;
+  frequency: string;
+  cron_expression: string | null;
+  status: "active" | "paused";
+  created_at: string;
+  last_checked_at: string | null;
+  match_count: number;
+}
+
 export interface WebhookEventType {
   event_type: string;
   default_subject_type: string;

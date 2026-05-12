@@ -11,6 +11,8 @@ export type { RecipientProfile } from "./RecipientProfile.js";
 export type { Vehicle } from "./Vehicle.js";
 export type { IDV } from "./IDV.js";
 export type {
+  WebhookAlert,
+  WebhookAlertCreateInput,
   WebhookEndpoint,
   WebhookEndpointCreateInput,
   WebhookEndpointUpdateInput,

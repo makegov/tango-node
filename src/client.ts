@@ -7,6 +7,8 @@ import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
 import { PaginatedResponse, TangoClientOptions } from "./types.js";
 import type {
+  WebhookAlert,
+  WebhookAlertCreateInput,
   WebhookEndpoint,
   WebhookEndpointCreateInput,
   WebhookEndpointUpdateInput,
@@ -905,6 +907,39 @@ export class TangoClient {
     return await this.http.post<WebhookTestDeliveryResult>("/api/webhooks/endpoints/test-delivery/", body);
   }
 
+  // ---------------------------------------------------------------------------
+  // Webhook Alerts (filter-subscription convenience API)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Create a filter-based subscription via the convenience alerts API.
+   *
+   * Field naming differs from `createWebhookSubscription`:
+   * `name` (here) vs `subscription_name`, and `filters` (here) vs
+   * `filter_definition`. `query_type` is SINGULAR in both.
+   */
+  async createWebhookAlert(input: WebhookAlertCreateInput): Promise<WebhookAlert> {
+    if (!input?.name) throw new TangoValidationError("Webhook alert name is required");
+    if (!input.query_type) throw new TangoValidationError("Webhook alert query_type is required (singular, e.g. \"contract\")");
+    if (!input.filters || typeof input.filters !== "object") {
+      throw new TangoValidationError("Webhook alert filters must be a non-empty object");
+    }
+
+    const body: AnyRecord = {
+      name: input.name,
+      query_type: input.query_type,
+      filters: input.filters,
+    };
+    if (input.frequency !== undefined) body.frequency = input.frequency;
+    if (input.cron_expression !== undefined) body.cron_expression = input.cron_expression;
+
+    return await this.http.post<WebhookAlert>("/api/webhooks/alerts/", body);
+  }
+
+  async deleteWebhookAlert(id: string): Promise<void> {
+    if (!id) throw new TangoValidationError("Webhook alert id is required");
+    await this.http.delete(`/api/webhooks/alerts/${encodeURIComponent(id)}/`);
+  }
 
   async getWebhookSamplePayload(options: { eventType?: string } = {}): Promise<WebhookSamplePayloadResponse> {
     const params: AnyRecord = {};
