@@ -360,6 +360,52 @@ export interface ValidateInput {
   value: string;
 }
 
+// ---------------------------------------------------------------------------
+// Entity / IDV / Agency sub-resource option interfaces
+// ---------------------------------------------------------------------------
+
+export interface EntitySubresourceOptions extends ListOptionsBase {
+  cursor?: string | null;
+  shape?: string | null;
+  flat?: boolean;
+  flatLists?: boolean;
+  joiner?: string;
+  ordering?: string;
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface EntitySubawardsOptions extends ListOptionsBase {
+  shape?: string | null;
+  flat?: boolean;
+  flatLists?: boolean;
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+export interface EntityLcatsOptions extends ListOptionsBase {
+  ordering?: string;
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface AgencyContractsOptions extends ListOptionsBase {
+  cursor?: string | null;
+  shape?: string | null;
+  flat?: boolean;
+  flatLists?: boolean;
+  joiner?: string;
+  ordering?: string;
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface SearchOpportunityAttachmentsOptions {
+  q: string;
+  topK?: number;
+  includeExtractedText?: boolean;
+}
+
 export class TangoClient {
   private readonly http: HttpClient;
   private readonly shapeParser: ShapeParser;
@@ -1505,6 +1551,244 @@ export class TangoClient {
     if (!input || !input.type) throw new TangoValidationError("validate: 'type' is required");
     if (!input?.value) throw new TangoValidationError("validate: 'value' is required");
     return await this.http.post<AnyRecord>("/api/validate/", input);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sub-detail methods (Department, BusinessType)
+  // ---------------------------------------------------------------------------
+
+  /** Get a single department by code. */
+  async getDepartment(code: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("Department code is required");
+    return await this.http.get<AnyRecord>(`/api/departments/${encodeURIComponent(code)}/`);
+  }
+
+  /** Get a single business type by code. */
+  async getBusinessType(code: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("Business type code is required");
+    return await this.http.get<AnyRecord>(`/api/business_types/${encodeURIComponent(code)}/`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Entity sub-resources
+  // ---------------------------------------------------------------------------
+
+  private async _entitySubresource(uei: string, segment: string, options: EntitySubresourceOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!uei) throw new TangoValidationError("UEI is required");
+    const { limit = 25, cursor, shape, flat, flatLists, joiner, ordering, search, ...rest } = options;
+    const params: AnyRecord = { limit: Math.min(Number(limit), 100) };
+    if (cursor) params.cursor = cursor;
+    if (shape) {
+      params.shape = shape;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+    if (ordering) params.ordering = ordering;
+    if (search !== undefined) params.search = search;
+    for (const [k, v] of Object.entries(rest)) {
+      if (v !== undefined && v !== null) params[k] = v;
+    }
+    const data = await this.http.get<AnyRecord>(`/api/entities/${encodeURIComponent(uei)}/${segment}/`, params);
+    return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  /** List contracts awarded to an entity (`/api/entities/{uei}/contracts/`). */
+  async listEntityContracts(uei: string, options: EntitySubresourceOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._entitySubresource(uei, "contracts", options);
+  }
+
+  /** List IDVs held by an entity (`/api/entities/{uei}/idvs/`). */
+  async listEntityIdvs(uei: string, options: EntitySubresourceOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._entitySubresource(uei, "idvs", options);
+  }
+
+  /** List OTAs held by an entity (`/api/entities/{uei}/otas/`). */
+  async listEntityOtas(uei: string, options: EntitySubresourceOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._entitySubresource(uei, "otas", options);
+  }
+
+  /** List OTIDVs held by an entity (`/api/entities/{uei}/otidvs/`). */
+  async listEntityOtidvs(uei: string, options: EntitySubresourceOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._entitySubresource(uei, "otidvs", options);
+  }
+
+  /** List subawards for an entity (`/api/entities/{uei}/subawards/`). */
+  async listEntitySubawards(uei: string, options: EntitySubawardsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!uei) throw new TangoValidationError("UEI is required");
+    const { page = 1, limit = 25, shape, flat, flatLists, ordering, ...rest } = options;
+    const params: AnyRecord = { page, limit: Math.min(Number(limit), 100) };
+    if (shape) {
+      params.shape = shape;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+    if (ordering) params.ordering = ordering;
+    for (const [k, v] of Object.entries(rest)) {
+      if (v !== undefined && v !== null) params[k] = v;
+    }
+    const data = await this.http.get<AnyRecord>(`/api/entities/${encodeURIComponent(uei)}/subawards/`, params);
+    return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  /** List Labor Categories (LCATs) for an entity (`/api/entities/{uei}/lcats/`). */
+  async listEntityLcats(uei: string, options: EntityLcatsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!uei) throw new TangoValidationError("UEI is required");
+    return this._genericPaginatedList(`/api/entities/${encodeURIComponent(uei)}/lcats/`, options as AnyRecord);
+  }
+
+  /** Get rolling metrics for an entity (`/api/entities/{uei}/metrics/{months}/{periodGrouping}/`). */
+  async getEntityMetrics(uei: string, months: number | string, periodGrouping: string): Promise<AnyRecord> {
+    if (!uei) throw new TangoValidationError("UEI is required");
+    if (months === undefined || months === null) throw new TangoValidationError("months is required");
+    if (!periodGrouping) throw new TangoValidationError("periodGrouping is required");
+    return await this.http.get<AnyRecord>(
+      `/api/entities/${encodeURIComponent(uei)}/metrics/${encodeURIComponent(String(months))}/${encodeURIComponent(periodGrouping)}/`,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // IDV sub-resources
+  // ---------------------------------------------------------------------------
+
+  /** List Labor Categories under an IDV (`/api/idvs/{key}/lcats/`). */
+  async listIdvLcats(key: string, options: EntityLcatsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!key) throw new TangoValidationError("IDV key is required");
+    return this._genericPaginatedList(`/api/idvs/${encodeURIComponent(key)}/lcats/`, options as AnyRecord);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Agency sub-resources
+  // ---------------------------------------------------------------------------
+
+  private async _agencyContracts(code: string, which: "awarding" | "funding", options: AgencyContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!code) throw new TangoValidationError("Agency code is required");
+    const { limit = 25, cursor, shape, flat, flatLists, joiner, ordering, search, ...rest } = options;
+    const params: AnyRecord = { limit: Math.min(Number(limit), 100) };
+    if (cursor) params.cursor = cursor;
+    if (shape) {
+      params.shape = shape;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+    if (ordering) params.ordering = ordering;
+    if (search !== undefined) params.search = search;
+    for (const [k, v] of Object.entries(rest)) {
+      if (v !== undefined && v !== null) params[k] = v;
+    }
+    const data = await this.http.get<AnyRecord>(`/api/agencies/${encodeURIComponent(code)}/contracts/${which}/`, params);
+    return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  /** List contracts where this agency is the awarding agency. */
+  async listAgencyAwardingContracts(code: string, options: AgencyContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._agencyContracts(code, "awarding", options);
+  }
+
+  /** List contracts where this agency is the funding agency. */
+  async listAgencyFundingContracts(code: string, options: AgencyContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._agencyContracts(code, "funding", options);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Typed metrics wrappers
+  // ---------------------------------------------------------------------------
+
+  /** Get rolling NAICS metrics (`/api/naics/{code}/metrics/{months}/{periodGrouping}/`). */
+  async getNaicsMetrics(code: string, months: number | string, periodGrouping: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("NAICS code is required");
+    if (months === undefined || months === null) throw new TangoValidationError("months is required");
+    if (!periodGrouping) throw new TangoValidationError("periodGrouping is required");
+    return await this.http.get<AnyRecord>(
+      `/api/naics/${encodeURIComponent(code)}/metrics/${encodeURIComponent(String(months))}/${encodeURIComponent(periodGrouping)}/`,
+    );
+  }
+
+  /** Get rolling PSC metrics (`/api/psc/{code}/metrics/{months}/{periodGrouping}/`). */
+  async getPscMetrics(code: string, months: number | string, periodGrouping: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("PSC code is required");
+    if (months === undefined || months === null) throw new TangoValidationError("months is required");
+    if (!periodGrouping) throw new TangoValidationError("periodGrouping is required");
+    return await this.http.get<AnyRecord>(
+      `/api/psc/${encodeURIComponent(code)}/metrics/${encodeURIComponent(String(months))}/${encodeURIComponent(periodGrouping)}/`,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Webhook alerts — list/get/update parity
+  // ---------------------------------------------------------------------------
+
+  /** List filter-based webhook subscriptions (alerts). */
+  async listWebhookAlerts(options: { page?: number; pageSize?: number } = {}): Promise<PaginatedResponse<WebhookAlert>> {
+    const params: AnyRecord = { page: options.page ?? 1 };
+    if (options.pageSize !== undefined) params.page_size = options.pageSize;
+    const data = await this.http.get<AnyRecord>("/api/webhooks/alerts/", params);
+    return buildPaginatedResponse<WebhookAlert>(data);
+  }
+
+  /** Get a single filter-based webhook subscription by id. */
+  async getWebhookAlert(id: string): Promise<WebhookAlert> {
+    if (!id) throw new TangoValidationError("Webhook alert id is required");
+    return await this.http.get<WebhookAlert>(`/api/webhooks/alerts/${encodeURIComponent(id)}/`);
+  }
+
+  /**
+   * Patch a webhook alert (filter subscription).
+   *
+   * Only name, frequency, cron_expression, and is_active are writable.
+   * query_type and filters are read-only after creation.
+   */
+  async updateWebhookAlert(
+    id: string,
+    input: {
+      name?: string;
+      frequency?: string;
+      cronExpression?: string;
+      isActive?: boolean;
+    },
+  ): Promise<WebhookAlert> {
+    if (!id) throw new TangoValidationError("Webhook alert id is required");
+    const body: AnyRecord = {};
+    if (input.name !== undefined) body.name = input.name;
+    if (input.frequency !== undefined) body.frequency = input.frequency;
+    if (input.cronExpression !== undefined) body.cron_expression = input.cronExpression;
+    if (input.isActive !== undefined) body.is_active = input.isActive;
+    return await this.http.patch<WebhookAlert>(`/api/webhooks/alerts/${encodeURIComponent(id)}/`, body);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Opportunity attachment search + misc
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Semantic search over opportunity attachments
+   * (`/api/opportunities/attachment-search/`).
+   */
+  async searchOpportunityAttachments(options: SearchOpportunityAttachmentsOptions): Promise<AnyRecord> {
+    if (!options || !options.q) {
+      throw new TangoValidationError("searchOpportunityAttachments: 'q' is required");
+    }
+    const params: AnyRecord = { q: options.q };
+    if (options.topK !== undefined) params.top_k = options.topK;
+    if (options.includeExtractedText !== undefined) {
+      params.include_extracted_text = options.includeExtractedText ? "true" : "false";
+    }
+    return await this.http.get<AnyRecord>("/api/opportunities/attachment-search/", params);
+  }
+
+  /** Get the Tango API version info (`/api/version/`). */
+  async getVersion(): Promise<AnyRecord> {
+    return await this.http.get<AnyRecord>("/api/version/");
+  }
+
+  /** List the authenticated user's API keys (`/api/api-keys/`). */
+  async listApiKeys(): Promise<AnyRecord> {
+    return await this.http.get<AnyRecord>("/api/api-keys/");
   }
 
   private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {

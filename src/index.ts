@@ -24,6 +24,11 @@ export type {
   ListMetricsOptions,
   ResolveInput,
   ValidateInput,
+  EntitySubresourceOptions,
+  EntitySubawardsOptions,
+  EntityLcatsOptions,
+  AgencyContractsOptions,
+  SearchOpportunityAttachmentsOptions,
 } from "./client.js";
 export * from "./config.js";
 export * from "./errors.js";
