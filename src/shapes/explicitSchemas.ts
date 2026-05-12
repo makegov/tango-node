@@ -795,6 +795,17 @@ export const CONTRACT_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. Mirrors the server's
+  // `_EXPAND_ALIASES` (see makegov/tango#2257). When users request
+  // `shape=naics(code,description)` the server returns a `{code, description}`
+  // object on this key.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   number_of_actions: {
     name: "number_of_actions",
     type: "int",
@@ -864,6 +875,14 @@ export const CONTRACT_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See `naics` above.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   purchase_card_as_payment_method: {
     name: "purchase_card_as_payment_method",
@@ -1431,6 +1450,14 @@ export const FORECAST_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   place_of_performance: {
     name: "place_of_performance",
     type: "str",
@@ -1532,6 +1559,14 @@ export const OPPORTUNITY_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   notice_history: {
     name: "notice_history",
     type: "dict",
@@ -1573,6 +1608,14 @@ export const OPPORTUNITY_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See CONTRACT_SCHEMA.psc.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   response_deadline: {
     name: "response_deadline",
@@ -1654,6 +1697,14 @@ export const NOTICE_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   notice_id: {
     name: "notice_id",
     type: "str",
@@ -1681,6 +1732,14 @@ export const NOTICE_SCHEMA: FieldSchemaMap = {
     isOptional: false,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See CONTRACT_SCHEMA.psc.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   response_deadline: {
     name: "response_deadline",
@@ -2447,12 +2506,28 @@ export const VEHICLE_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   psc_code: {
     name: "psc_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See CONTRACT_SCHEMA.psc.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   set_aside: {
     name: "set_aside",
