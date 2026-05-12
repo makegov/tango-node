@@ -199,6 +199,167 @@ export type IterableListMethod =
   | "listIdvs"
   | "listVehicles";
 
+// ---------------------------------------------------------------------------
+// Read-method option interfaces (lookups + awards completeness + other)
+// ---------------------------------------------------------------------------
+
+export interface ListNaicsOptions extends ListOptionsBase {
+  search?: string;
+  revenue_limit?: number | string;
+  employee_limit?: number | string;
+  revenue_limit_gte?: number | string;
+  revenue_limit_lte?: number | string;
+  employee_limit_gte?: number | string;
+  employee_limit_lte?: number | string;
+  [key: string]: unknown;
+}
+
+export interface ListPscOptions extends ListOptionsBase {
+  [key: string]: unknown;
+}
+
+export interface ListMasSinsOptions extends ListOptionsBase {
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface ListAssistanceListingsOptions extends ListOptionsBase {
+  [key: string]: unknown;
+}
+
+export interface ListOrganizationsOptions extends ListOptionsBase {
+  search?: string;
+  type?: string;
+  level?: string | number;
+  cgac?: string;
+  parent?: string;
+  include_inactive?: boolean;
+  [key: string]: unknown;
+}
+
+export interface ListOfficesOptions extends ListOptionsBase {
+  search?: string;
+  [key: string]: unknown;
+}
+
+export interface ListDepartmentsOptions extends ListOptionsBase {
+  [key: string]: unknown;
+}
+
+export interface ListOtasOptions extends ListOptionsBase {
+  uei?: string;
+  piid?: string;
+  search?: string;
+  awarding_agency?: string;
+  funding_agency?: string;
+  fiscal_year?: number | string;
+  psc?: string;
+  recipient?: string;
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+export interface ListOtidvsOptions extends ListOtasOptions {
+  [key: string]: unknown;
+}
+
+export interface ListOtidvAwardsOptions extends ListOtasOptions {
+  [key: string]: unknown;
+}
+
+export interface ListSubawardsOptions extends ListOptionsBase {
+  award_key?: string;
+  prime_uei?: string;
+  sub_uei?: string;
+  awarding_agency?: string;
+  funding_agency?: string;
+  fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  recipient?: string;
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+export interface ListGsaElibraryContractsOptions extends ListOptionsBase {
+  schedule?: string;
+  contract_number?: string;
+  key?: string;
+  piid?: string;
+  uei?: string;
+  sin?: string;
+  search?: string;
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+export interface ListLcatsOptions {
+  page?: number;
+  limit?: number;
+  [key: string]: unknown;
+}
+
+export interface ListProtestsOptions {
+  page?: number;
+  limit?: number;
+  source_system?: string;
+  outcome?: string;
+  case_type?: string;
+  agency?: string;
+  case_number?: string;
+  solicitation_number?: string;
+  protester?: string;
+  search?: string;
+  filed_date_after?: string;
+  filed_date_before?: string;
+  decision_date_after?: string;
+  decision_date_before?: string;
+  [key: string]: unknown;
+}
+
+export interface ListItDashboardOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  agency_code?: string;
+  agency_name?: string;
+  type_of_investment?: string;
+  updated_time_after?: string;
+  updated_time_before?: string;
+  cio_rating?: string | number;
+  cio_rating_max?: string | number;
+  performance_risk?: string | number;
+  [key: string]: unknown;
+}
+
+/**
+ * Metrics live under several owner types in the API:
+ * `/api/naics/{code}/metrics/{months}/{period_grouping}/`
+ * `/api/psc/{code}/metrics/{months}/{period_grouping}/`
+ * `/api/entities/{uei}/metrics/{months}/{period_grouping}/`
+ */
+export interface ListMetricsOptions {
+  ownerType: "naics" | "psc" | "entity";
+  ownerId: string;
+  months: number | string;
+  periodGrouping: string;
+  [key: string]: unknown;
+}
+
+export interface ResolveInput {
+  name: string;
+  target_type: "entity" | "organization";
+  state?: string;
+  city?: string;
+  context?: string;
+  [key: string]: unknown;
+}
+
+export interface ValidateInput {
+  type: "piid" | "solicitation" | "uei";
+  value: string;
+}
+
 export class TangoClient {
   private readonly http: HttpClient;
   private readonly shapeParser: ShapeParser;
@@ -1098,6 +1259,252 @@ export class TangoClient {
 
   iterateVehicles(options: ListVehiclesOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
     return this.iterate<Record<string, unknown>>("listVehicles", options as AnyRecord);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Lookups
+  // ---------------------------------------------------------------------------
+
+  private async _genericPaginatedList(path: string, options: AnyRecord = {}): Promise<PaginatedResponse<AnyRecord>> {
+    const { page = 1, limit = 25, shape, flat, flatLists, ...rest } = options;
+    const params: AnyRecord = { page, limit: Math.min(Number(limit), 100) };
+    if (shape) params.shape = shape;
+    if (flat) params.flat = "true";
+    if (flatLists) params.flat_lists = "true";
+    for (const [k, v] of Object.entries(rest)) {
+      if (v !== undefined && v !== null) params[k] = v;
+    }
+    const data = await this.http.get<AnyRecord>(path, params);
+    return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  /** List NAICS codes. */
+  async listNaics(options: ListNaicsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/naics/", options as AnyRecord);
+  }
+
+  /** Get a single NAICS code by its 6-digit code. */
+  async getNaics(code: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("NAICS code is required");
+    return await this.http.get<AnyRecord>(`/api/naics/${encodeURIComponent(code)}/`);
+  }
+
+  /** List PSC (Product/Service) codes. */
+  async listPsc(options: ListPscOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/psc/", options as AnyRecord);
+  }
+
+  /** Get a single PSC code. */
+  async getPsc(code: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("PSC code is required");
+    return await this.http.get<AnyRecord>(`/api/psc/${encodeURIComponent(code)}/`);
+  }
+
+  /** List GSA MAS SINs. */
+  async listMasSins(options: ListMasSinsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/mas_sins/", options as AnyRecord);
+  }
+
+  /** Get a single MAS SIN by its identifier. */
+  async getMasSin(sin: string): Promise<AnyRecord> {
+    if (!sin) throw new TangoValidationError("MAS SIN is required");
+    return await this.http.get<AnyRecord>(`/api/mas_sins/${encodeURIComponent(sin)}/`);
+  }
+
+  /** List CFDA / Assistance Listings. */
+  async listAssistanceListings(options: ListAssistanceListingsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/assistance_listings/", options as AnyRecord);
+  }
+
+  /** Get a single Assistance Listing by CFDA number. */
+  async getAssistanceListing(number: string): Promise<AnyRecord> {
+    if (!number) throw new TangoValidationError("Assistance listing number is required");
+    return await this.http.get<AnyRecord>(`/api/assistance_listings/${encodeURIComponent(number)}/`);
+  }
+
+  /** List organizations (the canonical agency/dept/office hierarchy). */
+  async listOrganizations(options: ListOrganizationsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/organizations/", options as AnyRecord);
+  }
+
+  /**
+   * Get a single organization by identifier. The API accepts multiple identifier
+   * shapes (CGAC, FPDS, short code, slug, etc.).
+   */
+  async getOrganization(identifier: string): Promise<AnyRecord> {
+    if (!identifier) throw new TangoValidationError("Organization identifier is required");
+    return await this.http.get<AnyRecord>(`/api/organizations/${encodeURIComponent(identifier)}/`);
+  }
+
+  /** List offices. */
+  async listOffices(options: ListOfficesOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/offices/", options as AnyRecord);
+  }
+
+  /** Get a single office by code. */
+  async getOffice(code: string): Promise<AnyRecord> {
+    if (!code) throw new TangoValidationError("Office code is required");
+    return await this.http.get<AnyRecord>(`/api/offices/${encodeURIComponent(code)}/`);
+  }
+
+  /**
+   * List departments.
+   *
+   * @deprecated Use `listOrganizations({ level: 1 })` instead. The standalone
+   * departments endpoint is retained for backward compatibility and will be
+   * removed in a future API version. See #1461 (legacy agency tables retirement).
+   */
+  async listDepartments(options: ListDepartmentsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/departments/", options as AnyRecord);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Awards completeness: OTAs, OTIDVs, Subawards, GSA eLibrary, LCATs
+  // ---------------------------------------------------------------------------
+
+  /** List OTA (Other Transaction Authority) award actions. */
+  async listOtas(options: ListOtasOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/otas/", options as AnyRecord);
+  }
+
+  /** Get a single OTA by its key. */
+  async getOta(key: string): Promise<AnyRecord> {
+    if (!key) throw new TangoValidationError("OTA key is required");
+    return await this.http.get<AnyRecord>(`/api/otas/${encodeURIComponent(key)}/`);
+  }
+
+  /** List OTIDV (Other Transaction IDV) parents. */
+  async listOtidvs(options: ListOtidvsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/otidvs/", options as AnyRecord);
+  }
+
+  /** Get a single OTIDV by its key. */
+  async getOtidv(key: string): Promise<AnyRecord> {
+    if (!key) throw new TangoValidationError("OTIDV key is required");
+    return await this.http.get<AnyRecord>(`/api/otidvs/${encodeURIComponent(key)}/`);
+  }
+
+  /** List child awards under an OTIDV. */
+  async listOtidvAwards(key: string, options: ListOtidvAwardsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!key) throw new TangoValidationError("OTIDV key is required");
+    return this._genericPaginatedList(`/api/otidvs/${encodeURIComponent(key)}/awards/`, options as AnyRecord);
+  }
+
+  /** List subawards (FSRS / USAspending-derived). */
+  async listSubawards(options: ListSubawardsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/subawards/", options as AnyRecord);
+  }
+
+  /** List GSA eLibrary contracts. */
+  async listGsaElibraryContracts(options: ListGsaElibraryContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/gsa_elibrary_contracts/", options as AnyRecord);
+  }
+
+  /**
+   * List Labor Categories (LCATs) for an entity or IDV.
+   *
+   * LCATs live under owner resources in the API. Pass either:
+   *   - `{ uei: "..." }` to fetch labor categories for an entity, or
+   *   - `{ idvKey: "..." }` to fetch labor categories for an IDV.
+   *
+   * @example
+   *   await client.listLcats({ uei: "ABCDEF123456" });
+   *   await client.listLcats({ idvKey: "GS-00F-XXXX" });
+   */
+  async listLcats(options: ListLcatsOptions & { uei?: string; idvKey?: string }): Promise<PaginatedResponse<AnyRecord>> {
+    const { uei, idvKey, ...rest } = options ?? {};
+    if (!uei && !idvKey) {
+      throw new TangoValidationError("listLcats requires either { uei } or { idvKey }");
+    }
+    const path = uei
+      ? `/api/entities/${encodeURIComponent(uei)}/lcats/`
+      : `/api/idvs/${encodeURIComponent(idvKey as string)}/lcats/`;
+    return this._genericPaginatedList(path, rest as AnyRecord);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Protests + IT Dashboard + Metrics
+  // ---------------------------------------------------------------------------
+
+  /** List protests (GAO + CoFC). */
+  async listProtests(options: ListProtestsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/protests/", options as AnyRecord);
+  }
+
+  /** Get a single protest by case number / id. */
+  async getProtest(caseNumber: string): Promise<AnyRecord> {
+    if (!caseNumber) throw new TangoValidationError("Protest case number is required");
+    return await this.http.get<AnyRecord>(`/api/protests/${encodeURIComponent(caseNumber)}/`);
+  }
+
+  /** List IT Dashboard investments. */
+  async listItDashboard(options: ListItDashboardOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/itdashboard/", options as AnyRecord);
+  }
+
+  /** Get a single IT Dashboard investment by UII. */
+  async getItDashboard(uii: string): Promise<AnyRecord> {
+    if (!uii) throw new TangoValidationError("IT Dashboard UII is required");
+    return await this.http.get<AnyRecord>(`/api/itdashboard/${encodeURIComponent(uii)}/`);
+  }
+
+  /**
+   * List metrics for an owner (NAICS, PSC, or entity).
+   *
+   * Metrics live under owner resources in Tango. Provide `ownerType`,
+   * `ownerId`, `months`, and `periodGrouping`.
+   *
+   * @example
+   *   await client.listMetrics({
+   *     ownerType: "naics",
+   *     ownerId: "541511",
+   *     months: 12,
+   *     periodGrouping: "month",
+   *   });
+   */
+  async listMetrics(options: ListMetricsOptions): Promise<AnyRecord> {
+    const { ownerType, ownerId, months, periodGrouping, ...rest } = options ?? ({} as ListMetricsOptions);
+    if (!ownerType) throw new TangoValidationError("ownerType is required (naics | psc | entity)");
+    if (!ownerId) throw new TangoValidationError("ownerId is required");
+    if (months === undefined || months === null) throw new TangoValidationError("months is required");
+    if (!periodGrouping) throw new TangoValidationError("periodGrouping is required");
+
+    const ownerPath = ownerType === "entity" ? "entities" : ownerType;
+    const path = `/api/${ownerPath}/${encodeURIComponent(ownerId)}/metrics/${encodeURIComponent(String(months))}/${encodeURIComponent(periodGrouping)}/`;
+
+    const params: AnyRecord = {};
+    for (const [k, v] of Object.entries(rest)) {
+      if (v !== undefined && v !== null) params[k] = v;
+    }
+    return await this.http.get<AnyRecord>(path, params);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Resolve + Validate (POST)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Resolve a freeform name to candidate entities or organizations.
+   *
+   * @example
+   *   await client.resolve({ name: "Lockheed Martin", target_type: "entity" });
+   */
+  async resolve(input: ResolveInput): Promise<{ candidates: AnyRecord[]; count: number; [key: string]: unknown }> {
+    if (!input || !input.name) throw new TangoValidationError("resolve: 'name' is required");
+    if (!input?.target_type) throw new TangoValidationError("resolve: 'target_type' is required");
+    return await this.http.post("/api/resolve/", input);
+  }
+
+  /**
+   * Validate an identifier (PIID, solicitation, or UEI) against Tango's records.
+   *
+   * @example
+   *   await client.validate({ type: "uei", value: "ABCDEF123456" });
+   */
+  async validate(input: ValidateInput): Promise<AnyRecord> {
+    if (!input || !input.type) throw new TangoValidationError("validate: 'type' is required");
+    if (!input?.value) throw new TangoValidationError("validate: 'value' is required");
+    return await this.http.post<AnyRecord>("/api/validate/", input);
   }
 
   private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {
