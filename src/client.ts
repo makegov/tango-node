@@ -14,10 +14,6 @@ import type {
   WebhookEndpointUpdateInput,
   WebhookEventTypesResponse,
   WebhookSamplePayloadResponse,
-  WebhookSubscription,
-  WebhookSubscriptionCreateInput,
-  WebhookSubscriptionPayload,
-  WebhookSubscriptionUpdateInput,
   WebhookTestDeliveryResult,
 } from "./models/Webhooks.js";
 
@@ -25,34 +21,6 @@ type AnyRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-/**
- * Normalize a webhook-subscription create/update input into the wire body.
- *
- * Accepts BOTH the canonical snake_case shape (`subscription_name`,
- * `subject_type`, `subject_ids`, `event_type`, `query_type`,
- * `filter_definition`, `cron_expression`, `is_active`, `endpoint`, `payload`)
- * AND the legacy camelCase aliases used in earlier SDK versions
- * (`subscriptionName`, `payload`). Unknown keys are passed through verbatim
- * so future API fields don't require a client release.
- */
-function toSubscriptionRequestBody(input: AnyRecord): AnyRecord {
-  if (!input || typeof input !== "object") return {};
-  const out: AnyRecord = {};
-
-  const legacyName = (input as AnyRecord).subscriptionName;
-  if (typeof legacyName === "string") {
-    out.subscription_name = legacyName;
-  }
-
-  for (const [k, v] of Object.entries(input as AnyRecord)) {
-    if (v === undefined) continue;
-    if (k === "subscriptionName") continue; // already handled
-    out[k] = v;
-  }
-
-  return out;
 }
 
 /**
@@ -162,11 +130,6 @@ export interface ListContractsOptions extends ListOptionsBase {
 export interface ListEntitiesOptions extends ListOptionsBase {
   search?: string;
   [key: string]: unknown;
-}
-
-export interface ListWebhookSubscriptionsOptions {
-  page?: number;
-  pageSize?: number;
 }
 
 export interface ListVehiclesOptions extends ListOptionsBase {
@@ -412,15 +375,7 @@ export class TangoClient {
   private readonly modelFactory: ModelFactory;
 
   constructor(options: TangoClientOptions = {}) {
-    const {
-      apiKey,
-      baseUrl,
-      timeoutMs,
-      timeout,
-      fetchImpl,
-      retries = 3,
-      retryBackoffMs = 250,
-    } = options;
+    const { apiKey, baseUrl, timeoutMs, timeout, fetchImpl, retries = 3, retryBackoffMs = 250 } = options;
 
     let envKey: string | null = null;
     let envBaseUrl: string | null = null;
@@ -1008,60 +963,6 @@ export class TangoClient {
     return await this.http.get<WebhookEventTypesResponse>("/api/webhooks/event-types/");
   }
 
-  async listWebhookSubscriptions(options: ListWebhookSubscriptionsOptions = {}): Promise<PaginatedResponse<WebhookSubscription>> {
-    const { page = 1, pageSize } = options;
-    const params: AnyRecord = { page };
-    if (pageSize !== undefined) params.page_size = pageSize;
-
-    const data = await this.http.get<AnyRecord>("/api/webhooks/subscriptions/", params);
-    return buildPaginatedResponse<WebhookSubscription>(data);
-  }
-
-  async getWebhookSubscription(id: string): Promise<WebhookSubscription> {
-    if (!id) throw new TangoValidationError("Webhook subscription id is required");
-    return await this.http.get<WebhookSubscription>(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`);
-  }
-
-  /**
-   * Create a webhook subscription.
-   *
-   * Accepts the canonical API shape (snake_case fields like `subscription_name`,
-   * `subject_type`, `subject_ids`, `query_type`, `filter_definition`, ...) and
-   * also accepts the legacy SDK shape `{ subscriptionName, payload }` for
-   * backward compatibility.
-   *
-   * For `subscription_type: "subject"` provide `event_type` + `subject_type` +
-   * `subject_ids`. For `subscription_type: "filter"` provide `event_type` (or
-   * leave the API to derive) plus `query_type` (SINGULAR, e.g. `"contract"`)
-   * and `filter_definition`.
-   *
-   * The canonical endpoint expects the `endpoint` (UUID) field on subject
-   * subscriptions; this is required by the API.
-   */
-  async createWebhookSubscription(
-    input: WebhookSubscriptionCreateInput | { subscriptionName: string; payload: WebhookSubscriptionPayload },
-  ): Promise<WebhookSubscription> {
-    const body = toSubscriptionRequestBody(input as AnyRecord);
-    if (!body.subscription_name) {
-      throw new TangoValidationError("Webhook subscription_name is required");
-    }
-    return await this.http.post<WebhookSubscription>("/api/webhooks/subscriptions/", body);
-  }
-
-  async updateWebhookSubscription(
-    id: string,
-    patch: WebhookSubscriptionUpdateInput | { subscriptionName?: string; payload?: WebhookSubscriptionPayload },
-  ): Promise<WebhookSubscription> {
-    if (!id) throw new TangoValidationError("Webhook subscription id is required");
-    const body = toSubscriptionRequestBody(patch as AnyRecord);
-    return await this.http.patch<WebhookSubscription>(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`, body);
-  }
-
-  async deleteWebhookSubscription(id: string): Promise<void> {
-    if (!id) throw new TangoValidationError("Webhook subscription id is required");
-    await this.http.delete(`/api/webhooks/subscriptions/${encodeURIComponent(id)}/`);
-  }
-
   async listWebhookEndpoints(options: { page?: number; limit?: number } = {}): Promise<PaginatedResponse<WebhookEndpoint>> {
     const { page = 1, limit = 25 } = options;
     const params: AnyRecord = { page, limit: Math.min(limit, 100) };
@@ -1152,15 +1053,13 @@ export class TangoClient {
   // ---------------------------------------------------------------------------
 
   /**
-   * Create a filter-based subscription via the convenience alerts API.
+   * Create a filter-based subscription via the alerts API.
    *
-   * Field naming differs from `createWebhookSubscription`:
-   * `name` (here) vs `subscription_name`, and `filters` (here) vs
-   * `filter_definition`. `query_type` is SINGULAR in both.
+   * `query_type` is SINGULAR (e.g. `"contract"`, not `"contracts"`).
    */
   async createWebhookAlert(input: WebhookAlertCreateInput): Promise<WebhookAlert> {
     if (!input?.name) throw new TangoValidationError("Webhook alert name is required");
-    if (!input.query_type) throw new TangoValidationError("Webhook alert query_type is required (singular, e.g. \"contract\")");
+    if (!input.query_type) throw new TangoValidationError('Webhook alert query_type is required (singular, e.g. "contract")');
     if (!input.filters || typeof input.filters !== "object") {
       throw new TangoValidationError("Webhook alert filters must be a non-empty object");
     }
@@ -1462,9 +1361,7 @@ export class TangoClient {
     if (!uei && !idvKey) {
       throw new TangoValidationError("listLcats requires either { uei } or { idvKey }");
     }
-    const path = uei
-      ? `/api/entities/${encodeURIComponent(uei)}/lcats/`
-      : `/api/idvs/${encodeURIComponent(idvKey as string)}/lcats/`;
+    const path = uei ? `/api/entities/${encodeURIComponent(uei)}/lcats/` : `/api/idvs/${encodeURIComponent(idvKey as string)}/lcats/`;
     return this._genericPaginatedList(path, rest as AnyRecord);
   }
 
@@ -1663,7 +1560,11 @@ export class TangoClient {
   // Agency sub-resources
   // ---------------------------------------------------------------------------
 
-  private async _agencyContracts(code: string, which: "awarding" | "funding", options: AgencyContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+  private async _agencyContracts(
+    code: string,
+    which: "awarding" | "funding",
+    options: AgencyContractsOptions = {},
+  ): Promise<PaginatedResponse<AnyRecord>> {
     if (!code) throw new TangoValidationError("Agency code is required");
     const { limit = 25, cursor, shape, flat, flatLists, joiner, ordering, search, ...rest } = options;
     const params: AnyRecord = { limit: Math.min(Number(limit), 100) };

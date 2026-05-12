@@ -561,16 +561,16 @@ Semantic search over opportunity attachments. `q` is required.
 ```ts
 const results = await client.searchOpportunityAttachments({
   q: "cybersecurity",
-  topK: 10,                  // max results (optional)
+  topK: 10, // max results (optional)
   includeExtractedText: false, // include raw extracted text (optional)
 });
 ```
 
-| Name                   | Type      | Description                               |
-| ---------------------- | --------- | ----------------------------------------- |
-| `q`                    | `string`  | **Required.** Search query.               |
-| `topK`                 | `number`  | Maximum number of results to return.      |
-| `includeExtractedText` | `boolean` | Whether to include raw extracted text.    |
+| Name                   | Type      | Description                            |
+| ---------------------- | --------- | -------------------------------------- |
+| `q`                    | `string`  | **Required.** Search query.            |
+| `topK`                 | `number`  | Maximum number of results to return.   |
+| `includeExtractedText` | `boolean` | Whether to include raw extracted text. |
 
 ---
 
@@ -612,77 +612,10 @@ Webhook APIs let **Large / Enterprise** users manage subscription filters for ou
 
 ### `listWebhookEventTypes()`
 
-Discover supported `event_type` values and subject types.
+Discover supported `event_type` values.
 
 ```ts
 const info = await client.listWebhookEventTypes();
-```
-
-### `listWebhookSubscriptions(options?)`
-
-```ts
-const subs = await client.listWebhookSubscriptions({ page: 1, pageSize: 25 });
-```
-
-Notes:
-
-- Uses `page` + `page_size` (not `limit`) for pagination on this endpoint.
-
-### `getWebhookSubscription(id)`
-
-```ts
-const sub = await client.getWebhookSubscription("SUBSCRIPTION_UUID");
-```
-
-### `createWebhookSubscription(input)`
-
-Accepts either the **canonical API shape** (`WebhookSubscriptionCreateInput`) or the **legacy SDK shape** (`{ subscriptionName, payload }`).
-
-**Canonical form** (recommended for new code):
-
-```ts
-await client.createWebhookSubscription({
-  subscription_name: “Track specific vendors”,
-  endpoint: “ENDPOINT_UUID”,
-  subscription_type: “subject”,
-  event_type: “awards.new_award”,
-  subject_type: “entity”,
-  subject_ids: [“UEI123ABC”],
-});
-```
-
-**Legacy form** (backward compatibility):
-
-```ts
-await client.createWebhookSubscription({
-  subscriptionName: “Track specific vendors”,
-  payload: {
-    records: [
-      { event_type: “awards.new_award”, subject_type: “entity”, subject_ids: [“UEI123ABC”] },
-      { event_type: “awards.new_transaction”, subject_type: “entity”, subject_ids: [“UEI123ABC”] },
-    ],
-  },
-});
-```
-
-Notes:
-
-- Prefer v2 fields: `subject_type` + `subject_ids`.
-- Legacy compatibility: `resource_ids` is accepted as an alias for `subject_ids` (don’t send both).
-- Catch-all: `subject_ids: []` means “all subjects” for that record and is **Enterprise-only**. Large tier users must list specific IDs.
-
-### `updateWebhookSubscription(id, patch)`
-
-```ts
-await client.updateWebhookSubscription("SUBSCRIPTION_UUID", {
-  subscriptionName: "Updated name",
-});
-```
-
-### `deleteWebhookSubscription(id)`
-
-```ts
-await client.deleteWebhookSubscription("SUBSCRIPTION_UUID");
 ```
 
 ### Webhook endpoints
@@ -751,15 +684,15 @@ await client.deleteWebhookAlert("ALERT_UUID");
 ```
 
 Notes:
+
 - `name` and `query_type` are required on create. `query_type` is **singular** (e.g. `"contract"`, not `"contracts"`).
-- Field naming differs from `createWebhookSubscription`: `name` (here) vs `subscriptionName`, `filters` (here) vs `filter_definition`.
 
 ### Deliveries / redelivery
 
 The API does not currently expose a public `/api/webhooks/deliveries/` or redelivery endpoint. Use:
 
 - `testWebhookEndpoint(endpointId)` for connectivity checks
-- `getWebhookSamplePayload()` for building handlers + subscription payloads
+- `getWebhookSamplePayload()` for building handlers + alert payloads
 
 ### Receiving webhooks (signature verification)
 

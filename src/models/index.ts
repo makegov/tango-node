@@ -21,12 +21,5 @@ export type {
   WebhookSamplePayloadAllResponse,
   WebhookSamplePayloadResponse,
   WebhookSamplePayloadSingleResponse,
-  WebhookSampleSubject,
-  WebhookSubscription,
-  WebhookSubscriptionCreateInput,
-  WebhookSubscriptionPayload,
-  WebhookSubscriptionPayloadRecord,
-  WebhookSubscriptionUpdateInput,
-  WebhookSubjectTypeDefinition,
   WebhookTestDeliveryResult,
 } from "./Webhooks.js";

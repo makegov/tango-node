@@ -168,12 +168,14 @@ The Node SDK mirrors the Python client's behavior for `shape`, `flat`, and `flat
 The Node client mirrors the Python SDK's high-level API. Selected highlights:
 
 **Agencies / Offices / Organizations / Departments**
+
 - `listAgencies(options)` / `getAgency(code)`
 - `listOffices(options)` / `getOffice(code)`
 - `listOrganizations(options)` / `getOrganization(identifier)`
 - `listDepartments(options)` / `getDepartment(code)`
 
 **Contracts / IDVs / OTAs / OTIDVs / Subawards**
+
 - `listContracts(options)` / `listIdvs(options)` / `getIdv(key, options)`
 - `listIdvAwards(key, options)` / `listIdvChildIdvs({key, ...options})` / `listIdvTransactions(key, options)`
 - `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options)`
@@ -181,24 +183,29 @@ The Node client mirrors the Python SDK's high-level API. Selected highlights:
 - `listSubawards(options)`
 
 **Vehicles**
+
 - `listVehicles(options)` / `getVehicle(uuid, options)` / `listVehicleAwardees(uuid, options)`
 
 **Entities**
+
 - `listEntities(options)` / `getEntity(ueiOrCage, options)`
 - `listEntityContracts(uei, options)` / `listEntityIdvs(uei, options)` / `listEntityOtas(uei, options)`
 - `listEntityOtidvs(uei, options)` / `listEntitySubawards(uei, options)` / `listEntityLcats(uei, options)`
 - `getEntityMetrics(uei, months, periodGrouping)`
 
 **Forecasts / Opportunities / Notices / Grants**
+
 - `listForecasts(options)` / `listOpportunities(options)` / `listNotices(options)` / `listGrants(options)`
 - `searchOpportunityAttachments(options)`
 
 **GSA eLibrary / Protests / IT Dashboard / Subawards / LCATs**
+
 - `listGsaElibraryContracts(options)` / `listProtests(options)` / `getProtest(caseNumber)`
 - `listItDashboard(options)` / `getItDashboard(uii)`
 - `listLcats(options)` / `listIdvLcats(key, options)`
 
 **Reference / Lookups**
+
 - `listBusinessTypes(options)` / `getBusinessType(code)`
 - `listNaics(options)` / `getNaics(code)` / `getNaicsMetrics(code, months, periodGrouping)`
 - `listPsc(options)` / `getPsc(code)` / `getPscMetrics(code, months, periodGrouping)`
@@ -207,12 +214,13 @@ The Node client mirrors the Python SDK's high-level API. Selected highlights:
 - `listMetrics(options)` / `listAgencyAwardingContracts(code, options)` / `listAgencyFundingContracts(code, options)`
 
 **Resolve / Validate**
+
 - `resolve(input)` — resolve a free-text name to ranked entity/org candidates
 - `validate(input)` — validate a PIID, solicitation number, or UEI
 
 **Webhooks**
-- `listWebhookEventTypes()` / `listWebhookSubscriptions(options)` / `getWebhookSubscription(id)`
-- `createWebhookSubscription(...)` / `updateWebhookSubscription(id, patch)` / `deleteWebhookSubscription(id)`
+
+- `listWebhookEventTypes()`
 - `listWebhookEndpoints(options)` / `getWebhookEndpoint(id)`
 - `createWebhookEndpoint(...)` / `updateWebhookEndpoint(id, patch)` / `deleteWebhookEndpoint(id)`
 - `testWebhookEndpoint(endpointId)` (preferred) / `testWebhookDelivery(options?)` (legacy alias)
@@ -221,11 +229,13 @@ The Node client mirrors the Python SDK's high-level API. Selected highlights:
 - `updateWebhookAlert(id, patch)` / `deleteWebhookAlert(id)`
 
 **Async iteration helpers**
+
 - `iterate(method, options)` — generic async iterator over any supported list method
 - `iterateContracts` / `iterateEntities` / `iterateOpportunities` / `iterateNotices`
 - `iterateGrants` / `iterateForecasts` / `iterateIdvs` / `iterateVehicles`
 
 **Utility**
+
 - `getVersion()` / `listApiKeys()`
 
 See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full signatures and parameters.

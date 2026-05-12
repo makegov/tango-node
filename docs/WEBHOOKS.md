@@ -1,8 +1,10 @@
 # Webhooks Guide
 
-This guide covers everything `@makegov/tango-node` provides for **building, testing, and operating webhook integrations against the Tango API**: signing helpers, signature verification, and management commands for endpoints, subscriptions, and alerts.
+This guide covers everything `@makegov/tango-node` provides for **building, testing, and operating webhook integrations against the Tango API**: signing helpers, signature verification, and management commands for endpoints and alerts.
 
 If you only need the SDK method signatures, see [`API_REFERENCE.md` § Webhooks](API_REFERENCE.md#webhooks-v2). For the API-level contract (signing scheme, event taxonomy, retry behavior), see the [Tango Webhooks Partner Guide](https://docs.makegov.com/webhooks-user-guide/).
+
+> **Breaking change in v0.4.0**: subject-based webhook subscriptions have been removed. Use the [Alerts API](#alerts-filter-subscription-api) for filter-based delivery. Mirrors [makegov/tango#2267](https://github.com/makegov/tango/issues/2267).
 
 ---
 
@@ -17,8 +19,7 @@ If you only need the SDK method signatures, see [`API_REFERENCE.md` § Webhooks]
   - [Parsing the signature header](#parsing-the-signature-header)
 - [Webhook write API](#webhook-write-api)
   - [Endpoints](#endpoints)
-  - [Subscriptions](#subscriptions)
-  - [Alerts (filter-subscription convenience API)](#alerts-filter-subscription-convenience-api)
+  - [Alerts (filter-subscription API)](#alerts-filter-subscription-api)
   - [Event types and sample payloads](#event-types-and-sample-payloads)
   - [Test delivery](#test-delivery)
 - [Common workflows](#common-workflows)
@@ -39,14 +40,7 @@ pnpm add @makegov/tango-node
 The signing helpers and full webhook write API are included in the default install — no extras needed.
 
 ```ts
-import {
-  TangoClient,
-  generateSignature,
-  verifySignature,
-  parseSignatureHeader,
-  SIGNATURE_HEADER,
-  SIGNATURE_PREFIX,
-} from "@makegov/tango-node";
+import { TangoClient, generateSignature, verifySignature, parseSignatureHeader, SIGNATURE_HEADER, SIGNATURE_PREFIX } from "@makegov/tango-node";
 ```
 
 ---
@@ -55,24 +49,24 @@ import {
 
 Tango webhooks have three pieces of state:
 
-| Concept | What it is | Tango term |
-|---|---|---|
-| **Endpoint** | The URL Tango POSTs to, plus a generated signing secret | `WebhookEndpoint` |
-| **Subscription** | A filter saying *which events* you want delivered to that endpoint | `WebhookSubscription` |
-| **Delivery** | A single signed POST Tango makes when a matching event fires | (the request itself) |
+| Concept      | What it is                                                              | Tango term           |
+| ------------ | ----------------------------------------------------------------------- | -------------------- |
+| **Endpoint** | The URL Tango POSTs to, plus a generated signing secret                 | `WebhookEndpoint`    |
+| **Alert**    | A saved query-filter that fires deliveries when matching records appear | `WebhookAlert`       |
+| **Delivery** | A single signed POST Tango makes when a matching event fires            | (the request itself) |
 
 A typical setup:
 
 1. **Create an endpoint** with the public URL of your handler. Tango returns a `secret` — save it; it's used to sign every delivery.
-2. **Create one or more subscriptions** describing the events your handler cares about (e.g. `entities.updated` for specific UEIs).
-3. **Tango POSTs** to your endpoint when matching events fire. The body is JSON; the header `X-Tango-Signature: sha256=<hex>` is the HMAC-SHA256 of the raw body bytes keyed by your endpoint's secret.
+2. **Create one or more alerts** describing the records your handler cares about (e.g. new IT-services contracts).
+3. **Tango POSTs** to your endpoint when matching records appear. The body is JSON; the header `X-Tango-Signature: sha256=<hex>` is the HMAC-SHA256 of the raw body bytes keyed by your endpoint's secret.
 4. **Your handler verifies the signature**, parses the body, and acts on it.
 
 ---
 
 ## Quickstart: zero to receiving
 
-Assumes you have a `TANGO_API_KEY` and want to receive entity-update webhooks for a specific UEI.
+Assumes you have a `TANGO_API_KEY` and want to receive webhooks for new IT-services contracts.
 
 ### 1. See what you can subscribe to
 
@@ -82,19 +76,19 @@ import { TangoClient } from "@makegov/tango-node";
 const client = new TangoClient({ apiKey: process.env.TANGO_API_KEY });
 const info = await client.listWebhookEventTypes();
 console.log(info.event_types);
-// [{ event_type: "entities.updated", description: "An entity record was updated", ... }, ...]
+// [{ event_type: "alerts.contract.match", description: "...", schema_version: 1 }, ...]
 ```
 
 ### 2. See what a payload looks like
 
 ```ts
-const sample = await client.getWebhookSamplePayload({ eventType: "entities.updated" });
+const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contract.match" });
 console.log(JSON.stringify(sample, null, 2));
 ```
 
-Fetches the canonical JSON shape Tango will deliver for that event type. No subscription needed.
+Fetches the canonical JSON shape Tango will deliver for that event type. No alert needed.
 
-### 3. Register your endpoint and subscription
+### 3. Register your endpoint and alert
 
 When you're ready for end-to-end testing, expose your local handler via a tunnel (`ngrok http 3000`, `cloudflared tunnel`, etc.) and register that public URL with Tango:
 
@@ -105,14 +99,11 @@ const endpoint = await client.createWebhookEndpoint({
 });
 console.log("Secret:", endpoint.secret); // save this!
 
-// Subscribe to entity updates for a specific UEI
-const sub = await client.createWebhookSubscription({
-  subscription_name: "Watch UEI ABC123",
-  endpoint: endpoint.id,
-  subscription_type: "subject",
-  event_type: "entities.updated",
-  subject_type: "entity",
-  subject_ids: ["ABC123"],
+// Create an alert — fires when matching records appear
+const alert = await client.createWebhookAlert({
+  name: "New IT cloud contracts",
+  query_type: "contract", // singular — required
+  filters: { naics: "541511" }, // any /api/contracts/ filter
 });
 ```
 
@@ -156,11 +147,7 @@ app.post("/tango/webhooks", express.raw({ type: "application/json" }), (req, res
 `verifySignature` signature:
 
 ```ts
-function verifySignature(
-  body: string | Buffer,
-  header: string | null | undefined,
-  secret: string,
-): boolean
+function verifySignature(body: string | Buffer, header: string | null | undefined, secret: string): boolean;
 ```
 
 - Returns `false` for missing, empty, malformed, or mismatched headers — never throws on mismatch.
@@ -198,10 +185,12 @@ fastify.post("/tango/webhooks", async (request, reply) => {
 ```ts
 import { generateSignature, SIGNATURE_HEADER } from "@makegov/tango-node";
 
-const body = Buffer.from(JSON.stringify({
-  timestamp: "2024-01-01T00:00:00Z",
-  events: [{ event_type: "entities.updated", uei: "ABC123" }],
-}));
+const body = Buffer.from(
+  JSON.stringify({
+    timestamp: "2024-01-01T00:00:00Z",
+    events: [{ event_type: "entities.updated", uei: "ABC123" }],
+  }),
+);
 
 const signatureHeader = generateSignature(body, "test_secret");
 // → "sha256=<lowercase hex>"
@@ -220,7 +209,7 @@ const response = await fetch("http://localhost:3000/tango/webhooks", {
 `generateSignature` signature:
 
 ```ts
-function generateSignature(body: string | Buffer, secret: string): string
+function generateSignature(body: string | Buffer, secret: string): string;
 // Returns: "sha256=<lowercase hex HMAC-SHA256>"
 ```
 
@@ -267,8 +256,8 @@ const endpoint = await client.getWebhookEndpoint("ENDPOINT_UUID");
 // Create — one endpoint per user; save the returned `secret`
 const created = await client.createWebhookEndpoint({
   callbackUrl: "https://example.com/tango/webhooks",
-  name: "Production handler",   // optional label
-  isActive: true,               // default true
+  name: "Production handler", // optional label
+  isActive: true, // default true
 });
 console.log("Secret:", created.secret); // only returned on create — save it
 
@@ -288,99 +277,24 @@ interface WebhookEndpoint {
   id: string;
   name: string;
   callback_url: string;
-  secret?: string;   // present on create response only
+  secret?: string; // present on create response only
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 ```
 
-### Subscriptions
+### Alerts (filter-subscription API)
 
-A subscription maps a set of event types and subjects to an endpoint.
-
-```ts
-// List
-const subs = await client.listWebhookSubscriptions({ page: 1, pageSize: 25 });
-
-// Get one
-const sub = await client.getWebhookSubscription("SUBSCRIPTION_UUID");
-
-// Delete
-await client.deleteWebhookSubscription("SUBSCRIPTION_UUID");
-```
-
-#### Creating subscriptions
-
-Two flavors, depending on `subscription_type`:
-
-**Subject subscription** (most common) — match by event type + specific subject IDs:
-
-```ts
-await client.createWebhookSubscription({
-  subscription_name: "Watch specific vendors",
-  endpoint: "ENDPOINT_UUID",
-  subscription_type: "subject",
-  event_type: "awards.new_award",
-  subject_type: "entity",
-  subject_ids: ["UEI123ABC", "UEI456DEF"],
-});
-```
-
-**Filter subscription** — match by saved query-param filters:
-
-```ts
-await client.createWebhookSubscription({
-  subscription_name: "IT contracts watch",
-  endpoint: "ENDPOINT_UUID",
-  subscription_type: "filter",
-  query_type: "contract",         // singular — "contract", not "contracts"
-  filter_definition: { naics: "541511" },
-});
-```
-
-**Legacy SDK form** (backward compatibility — sends a hand-crafted `payload` object):
-
-```ts
-await client.createWebhookSubscription({
-  subscriptionName: "Multi-event watch",
-  payload: {
-    records: [
-      { event_type: "awards.new_award", subject_type: "entity", subject_ids: ["UEI123ABC"] },
-      { event_type: "awards.new_transaction", subject_type: "entity", subject_ids: ["UEI123ABC"] },
-    ],
-  },
-});
-```
-
-#### Updating subscriptions
-
-```ts
-await client.updateWebhookSubscription("SUBSCRIPTION_UUID", {
-  subscription_name: "Updated name",
-  is_active: false,
-});
-```
-
-`updateWebhookSubscription` sends a PATCH — only the fields you provide are changed.
-
-#### Notes
-
-- `subject_ids: []` means "all subjects" and is **Enterprise-only**. Large tier users must list specific IDs.
-- `resource_ids` is accepted as a legacy alias for `subject_ids` — don't send both.
-- The `endpoint` field on subscriptions takes a UUID (not a URL).
-
-### Alerts (filter-subscription convenience API)
-
-The Alerts API is a simpler interface for filter-based subscriptions. It targets the `/api/webhooks/alerts/` endpoint (as opposed to `/api/webhooks/subscriptions/`), and uses slightly different field names.
+Alerts are the SDK's interface for telling Tango "deliver me records matching this filter." Subject-based subscriptions (match by event type + specific subject IDs) were removed in v0.4.0 — alerts are now the only way to subscribe.
 
 ```ts
 // Create
 const alert = await client.createWebhookAlert({
   name: "New IT cloud contracts",
-  query_type: "contract",         // singular — required
-  filters: { naics: "541511" },   // required, non-empty
-  frequency: "daily",             // optional
+  query_type: "contract", // singular — required
+  filters: { naics: "541511" }, // required, non-empty
+  frequency: "daily", // optional
 });
 
 // List
@@ -413,24 +327,15 @@ interface WebhookAlert {
 }
 ```
 
-**Field naming differences** vs `createWebhookSubscription`:
-
-| Alerts API | Subscriptions API |
-|---|---|
-| `name` | `subscription_name` |
-| `filters` | `filter_definition` |
-| `query_type` | `query_type` (same, still singular) |
-
 ### Event types and sample payloads
 
 ```ts
-// List all supported event types and subject types
+// List all supported event types
 const info = await client.listWebhookEventTypes();
-// info.event_types → [{ event_type, description, default_subject_type, schema_version }]
-// info.subject_types → ["entity", "contract", ...]
+// info.event_types → [{ event_type, description, schema_version }]
 
 // Fetch a canonical sample payload for one event type
-const sample = await client.getWebhookSamplePayload({ eventType: "entities.updated" });
+const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contract.match" });
 
 // Or fetch sample payloads for all event types at once
 const all = await client.getWebhookSamplePayload();
@@ -444,11 +349,11 @@ Force Tango to POST a real test delivery to a registered endpoint:
 
 ```ts
 const result = await client.testWebhookEndpoint("ENDPOINT_UUID");
-console.log(result.success);        // boolean
-console.log(result.status_code);    // HTTP code Tango got from your endpoint
+console.log(result.success); // boolean
+console.log(result.status_code); // HTTP code Tango got from your endpoint
 console.log(result.response_time_ms);
 console.log(result.message);
-console.log(result.error);          // set on failure
+console.log(result.error); // set on failure
 ```
 
 **`WebhookTestDeliveryResult` shape:**
@@ -472,7 +377,7 @@ interface WebhookTestDeliveryResult {
 
 ## Common workflows
 
-### "Set me up to receive entity updates from scratch"
+### "Set me up to receive contract-match alerts from scratch"
 
 ```ts
 import { TangoClient } from "@makegov/tango-node";
@@ -481,7 +386,7 @@ const client = new TangoClient({ apiKey: process.env.TANGO_API_KEY });
 
 // 1. Confirm available event types
 const { event_types } = await client.listWebhookEventTypes();
-console.log(event_types.map(e => e.event_type));
+console.log(event_types.map((e) => e.event_type));
 
 // 2. Create endpoint — expose your handler via ngrok/cloudflared first
 const endpoint = await client.createWebhookEndpoint({
@@ -490,14 +395,11 @@ const endpoint = await client.createWebhookEndpoint({
 // Save endpoint.secret — you need it to verify incoming deliveries
 process.env.TANGO_WEBHOOK_SECRET = endpoint.secret!;
 
-// 3. Subscribe to entity updates for a specific UEI
-await client.createWebhookSubscription({
-  subscription_name: "entities",
-  endpoint: endpoint.id,
-  subscription_type: "subject",
-  event_type: "entities.updated",
-  subject_type: "entity",
-  subject_ids: ["<UEI>"],
+// 3. Create an alert — fires when matching records appear
+await client.createWebhookAlert({
+  name: "New IT cloud contracts",
+  query_type: "contract",
+  filters: { naics: "541511" },
 });
 
 // 4. Force a test delivery to verify your handler is reachable
@@ -533,17 +435,13 @@ import { generateSignature, SIGNATURE_HEADER } from "@makegov/tango-node";
 const secret = "test_secret";
 const payload = {
   timestamp: "2024-01-01T00:00:00Z",
-  events: [{ event_type: "entities.updated", uei: "ABC123" }],
+  events: [{ event_type: "alerts.contract.match", record: { piid: "ABC123" } }],
 };
 const rawBody = Buffer.from(JSON.stringify(payload));
 const sig = generateSignature(rawBody, secret);
 
 // Drive your handler directly — e.g. with supertest or a test fetch:
-const res = await request(app)
-  .post("/tango/webhooks")
-  .set("Content-Type", "application/json")
-  .set(SIGNATURE_HEADER, sig)
-  .send(rawBody);
+const res = await request(app).post("/tango/webhooks").set("Content-Type", "application/json").set(SIGNATURE_HEADER, sig).send(rawBody);
 
 expect(res.status).toBe(200);
 ```
@@ -551,7 +449,7 @@ expect(res.status).toBe(200);
 ### "Inspect what bytes Tango actually sends"
 
 ```ts
-const sample = await client.getWebhookSamplePayload({ eventType: "entities.updated" });
+const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contract.match" });
 // sample.signature_header shows the X-Tango-Signature format
 // sample.sample_delivery shows the exact JSON body shape
 console.log(JSON.stringify(sample.sample_delivery, null, 2));
@@ -567,10 +465,10 @@ console.log(JSON.stringify(sample.sample_delivery, null, 2));
 
 **`createWebhookEndpoint` returns 400 or "endpoint already exists".** Tango limits one endpoint per user. Use `listWebhookEndpoints()` to find the existing one, then either reuse its ID or `deleteWebhookEndpoint` it first.
 
-**`createWebhookAlert` throws `TangoValidationError: query_type is required`.** The `query_type` field is singular — `"contract"`, not `"contracts"`. Same goes for `createWebhookSubscription` with `subscription_type: "filter"`.
+**`createWebhookAlert` throws `TangoValidationError: query_type is required`.** The `query_type` field is singular — `"contract"`, not `"contracts"`.
 
 **`testWebhookEndpoint` returns `success: false`.** Tango reached your endpoint but got a non-2xx response. Check `result.status_code` and `result.response_body` in the result, then look at your handler's logs.
 
 **`getWebhookSamplePayload` throws with 401.** Set `TANGO_API_KEY` (or pass `apiKey` to `TangoClient`). This endpoint requires authentication.
 
-**`listWebhookSubscriptions` returns an empty array unexpectedly.** Check your API key — subscriptions are scoped to the authenticated user. Also confirm the endpoint UUID in the subscription matches your current endpoint (subscriptions from a deleted endpoint aren't automatically cleaned up).
+**`listWebhookAlerts` returns an empty array unexpectedly.** Check your API key — alerts are scoped to the authenticated user. Also confirm the endpoint UUID associated with your alerts matches your current endpoint (alerts pointing at a deleted endpoint aren't automatically cleaned up).

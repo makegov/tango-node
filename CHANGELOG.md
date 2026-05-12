@@ -8,7 +8,13 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-This release brings `tango-node` to **full feature parity** with both the Tango API and the `tango-python` SDK. Every method available on `tango_python.TangoClient` now has an idiomatic camelCase counterpart on `TangoClient`. 84 public methods, 16 test files, 111 passing unit tests, 82% line coverage.
+This release brings `tango-node` to **full feature parity** with both the Tango API and the `tango-python` SDK for the surface that remains after the subject-based webhook removal (see "Removed" below). Every read method and every endpoint/alert/signing helper available on `tango_python.TangoClient` now has an idiomatic camelCase counterpart on `TangoClient`.
+
+### Removed
+
+- **Subject-based webhook subscriptions** are gone. The Tango API is dropping the `/api/webhooks/subscriptions/` surface for subject delivery (see [makegov/tango#2267](https://github.com/makegov/tango/issues/2267)); `tango-node` mirrors that here. Removed methods: `listWebhookSubscriptions`, `getWebhookSubscription`, `createWebhookSubscription`, `updateWebhookSubscription`, `deleteWebhookSubscription`. Removed types: `WebhookSubscription`, `WebhookSubscriptionCreateInput`, `WebhookSubscriptionUpdateInput`, `WebhookSubscriptionPayload`, `WebhookSubscriptionPayloadRecord`, `WebhookSubjectTypeDefinition`, `WebhookSampleSubject`, `ListWebhookSubscriptionsOptions`. `WebhookEventTypesResponse` no longer carries `subject_types` / `subject_type_definitions`; `WebhookEventType` no longer carries `default_subject_type`; sample-payload responses no longer carry `sample_subjects` / `sample_subscription_requests`. Use `createWebhookAlert` (filter-based delivery via `/api/webhooks/alerts/`) — that's the only remaining subscription path.
+
+SemVer-major (`0.3.0` → `0.4.0`).
 
 ### Added
 
@@ -33,11 +39,10 @@ This release brings `tango-node` to **full feature parity** with both the Tango 
 
 #### Webhook write API
 
-- Subscriptions: `createWebhookSubscription`, `updateWebhookSubscription`, `deleteWebhookSubscription`. Accepts both the canonical snake_case payload (`subscription_name`, `subscription_type`, `endpoint`, `query_type`, `filter_definition`, …) and the legacy `{ subscriptionName, payload }` camelCase shape for backward compatibility.
 - Endpoints: `createWebhookEndpoint` (now `name` is first-class; defaults to URL host if omitted), `updateWebhookEndpoint`, `deleteWebhookEndpoint`. `testWebhookEndpoint(endpointId)` is the canonical method using the API's `{ endpoint_id }` body key; the prior `testWebhookDelivery` kept as an alias.
-- Alerts (filter-subscription convenience wrapper): `listWebhookAlerts`, `getWebhookAlert`, `createWebhookAlert`, `updateWebhookAlert`, `deleteWebhookAlert`. Note: `createWebhookAlert` auto-resolves the caller's sole endpoint; accounts with multiple endpoints currently get a 400 from the API — tracked at [makegov/tango#2256](https://github.com/makegov/tango/issues/2256).
+- Alerts (filter-subscription API): `listWebhookAlerts`, `getWebhookAlert`, `createWebhookAlert`, `updateWebhookAlert`, `deleteWebhookAlert`. Note: `createWebhookAlert` auto-resolves the caller's sole endpoint; accounts with multiple endpoints currently get a 400 from the API — tracked at [makegov/tango#2256](https://github.com/makegov/tango/issues/2256).
 
-New typed input interfaces exported from the package root: `WebhookSubscriptionCreateInput`, `WebhookSubscriptionUpdateInput`, `WebhookEndpointCreateInput`, `WebhookEndpointUpdateInput`, `WebhookAlertCreateInput`, `WebhookAlert`, plus options types for the new sub-resources.
+New typed input interfaces exported from the package root: `WebhookEndpointCreateInput`, `WebhookEndpointUpdateInput`, `WebhookAlertCreateInput`, `WebhookAlert`, plus options types for the new sub-resources.
 
 #### Webhook signature helpers (parity with `tango_python.webhooks.signing`)
 
@@ -83,7 +88,7 @@ Typed iterators: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, 
 
 ### Changed
 
-- `createWebhookSubscription`, `createWebhookEndpoint`, and related write methods accept the canonical Tango API payload shape in addition to the previous camelCase wrappers — see the new typed input interfaces.
+- `createWebhookEndpoint` and related write methods accept the canonical Tango API payload shape in addition to the previous camelCase wrappers — see the new typed input interfaces.
 
 ### Fixed
 

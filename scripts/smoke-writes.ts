@@ -48,7 +48,6 @@ async function main(): Promise<void> {
   });
 
   let endpointId: string | undefined;
-  let subscriptionId: string | undefined;
   let alertId: string | undefined;
 
   // ---- 1. createWebhookEndpoint ----
@@ -72,46 +71,6 @@ async function main(): Promise<void> {
       record("updateWebhookEndpoint", updated.is_active === true, `is_active=${updated.is_active}`);
     } catch (err) {
       record("updateWebhookEndpoint", false, err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  // ---- 3. createWebhookSubscription ----
-  if (endpointId) {
-    try {
-      const sub = await client.createWebhookSubscription({
-        subscription_name: `tango-node smoke sub ${SMOKE_TAG}`,
-        endpoint: endpointId,
-        subscription_type: "subject",
-        payload: {
-          records: [
-            {
-              event_type: "awards.new_award",
-              subject_type: "entity",
-              subject_ids: [],
-            },
-          ],
-        },
-      });
-      subscriptionId = sub.id;
-      record("createWebhookSubscription", Boolean(subscriptionId), `id=${subscriptionId}`);
-    } catch (err) {
-      record("createWebhookSubscription", false, err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  // ---- 4. updateWebhookSubscription ----
-  if (subscriptionId) {
-    try {
-      const updated = await client.updateWebhookSubscription(subscriptionId, {
-        subscription_name: `tango-node smoke sub UPDATED ${SMOKE_TAG}`,
-      });
-      record(
-        "updateWebhookSubscription",
-        updated.subscription_name.includes("UPDATED"),
-        `name=${updated.subscription_name}`,
-      );
-    } catch (err) {
-      record("updateWebhookSubscription", false, err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -139,11 +98,7 @@ async function main(): Promise<void> {
       // our fake receiver. Treat as PASS.
       const body = e.responseData as { error?: string; success?: boolean } | undefined;
       if (e.statusCode === 502 && body && (body.error === "Connection error" || body.success === false)) {
-        record(
-          "testWebhookEndpoint",
-          true,
-          `Tango reached the receiver and reported it unreachable as expected (HTTP 502, error="${body.error}")`,
-        );
+        record("testWebhookEndpoint", true, `Tango reached the receiver and reported it unreachable as expected (HTTP 502, error="${body.error}")`);
       } else {
         record("testWebhookEndpoint", false, err instanceof Error ? err.message : String(err));
       }
@@ -167,11 +122,7 @@ async function main(): Promise<void> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes("multiple webhook endpoints") || msg.includes("multiple endpoints")) {
-      record(
-        "createWebhookAlert",
-        true,
-        "SKIP — user has multiple endpoints; alerts endpoint requires exactly one. Constraint behaves as expected.",
-      );
+      record("createWebhookAlert", true, "SKIP — user has multiple endpoints; alerts endpoint requires exactly one. Constraint behaves as expected.");
     } else {
       record("createWebhookAlert", false, msg);
     }
@@ -184,16 +135,6 @@ async function main(): Promise<void> {
       record("deleteWebhookAlert", true, `id=${alertId}`);
     } catch (err) {
       record("deleteWebhookAlert", false, err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  // ---- 8. deleteWebhookSubscription ----
-  if (subscriptionId) {
-    try {
-      await client.deleteWebhookSubscription(subscriptionId);
-      record("deleteWebhookSubscription", true, `id=${subscriptionId}`);
-    } catch (err) {
-      record("deleteWebhookSubscription", false, err instanceof Error ? err.message : String(err));
     }
   }
 
