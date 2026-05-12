@@ -656,7 +656,7 @@ const result = await client.testWebhookDelivery({ endpointId: "ENDPOINT_UUID" })
 
 ### `getWebhookSamplePayload(options?)`
 
-Fetch Tango-shaped sample deliveries (and sample subscription request bodies).
+Fetch Tango-shaped sample deliveries.
 
 ```ts
 const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contract.match" });
@@ -700,18 +700,33 @@ Every delivery includes an HMAC signature header:
 
 - `X-Tango-Signature: sha256=<hex digest>`
 
-Compute the digest over the **raw request body bytes** using your shared secret.
+Use the SDK's `verifySignature` helper — **do not hand-roll HMAC**. Verify against the **raw request body bytes** (not a re-serialized parsed body). Arg order is `(body, header, secret)`.
 
 ```ts
-import crypto from "node:crypto";
+import { verifySignature } from "@makegov/tango-node";
 
-export function verifyTangoWebhookSignature(secret: string, rawBody: Buffer, signatureHeader: string | null): boolean {
-  if (!signatureHeader) return false;
-  const sig = signatureHeader.startsWith("sha256=") ? signatureHeader.slice("sha256=".length) : signatureHeader;
-  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(sig, "hex"));
-}
+// Express — use express.raw() to get the body as a Buffer before JSON parsing
+app.post("/tango/webhooks", express.raw({ type: "application/json" }), (req, res) => {
+  const rawBody = req.body; // Buffer
+  const signatureHeader = req.headers["x-tango-signature"];
+
+  if (!verifySignature(rawBody, signatureHeader, process.env.TANGO_WEBHOOK_SECRET)) {
+    return res.status(401).json({ error: "invalid_signature" });
+  }
+
+  const payload = JSON.parse(rawBody.toString("utf8"));
+  // ... handle payload.events ...
+  res.json({ ok: true });
+});
 ```
+
+`verifySignature` signature:
+
+```ts
+function verifySignature(body: string | Buffer, header: string | null | undefined, secret: string): boolean;
+```
+
+Returns `false` for missing, malformed, or mismatched headers — never throws on mismatch. Uses `timingSafeEqual` internally. See [`WEBHOOKS.md` § Signature verification](WEBHOOKS.md#signature-verification-in-your-handler) for Fastify and framework-agnostic examples.
 
 ---
 
