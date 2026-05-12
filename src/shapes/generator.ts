@@ -4,6 +4,41 @@ import { SchemaRegistry } from "./schema.js";
 import type { FieldSpec } from "./types.js";
 import { ShapeSpec } from "./types.js";
 
+/**
+ * Global expand-name aliases. Mirrors ``_EXPAND_ALIASES`` in the server
+ * (`tango/src/api/shaping/grammar.py`). Aliasing only applies when the
+ * source name is used as an *expand* (has a nested child group); bare
+ * scalar leaves like ``naics_code`` / ``psc_code`` are left untouched
+ * and continue to return the raw column value.
+ *
+ * Keep this list short — aliases are intended for well-known historical
+ * spellings, not for fixing one-off naming inconsistencies. See
+ * makegov/tango#2257 and makegov/tango#2265.
+ */
+export const EXPAND_ALIASES: Readonly<Record<string, string>> = Object.freeze({
+  naics_code: "naics",
+  psc_code: "psc",
+});
+
+/**
+ * If ``spec.name`` is an expand alias (e.g. ``naics_code``) AND the spec
+ * has nested fields, rewrite it to the canonical name (``naics``). The
+ * caller's alias (``::alias``) is preserved as-is, mirroring the server.
+ *
+ * Returns the original spec when no rewrite applies.
+ */
+function normalizeExpandAlias(spec: FieldSpec): FieldSpec {
+  const hasNested = Array.isArray(spec.nestedFields) && spec.nestedFields.length > 0;
+  if (!hasNested) {
+    return spec;
+  }
+  const canonical = EXPAND_ALIASES[spec.name];
+  if (!canonical) {
+    return spec;
+  }
+  return { ...spec, name: canonical };
+}
+
 export interface GeneratedField {
   field: FieldSchema;
   spec: FieldSpec;
@@ -92,8 +127,9 @@ export class TypeGenerator {
           fields.push(this.buildGeneratedField(fieldName, fieldSpec, fieldSchema));
         }
       } else {
-        const fieldSchema = this.schemaRegistry.getField(modelName, fieldSpec.name);
-        fields.push(this.buildGeneratedField(fieldSpec.name, fieldSpec, fieldSchema));
+        const normalizedSpec = normalizeExpandAlias(fieldSpec);
+        const fieldSchema = this.schemaRegistry.getField(modelName, normalizedSpec.name);
+        fields.push(this.buildGeneratedField(normalizedSpec.name, normalizedSpec, fieldSchema));
       }
     }
 

@@ -85,12 +85,14 @@ Typed iterators: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, 
 #### Misc
 
 - `searchOpportunityAttachments`, `getVersion`, `listApiKeys` round out parity with the Python SDK's introspection / search surface.
+- Shape generator now accepts `naics(code,description)` / `psc(code,description)` as canonical expands on Contract, Opportunity, Notice, Forecast, and Vehicle (IDV already had them). Mirrors `makegov/tango#2259`. (refs `makegov/tango#2265`)
 
 ### Changed
 
 - `createWebhookEndpoint` and related write methods accept the canonical Tango API payload shape in addition to the previous camelCase wrappers — see the new typed input interfaces.
 - `testWebhookEndpoint` / `testWebhookDelivery` now send the canonical `{ endpoint }` body key instead of the deprecated `{ endpoint_id }` (server still accepts both as aliases). Tracks [makegov/tango#2252](https://github.com/makegov/tango/issues/2252).
 - `ListSubawardsOptions.ordering` narrowed from `string` to the literal union `"last_modified_date" | "-last_modified_date"`, matching the server-side enum (no other values are accepted; others 400). Tracks [makegov/tango#2254](https://github.com/makegov/tango/issues/2254).
+- Shape generator rewrites legacy `naics_code(...)` / `psc_code(...)` expand spellings to canonical `naics(...)` / `psc(...)` before validation, matching the server's `_EXPAND_ALIASES` map. Scalar `naics_code` / `psc_code` (no parens) is untouched and still returns the raw column value. (refs `makegov/tango#2265`, `makegov/tango#2259`)
 
 ### Fixed
 
