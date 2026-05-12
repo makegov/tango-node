@@ -187,8 +187,12 @@ import { generateSignature, SIGNATURE_HEADER } from "@makegov/tango-node";
 
 const body = Buffer.from(
   JSON.stringify({
-    timestamp: "2024-01-01T00:00:00Z",
-    events: [{ event_type: "entities.updated", uei: "ABC123" }],
+    event_type: "alerts.entity.match",
+    alert_id: "alert_123",
+    query_type: "entity",
+    filters: { uei: "ABC123" },
+    matches: { new: [], modified: [], new_count: 0, modified_count: 0 },
+    checked_at: "2024-01-01T00:00:00Z",
   }),
 );
 

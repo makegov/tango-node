@@ -659,7 +659,7 @@ const result = await client.testWebhookDelivery({ endpointId: "ENDPOINT_UUID" })
 Fetch Tango-shaped sample deliveries (and sample subscription request bodies).
 
 ```ts
-const sample = await client.getWebhookSamplePayload({ eventType: "awards.new_award" });
+const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contract.match" });
 ```
 
 ### Webhook Alerts
