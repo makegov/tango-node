@@ -184,6 +184,21 @@ export interface ListIdvsOptions {
   [key: string]: unknown;
 }
 
+/**
+ * List methods on `TangoClient` that `iterate()` knows how to drive. Every
+ * entry must accept an options object and return a `PaginatedResponse<T>`
+ * with a `next` URL containing either `?page=` or `?cursor=`.
+ */
+export type IterableListMethod =
+  | "listContracts"
+  | "listEntities"
+  | "listOpportunities"
+  | "listNotices"
+  | "listGrants"
+  | "listForecasts"
+  | "listIdvs"
+  | "listVehicles";
+
 export class TangoClient {
   private readonly http: HttpClient;
   private readonly shapeParser: ShapeParser;
@@ -959,6 +974,127 @@ export class TangoClient {
     const params: AnyRecord = {};
     if (options.eventType) params.event_type = options.eventType;
     return await this.http.get<WebhookSamplePayloadResponse>("/api/webhooks/endpoints/sample-payload/", params);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Async iteration helpers
+  //
+  // Sequential by design — Tango rate limits would crush concurrent paginate,
+  // and serial matches user expectations for `for await`. Each iterator follows
+  // either offset-based pagination (page / limit) or cursor-based (cursor /
+  // limit) by inspecting the `next` URL returned by the API.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Names of list methods that the generic iterator knows how to drive.
+   * Adding a method here is sufficient to enable `client.iterate(name, opts)`.
+   */
+  // (Type only — not a runtime export.)
+  // prettier-ignore
+
+  /**
+   * Iterate through every result of a paginated list endpoint.
+   *
+   * Walks pages serially (no concurrency) by following the API's `next` URL,
+   * extracting `page` (offset-based) or `cursor` (cursor-based) and re-calling
+   * the underlying method with the same caller options.
+   *
+   * Example:
+   * ```ts
+   * for await (const contract of client.iterate("listContracts", { awarding_agency: "9700" })) {
+   *   console.log(contract.piid);
+   * }
+   * ```
+   */
+  async *iterate<T = AnyRecord>(
+    method: IterableListMethod,
+    options: AnyRecord = {},
+  ): AsyncIterableIterator<T> {
+    // Strip pagination cursors from the caller options — we manage them.
+    const callerOptions: AnyRecord = { ...options };
+    delete callerOptions.page;
+    delete callerOptions.cursor;
+
+    let nextPage: number | null = null;
+    let nextCursor: string | null = null;
+
+    while (true) {
+      const pageOptions: AnyRecord = { ...callerOptions };
+      if (nextPage !== null) pageOptions.page = nextPage;
+      if (nextCursor !== null) pageOptions.cursor = nextCursor;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fn = (this as any)[method];
+      if (typeof fn !== "function") {
+        throw new TangoValidationError(`Unknown list method for iterate(): ${method}`);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = (await fn.call(this, pageOptions)) as PaginatedResponse<any>;
+
+      for (const item of response.results) {
+        yield item as T;
+      }
+
+      const next = response.next;
+      if (!next) return;
+
+      // Pull `page` and `cursor` out of the next URL to drive the next request.
+      // The API returns a fully qualified URL, but if anything weird comes back
+      // (relative path, malformed) we stop rather than loop forever.
+      let parsed: URL;
+      try {
+        parsed = new URL(next);
+      } catch {
+        return;
+      }
+      const pageParam = parsed.searchParams.get("page");
+      const cursorParam = parsed.searchParams.get("cursor");
+
+      if (cursorParam) {
+        nextCursor = cursorParam;
+        nextPage = null;
+      } else if (pageParam) {
+        const asInt = Number.parseInt(pageParam, 10);
+        if (!Number.isFinite(asInt)) return;
+        nextPage = asInt;
+        nextCursor = null;
+      } else {
+        // No page or cursor in the next URL — nothing we can do to advance.
+        return;
+      }
+    }
+  }
+
+  iterateContracts(options: ListContractsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listContracts", options as AnyRecord);
+  }
+
+  iterateEntities(options: ListEntitiesOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listEntities", options as AnyRecord);
+  }
+
+  iterateOpportunities(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listOpportunities", options as AnyRecord);
+  }
+
+  iterateNotices(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listNotices", options as AnyRecord);
+  }
+
+  iterateGrants(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listGrants", options as AnyRecord);
+  }
+
+  iterateForecasts(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listForecasts", options as AnyRecord);
+  }
+
+  iterateIdvs(options: ListIdvsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listIdvs", options as AnyRecord);
+  }
+
+  iterateVehicles(options: ListVehiclesOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listVehicles", options as AnyRecord);
   }
 
   private parseShape(shape: string | null | undefined, flat: boolean, flatLists: boolean): ShapeSpec | null {
