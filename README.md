@@ -165,18 +165,70 @@ The Node SDK mirrors the Python client's behavior for `shape`, `flat`, and `flat
 
 ## API Methods
 
-The Node client mirrors the Python SDK's high-level API:
+The Node client mirrors the Python SDK's high-level API. Selected highlights:
 
-- `listAgencies(options)`
-- `getAgency(code)`
-- `listBusinessTypes(options)`
-- `listContracts(options)`
-- `listEntities(options)`
-- `getEntity(ueiOrCage, options)`
-- `listForecasts(options)`
-- `listOpportunities(options)`
-- `listNotices(options)`
-- `listGrants(options)`
+**Agencies / Offices / Organizations / Departments**
+- `listAgencies(options)` / `getAgency(code)`
+- `listOffices(options)` / `getOffice(code)`
+- `listOrganizations(options)` / `getOrganization(identifier)`
+- `listDepartments(options)` / `getDepartment(code)`
+
+**Contracts / IDVs / OTAs / OTIDVs / Subawards**
+- `listContracts(options)` / `listIdvs(options)` / `getIdv(key, options)`
+- `listIdvAwards(key, options)` / `listIdvChildIdvs({key, ...options})` / `listIdvTransactions(key, options)`
+- `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options)`
+- `listOtas(options)` / `getOta(key)` / `listOtidvs(options)` / `getOtidv(key)` / `listOtidvAwards(key, options)`
+- `listSubawards(options)`
+
+**Vehicles**
+- `listVehicles(options)` / `getVehicle(uuid, options)` / `listVehicleAwardees(uuid, options)`
+
+**Entities**
+- `listEntities(options)` / `getEntity(ueiOrCage, options)`
+- `listEntityContracts(uei, options)` / `listEntityIdvs(uei, options)` / `listEntityOtas(uei, options)`
+- `listEntityOtidvs(uei, options)` / `listEntitySubawards(uei, options)` / `listEntityLcats(uei, options)`
+- `getEntityMetrics(uei, months, periodGrouping)`
+
+**Forecasts / Opportunities / Notices / Grants**
+- `listForecasts(options)` / `listOpportunities(options)` / `listNotices(options)` / `listGrants(options)`
+- `searchOpportunityAttachments(options)`
+
+**GSA eLibrary / Protests / IT Dashboard / Subawards / LCATs**
+- `listGsaElibraryContracts(options)` / `listProtests(options)` / `getProtest(caseNumber)`
+- `listItDashboard(options)` / `getItDashboard(uii)`
+- `listLcats(options)` / `listIdvLcats(key, options)`
+
+**Reference / Lookups**
+- `listBusinessTypes(options)` / `getBusinessType(code)`
+- `listNaics(options)` / `getNaics(code)` / `getNaicsMetrics(code, months, periodGrouping)`
+- `listPsc(options)` / `getPsc(code)` / `getPscMetrics(code, months, periodGrouping)`
+- `listMasSins(options)` / `getMasSin(sin)`
+- `listAssistanceListings(options)` / `getAssistanceListing(number)`
+- `listMetrics(options)` / `listAgencyAwardingContracts(code, options)` / `listAgencyFundingContracts(code, options)`
+
+**Resolve / Validate**
+- `resolve(input)` — resolve a free-text name to ranked entity/org candidates
+- `validate(input)` — validate a PIID, solicitation number, or UEI
+
+**Webhooks**
+- `listWebhookEventTypes()` / `listWebhookSubscriptions(options)` / `getWebhookSubscription(id)`
+- `createWebhookSubscription(...)` / `updateWebhookSubscription(id, patch)` / `deleteWebhookSubscription(id)`
+- `listWebhookEndpoints(options)` / `getWebhookEndpoint(id)`
+- `createWebhookEndpoint(...)` / `updateWebhookEndpoint(id, patch)` / `deleteWebhookEndpoint(id)`
+- `testWebhookEndpoint(endpointId)` (preferred) / `testWebhookDelivery(options?)` (legacy alias)
+- `getWebhookSamplePayload(options?)`
+- `listWebhookAlerts(options)` / `getWebhookAlert(id)` / `createWebhookAlert(input)`
+- `updateWebhookAlert(id, patch)` / `deleteWebhookAlert(id)`
+
+**Async iteration helpers**
+- `iterate(method, options)` — generic async iterator over any supported list method
+- `iterateContracts` / `iterateEntities` / `iterateOpportunities` / `iterateNotices`
+- `iterateGrants` / `iterateForecasts` / `iterateIdvs` / `iterateVehicles`
+
+**Utility**
+- `getVersion()` / `listApiKeys()`
+
+See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full signatures and parameters.
 
 All list methods return a paginated response:
 
@@ -254,7 +306,7 @@ tango-node/
 ├── docs/                        # Documentation
 │   ├── API_REFERENCE.md
 │   ├── DYNAMIC_MODELS.md
-│   └── SHAPED.md
+│   └── SHAPES.md
 ├── tests/                       # Test suite (Vitest)
 │   └── unit/
 │       ├── client.test.ts
@@ -305,7 +357,7 @@ Useful scripts:
 
 - [API Reference](docs/API_REFERENCE.md) - Detailed API documentation
 - [Shape System Guide](docs/SHAPES.md) - Comprehensive guide to response shaping
-- [Dynamic Models Guide](docs/DYNAMIC_MODELS.md) - ynamic shaping system\*\* works.
+- [Dynamic Models Guide](docs/DYNAMIC_MODELS.md) - How the dynamic shaping system works.
 
 ## License
 
