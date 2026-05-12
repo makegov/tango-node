@@ -207,7 +207,7 @@ export class TangoClient {
   constructor(options: TangoClientOptions = {}) {
     const {
       apiKey,
-      baseUrl = DEFAULT_BASE_URL,
+      baseUrl,
       timeoutMs,
       timeout,
       fetchImpl,
@@ -216,23 +216,27 @@ export class TangoClient {
     } = options;
 
     let envKey: string | null = null;
+    let envBaseUrl: string | null = null;
     try {
       // In some environments process may not exist (e.g. browser), so guard it.
-      if (typeof process !== "undefined" && process.env && process.env.TANGO_API_KEY) {
+      if (typeof process !== "undefined" && process.env) {
         envKey = process.env.TANGO_API_KEY ?? null;
+        envBaseUrl = process.env.TANGO_BASE_URL ?? null;
       }
     } catch {
       // ignore
     }
 
     const keyToUse = apiKey ?? envKey ?? null;
+    // Precedence: explicit `baseUrl` option > `TANGO_BASE_URL` env > default.
+    const baseUrlToUse = baseUrl ?? envBaseUrl ?? DEFAULT_BASE_URL;
 
     // Accept either `timeoutMs` (canonical) or `timeout` (shorthand) — both in ms.
     // If both are supplied, the canonical name wins.
     const resolvedTimeoutMs = timeoutMs ?? timeout ?? 30000;
 
     this.http = new HttpClient({
-      baseUrl,
+      baseUrl: baseUrlToUse,
       apiKey: keyToUse,
       timeoutMs: resolvedTimeoutMs,
       fetchImpl,
@@ -1023,13 +1027,12 @@ export class TangoClient {
       if (nextPage !== null) pageOptions.page = nextPage;
       if (nextCursor !== null) pageOptions.cursor = nextCursor;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const fn = (this as any)[method];
+      type ListFn = (opts: AnyRecord) => Promise<PaginatedResponse<AnyRecord>>;
+      const fn = (this as unknown as Record<string, unknown>)[method] as ListFn | undefined;
       if (typeof fn !== "function") {
         throw new TangoValidationError(`Unknown list method for iterate(): ${method}`);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = (await fn.call(this, pageOptions)) as PaginatedResponse<any>;
+      const response = await fn.call(this, pageOptions);
 
       for (const item of response.results) {
         yield item as T;
