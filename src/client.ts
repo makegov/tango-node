@@ -190,7 +190,15 @@ export class TangoClient {
   private readonly modelFactory: ModelFactory;
 
   constructor(options: TangoClientOptions = {}) {
-    const { apiKey, baseUrl = DEFAULT_BASE_URL, timeoutMs = 30000, fetchImpl } = options;
+    const {
+      apiKey,
+      baseUrl = DEFAULT_BASE_URL,
+      timeoutMs,
+      timeout,
+      fetchImpl,
+      retries = 3,
+      retryBackoffMs = 250,
+    } = options;
 
     let envKey: string | null = null;
     try {
@@ -204,11 +212,17 @@ export class TangoClient {
 
     const keyToUse = apiKey ?? envKey ?? null;
 
+    // Accept either `timeoutMs` (canonical) or `timeout` (shorthand) — both in ms.
+    // If both are supplied, the canonical name wins.
+    const resolvedTimeoutMs = timeoutMs ?? timeout ?? 30000;
+
     this.http = new HttpClient({
       baseUrl,
       apiKey: keyToUse,
-      timeoutMs,
+      timeoutMs: resolvedTimeoutMs,
       fetchImpl,
+      retries,
+      retryBackoffMs,
     });
 
     this.shapeParser = new ShapeParser();

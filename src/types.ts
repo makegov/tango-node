@@ -16,10 +16,30 @@ export interface TangoClientOptions {
   timeoutMs?: number;
 
   /**
+   * Ergonomic shorthand for `timeoutMs`. If both are supplied, `timeoutMs`
+   * wins. Both accept milliseconds.
+   */
+  timeout?: number;
+
+  /**
    * Custom fetch implementation. If not provided, the global fetch will be used
    * (Node 18+ or browser environments).
    */
   fetchImpl?: typeof fetch;
+
+  /**
+   * Number of retry attempts for retryable failures (5xx, 408, 429, network
+   * errors). The first attempt is not counted as a retry. Default: `3`.
+   * Set to `0` to disable retries entirely.
+   */
+  retries?: number;
+
+  /**
+   * Initial backoff for retries, in milliseconds. Exponential — doubles each
+   * retry, capped at 10s. The server's `Retry-After` header, when present on
+   * 429/503, overrides this. Default: `250`.
+   */
+  retryBackoffMs?: number;
 }
 
 export interface PaginatedResponse<T> {
