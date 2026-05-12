@@ -240,7 +240,11 @@ export interface ListSubawardsOptions extends ListOptionsBase {
   fiscal_year_gte?: number | string;
   fiscal_year_lte?: number | string;
   recipient?: string;
-  ordering?: string;
+  /**
+   * Ordering for /api/subawards/. Server enforces this enum (tango#2254);
+   * other values 400. Default is `last_modified_date`.
+   */
+  ordering?: "last_modified_date" | "-last_modified_date";
   [key: string]: unknown;
 }
 
@@ -1026,25 +1030,26 @@ export class TangoClient {
   /**
    * Trigger a test delivery against an endpoint.
    *
-   * NOTE: the request body key here is `endpoint_id` — different from the
-   * subscriptions endpoint, which takes `endpoint`. This reflects an
-   * inconsistency in the Tango API itself.
+   * Sends `{ endpoint: <uuid> }` — the canonical request key as of
+   * tango#2252. The server still accepts the legacy `endpoint_id` alias
+   * for backward compatibility, but the SDK now sends the canonical key.
    */
   async testWebhookEndpoint(endpointId: string): Promise<WebhookTestDeliveryResult> {
     if (!endpointId) throw new TangoValidationError("endpointId is required");
     return await this.http.post<WebhookTestDeliveryResult>("/api/webhooks/endpoints/test-delivery/", {
-      endpoint_id: endpointId,
+      endpoint: endpointId,
     });
   }
 
   /**
-   * Legacy alias for `testWebhookEndpoint`. Accepts an options bag for
-   * historical reasons; `endpointId` may be omitted, in which case the API
-   * auto-resolves the user's only endpoint (404 if 0, 400 if >1).
+   * Auto-resolving variant of `testWebhookEndpoint`. Accepts an options bag;
+   * `endpointId` may be omitted, in which case the API auto-resolves the
+   * user's only endpoint (404 if 0, 400 if >1). When provided, the SDK
+   * sends `{ endpoint: <uuid> }` (canonical key per tango#2252).
    */
   async testWebhookDelivery(options: { endpointId?: string } = {}): Promise<WebhookTestDeliveryResult> {
     const body: AnyRecord = {};
-    if (options.endpointId) body.endpoint_id = options.endpointId;
+    if (options.endpointId) body.endpoint = options.endpointId;
     return await this.http.post<WebhookTestDeliveryResult>("/api/webhooks/endpoints/test-delivery/", body);
   }
 
@@ -1056,6 +1061,11 @@ export class TangoClient {
    * Create a filter-based subscription via the alerts API.
    *
    * `query_type` is SINGULAR (e.g. `"contract"`, not `"contracts"`).
+   *
+   * For accounts with multiple webhook endpoints, pass `endpoint: <uuid>`
+   * to choose which one receives matches. Single-endpoint accounts may
+   * omit it (the API auto-resolves). Multi-endpoint support added in
+   * tango#2256.
    */
   async createWebhookAlert(input: WebhookAlertCreateInput): Promise<WebhookAlert> {
     if (!input?.name) throw new TangoValidationError("Webhook alert name is required");
@@ -1071,6 +1081,7 @@ export class TangoClient {
     };
     if (input.frequency !== undefined) body.frequency = input.frequency;
     if (input.cron_expression !== undefined) body.cron_expression = input.cron_expression;
+    if (input.endpoint !== undefined) body.endpoint = input.endpoint;
 
     return await this.http.post<WebhookAlert>("/api/webhooks/alerts/", body);
   }

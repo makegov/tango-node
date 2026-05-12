@@ -226,6 +226,59 @@ describe("TangoClient — webhook alerts CRUD parity", () => {
     const { client } = makeClient();
     await expect(client.updateWebhookAlert("", { name: "x" })).rejects.toThrow();
   });
+
+  it("createWebhookAlert passes through endpoint when provided (multi-endpoint accounts)", async () => {
+    const { client, calls } = makeClient({ alert_id: "a-1", name: "n", query_type: "contract" });
+    await client.createWebhookAlert({
+      name: "n",
+      query_type: "contract",
+      filters: { search: "drone" },
+      endpoint: "ep-uuid-123",
+    });
+    expect(calls[0].url).toContain("/api/webhooks/alerts/");
+    const body = JSON.parse(String(calls[0].init?.body ?? "{}"));
+    expect(body.endpoint).toBe("ep-uuid-123");
+    expect(body.name).toBe("n");
+    expect(body.query_type).toBe("contract");
+  });
+
+  it("createWebhookAlert omits endpoint when not provided (single-endpoint auto-resolve)", async () => {
+    const { client, calls } = makeClient({ alert_id: "a-1", name: "n", query_type: "contract" });
+    await client.createWebhookAlert({
+      name: "n",
+      query_type: "contract",
+      filters: { search: "drone" },
+    });
+    const body = JSON.parse(String(calls[0].init?.body ?? "{}"));
+    expect(body).not.toHaveProperty("endpoint");
+  });
+});
+
+describe("TangoClient — webhook test-delivery body shape", () => {
+  it("testWebhookEndpoint sends canonical { endpoint } body key (tango#2252)", async () => {
+    const { client, calls } = makeClient({ success: true, status_code: 200 });
+    await client.testWebhookEndpoint("ep-uuid-123");
+    expect(calls[0].url).toContain("/api/webhooks/endpoints/test-delivery/");
+    const body = JSON.parse(String(calls[0].init?.body ?? "{}"));
+    expect(body.endpoint).toBe("ep-uuid-123");
+    expect(body).not.toHaveProperty("endpoint_id");
+  });
+
+  it("testWebhookDelivery sends canonical { endpoint } when endpointId provided", async () => {
+    const { client, calls } = makeClient({ success: true, status_code: 200 });
+    await client.testWebhookDelivery({ endpointId: "ep-uuid-123" });
+    const body = JSON.parse(String(calls[0].init?.body ?? "{}"));
+    expect(body.endpoint).toBe("ep-uuid-123");
+    expect(body).not.toHaveProperty("endpoint_id");
+  });
+
+  it("testWebhookDelivery sends empty body when endpointId omitted (auto-resolve)", async () => {
+    const { client, calls } = makeClient({ success: true, status_code: 200 });
+    await client.testWebhookDelivery();
+    const body = JSON.parse(String(calls[0].init?.body ?? "{}"));
+    expect(body).not.toHaveProperty("endpoint");
+    expect(body).not.toHaveProperty("endpoint_id");
+  });
 });
 
 describe("TangoClient — misc parity methods", () => {

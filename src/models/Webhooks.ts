@@ -30,6 +30,12 @@ export interface WebhookAlertCreateInput {
   filters: Record<string, unknown>;
   frequency?: string;
   cron_expression?: string;
+  /**
+   * Endpoint UUID to deliver matches to. Required for accounts with multiple
+   * webhook endpoints; optional for single-endpoint accounts (the API will
+   * auto-resolve the sole endpoint). Server support landed in tango#2256.
+   */
+  endpoint?: string;
 }
 
 export interface WebhookAlert {

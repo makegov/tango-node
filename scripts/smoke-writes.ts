@@ -106,25 +106,22 @@ async function main(): Promise<void> {
   }
 
   // ---- 6. createWebhookAlert ----
-  // NOTE: /api/webhooks/alerts/ auto-resolves the user's endpoint and
-  // requires exactly one. If the user already has multiple endpoints, this
-  // step will be skipped with a SKIP result (still considered a pass for
-  // the smoke, but we report the constraint).
-  try {
-    const alert = await client.createWebhookAlert({
-      name: `tango-node smoke alert ${SMOKE_TAG}`,
-      query_type: "contract",
-      filters: { search: "smoke" },
-      frequency: "realtime",
-    });
-    alertId = alert.alert_id;
-    record("createWebhookAlert", Boolean(alertId), `id=${alertId}`);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("multiple webhook endpoints") || msg.includes("multiple endpoints")) {
-      record("createWebhookAlert", true, "SKIP — user has multiple endpoints; alerts endpoint requires exactly one. Constraint behaves as expected.");
-    } else {
-      record("createWebhookAlert", false, msg);
+  // Per tango#2256, /api/webhooks/alerts/ now accepts an explicit `endpoint`
+  // field. We pass the smoke endpoint we just created so this works for
+  // both single- and multi-endpoint accounts.
+  if (endpointId) {
+    try {
+      const alert = await client.createWebhookAlert({
+        name: `tango-node smoke alert ${SMOKE_TAG}`,
+        query_type: "contract",
+        filters: { search: "smoke" },
+        frequency: "realtime",
+        endpoint: endpointId,
+      });
+      alertId = alert.alert_id;
+      record("createWebhookAlert", Boolean(alertId), `id=${alertId}`);
+    } catch (err) {
+      record("createWebhookAlert", false, err instanceof Error ? err.message : String(err));
     }
   }
 

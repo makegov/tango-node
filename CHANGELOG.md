@@ -39,8 +39,8 @@ SemVer-major (`0.3.0` → `0.4.0`).
 
 #### Webhook write API
 
-- Endpoints: `createWebhookEndpoint` (now `name` is first-class; defaults to URL host if omitted), `updateWebhookEndpoint`, `deleteWebhookEndpoint`. `testWebhookEndpoint(endpointId)` is the canonical method using the API's `{ endpoint_id }` body key; the prior `testWebhookDelivery` kept as an alias.
-- Alerts (filter-subscription API): `listWebhookAlerts`, `getWebhookAlert`, `createWebhookAlert`, `updateWebhookAlert`, `deleteWebhookAlert`. Note: `createWebhookAlert` auto-resolves the caller's sole endpoint; accounts with multiple endpoints currently get a 400 from the API — tracked at [makegov/tango#2256](https://github.com/makegov/tango/issues/2256).
+- Endpoints: `createWebhookEndpoint` (now `name` is first-class; defaults to URL host if omitted), `updateWebhookEndpoint`, `deleteWebhookEndpoint`. `testWebhookEndpoint(endpointId)` is the canonical method; `testWebhookDelivery` is kept as an auto-resolving variant (omit `endpointId` to let the API pick the sole endpoint).
+- Alerts (filter-subscription API): `listWebhookAlerts`, `getWebhookAlert`, `createWebhookAlert`, `updateWebhookAlert`, `deleteWebhookAlert`. `WebhookAlertCreateInput` now has an optional `endpoint` field — required for multi-endpoint accounts, optional for single-endpoint accounts (the API auto-resolves). Server support landed in [makegov/tango#2256](https://github.com/makegov/tango/issues/2256).
 
 New typed input interfaces exported from the package root: `WebhookEndpointCreateInput`, `WebhookEndpointUpdateInput`, `WebhookAlertCreateInput`, `WebhookAlert`, plus options types for the new sub-resources.
 
@@ -89,10 +89,13 @@ Typed iterators: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, 
 ### Changed
 
 - `createWebhookEndpoint` and related write methods accept the canonical Tango API payload shape in addition to the previous camelCase wrappers — see the new typed input interfaces.
+- `testWebhookEndpoint` / `testWebhookDelivery` now send the canonical `{ endpoint }` body key instead of the deprecated `{ endpoint_id }` (server still accepts both as aliases). Tracks [makegov/tango#2252](https://github.com/makegov/tango/issues/2252).
+- `ListSubawardsOptions.ordering` narrowed from `string` to the literal union `"last_modified_date" | "-last_modified_date"`, matching the server-side enum (no other values are accepted; others 400). Tracks [makegov/tango#2254](https://github.com/makegov/tango/issues/2254).
 
 ### Fixed
 
 - `ShapeConfig.IDVS_COMPREHENSIVE` no longer includes `base_and_exercised_options_value`, which is not a valid IDV shape field — the API was returning `400 Invalid shape` on this preset. Now aligned with `tango_python.IDVS_COMPREHENSIVE`. Also reconciled `recipient.cage_code` → `recipient.cage` to match the Python preset exactly.
+- `createWebhookAlert` now plumbs an explicit `endpoint` UUID through to the API. Multi-endpoint accounts can now create alerts directly instead of relying on the server's single-endpoint auto-resolution. Tracks [makegov/tango#2256](https://github.com/makegov/tango/issues/2256).
 
 ### Internal
 
