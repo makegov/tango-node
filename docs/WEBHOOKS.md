@@ -93,9 +93,10 @@ Fetches the canonical JSON shape Tango will deliver for that event type. No aler
 When you're ready for end-to-end testing, expose your local handler via a tunnel (`ngrok http 3000`, `cloudflared tunnel`, etc.) and register that public URL with Tango:
 
 ```ts
-// One endpoint per user. Tango returns a secret — save it.
+// Endpoint names are unique per user. Tango returns a secret — save it.
 const endpoint = await client.createWebhookEndpoint({
   callbackUrl: "https://<your-tunnel>.ngrok.io/tango/webhooks",
+  name: "dev",
 });
 console.log("Secret:", endpoint.secret); // save this!
 
@@ -257,10 +258,10 @@ const list = await client.listWebhookEndpoints({ page: 1, limit: 25 });
 // Get one
 const endpoint = await client.getWebhookEndpoint("ENDPOINT_UUID");
 
-// Create — one endpoint per user; save the returned `secret`
+// Create — `name` is required and must be unique per user; save the returned `secret`
 const created = await client.createWebhookEndpoint({
   callbackUrl: "https://example.com/tango/webhooks",
-  name: "Production handler", // optional label
+  name: "Production handler",
   isActive: true, // default true
 });
 console.log("Secret:", created.secret); // only returned on create — save it
@@ -467,7 +468,7 @@ console.log(JSON.stringify(sample.sample_delivery, null, 2));
 
 **`verifySignature` returns `false` even with the right secret.** Check argument order: it's `(body, header, secret)` — the header is second, secret is third. This differs from some other webhook libraries.
 
-**`createWebhookEndpoint` returns 400 or "endpoint already exists".** Tango limits one endpoint per user. Use `listWebhookEndpoints()` to find the existing one, then either reuse its ID or `deleteWebhookEndpoint` it first.
+**`createWebhookEndpoint` returns 400 or "endpoint already exists".** Endpoint names are unique per user — if you've already created one with that `name`, either pick a different name or use `listWebhookEndpoints()` to find the existing one and reuse its ID.
 
 **`createWebhookAlert` throws `TangoValidationError: query_type is required`.** The `query_type` field is singular — `"contract"`, not `"contracts"`.
 
