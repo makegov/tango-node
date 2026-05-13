@@ -76,22 +76,27 @@ export interface RateLimitInfo {
 /**
  * Typed return model for `client.resolve()`. Mirrors
  * `tango_python.models.ResolveResult` and `ResolveCandidate`.
+ *
+ * Field shape matches the server response (POST `/api/resolve/`):
+ * - `identifier` is the canonical UEI (entity) or organization key.
+ * - `match_tier` is `low` | `medium` | `high` (Pro+ only; Free responses omit it).
+ * - `extra` is a freeform dict of additional fields the server may include.
  */
 export interface ResolveCandidate {
-  /** Canonical agency / org identifier resolved by Tango. */
-  agency_id?: string | null;
-  organization_id?: string | null;
-  /** Display name of the candidate. */
+  /** Canonical UEI (for `target_type: "entity"`) or organization key. */
+  identifier?: string | null;
+  /** Human-readable name of the candidate. */
   display_name?: string | null;
-  /** Confidence score in [0, 1]. */
-  score?: number | null;
-  /** Match tier as reported by the API ("exact", "alias", "fuzzy", etc.). */
+  /** Match tier label — `low` / `medium` / `high`. Pro+ only. */
   match_tier?: string | null;
+  /** Additional server-supplied metadata (location, parent, etc.). */
+  extra?: Record<string, unknown> | null;
   [key: string]: unknown;
 }
 
 export interface ResolveResult {
-  count: number;
+  /** Number of candidates returned (capped by tier: Free=3, Pro+=5). */
+  count?: number;
   candidates: ResolveCandidate[];
   [key: string]: unknown;
 }
