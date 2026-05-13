@@ -8,7 +8,7 @@ A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring d
 
 - **Dynamic Response Shaping** – Ask Tango for exactly the fields you want using a simple shape syntax.
 - **Type-Safe by Design** – Shape strings are validated against Tango schemas and mapped to generated TypeScript types.
-- **Comprehensive API Coverage** – Agencies, business types, entities, contracts, vehicles, IDVs, forecasts, opportunities, notices, grants, and webhooks.
+- **Full Tango API surface** – Awards (contracts, IDVs, OTAs, OTIDVs, subawards, vehicles, GSA eLibrary), opportunities + notices, forecasts, grants, protests, IT Dashboard, entities (with sub-resources), agencies/organizations/offices/departments, lookups (NAICS, PSC, MAS SINs, assistance listings, business types), metrics, resolve/validate, webhooks. See `## API Methods` below for the full list.
 - **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing, materialized via the dynamic model pipeline.
 - **Modern Node** – Built for Node 18+ with native `fetch` and ESM-first design.
 - **Tested Against the Real API** – Integration tests (mirroring the Python SDK) keep behavior aligned.
@@ -165,18 +165,80 @@ The Node SDK mirrors the Python client's behavior for `shape`, `flat`, and `flat
 
 ## API Methods
 
-The Node client mirrors the Python SDK's high-level API:
+The Node client mirrors the Python SDK's high-level API. Selected highlights:
 
-- `listAgencies(options)`
-- `getAgency(code)`
-- `listBusinessTypes(options)`
-- `listContracts(options)`
-- `listEntities(options)`
-- `getEntity(ueiOrCage, options)`
-- `listForecasts(options)`
-- `listOpportunities(options)`
-- `listNotices(options)`
-- `listGrants(options)`
+**Agencies / Offices / Organizations / Departments**
+
+- `listAgencies(options)` / `getAgency(code)`
+- `listOffices(options)` / `getOffice(code)`
+- `listOrganizations(options)` / `getOrganization(identifier)`
+- `listDepartments(options)` / `getDepartment(code)`
+
+**Contracts / IDVs / OTAs / OTIDVs / Subawards**
+
+- `listContracts(options)` / `listIdvs(options)` / `getIdv(key, options)`
+- `listIdvAwards(key, options)` / `listIdvChildIdvs({key, ...options})` / `listIdvTransactions(key, options)`
+- `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options)`
+- `listOtas(options)` / `getOta(key)` / `listOtidvs(options)` / `getOtidv(key)` / `listOtidvAwards(key, options)`
+- `listSubawards(options)`
+
+**Vehicles**
+
+- `listVehicles(options)` / `getVehicle(uuid, options)` / `listVehicleAwardees(uuid, options)`
+
+**Entities**
+
+- `listEntities(options)` / `getEntity(ueiOrCage, options)`
+- `listEntityContracts(uei, options)` / `listEntityIdvs(uei, options)` / `listEntityOtas(uei, options)`
+- `listEntityOtidvs(uei, options)` / `listEntitySubawards(uei, options)` / `listEntityLcats(uei, options)`
+- `getEntityMetrics(uei, months, periodGrouping)`
+
+**Forecasts / Opportunities / Notices / Grants**
+
+- `listForecasts(options)` / `listOpportunities(options)` / `listNotices(options)` / `listGrants(options)`
+- `searchOpportunityAttachments(options)`
+
+**GSA eLibrary / Protests / IT Dashboard / Subawards / LCATs**
+
+- `listGsaElibraryContracts(options)` / `listProtests(options)` / `getProtest(caseNumber)`
+- `listItDashboard(options)` / `getItDashboard(uii)`
+- `listLcats(options)` / `listIdvLcats(key, options)`
+
+**Reference / Lookups**
+
+- `listBusinessTypes(options)` / `getBusinessType(code)`
+- `listNaics(options)` / `getNaics(code)` / `getNaicsMetrics(code, months, periodGrouping)`
+- `listPsc(options)` / `getPsc(code)` / `getPscMetrics(code, months, periodGrouping)`
+- `listMasSins(options)` / `getMasSin(sin)`
+- `listAssistanceListings(options)` / `getAssistanceListing(number)`
+- `listMetrics(options)` / `listAgencyAwardingContracts(code, options)` / `listAgencyFundingContracts(code, options)`
+
+**Resolve / Validate**
+
+- `resolve(input)` — resolve a free-text name to ranked entity/org candidates
+- `validate(input)` — validate a PIID, solicitation number, or UEI
+
+**Webhooks**
+
+- `listWebhookEventTypes()`
+- `listWebhookEndpoints(options)` / `getWebhookEndpoint(id)`
+- `createWebhookEndpoint(...)` / `updateWebhookEndpoint(id, patch)` / `deleteWebhookEndpoint(id)`
+- `testWebhookEndpoint(endpointId)` (preferred) / `testWebhookDelivery(options?)` (legacy alias)
+- `getWebhookSamplePayload(options?)`
+- `listWebhookAlerts(options)` / `getWebhookAlert(id)` / `createWebhookAlert(input)`
+- `updateWebhookAlert(id, patch)` / `deleteWebhookAlert(id)`
+
+**Async iteration helpers**
+
+- `iterate(method, options)` — generic async iterator over any supported list method
+- `iterateContracts` / `iterateEntities` / `iterateOpportunities` / `iterateNotices`
+- `iterateGrants` / `iterateForecasts` / `iterateIdvs` / `iterateVehicles`
+
+**Utility**
+
+- `getVersion()` / `listApiKeys()`
+
+See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full signatures and parameters.
 
 All list methods return a paginated response:
 
@@ -199,6 +261,7 @@ Errors are surfaced as typed exceptions, aligned with the Python SDK:
 - `TangoNotFoundError` – Resource not found (404).
 - `TangoValidationError` – Invalid request parameters (400).
 - `TangoRateLimitError` – Rate limit exceeded (429).
+- `TangoTimeoutError` – Request exceeded the configured `timeoutMs`.
 
 Shape-related errors:
 
@@ -254,7 +317,7 @@ tango-node/
 ├── docs/                        # Documentation
 │   ├── API_REFERENCE.md
 │   ├── DYNAMIC_MODELS.md
-│   └── SHAPED.md
+│   └── SHAPES.md
 ├── tests/                       # Test suite (Vitest)
 │   └── unit/
 │       ├── client.test.ts
@@ -305,7 +368,7 @@ Useful scripts:
 
 - [API Reference](docs/API_REFERENCE.md) - Detailed API documentation
 - [Shape System Guide](docs/SHAPES.md) - Comprehensive guide to response shaping
-- [Dynamic Models Guide](docs/DYNAMIC_MODELS.md) - ynamic shaping system\*\* works.
+- [Dynamic Models Guide](docs/DYNAMIC_MODELS.md) - How the dynamic shaping system works.
 
 ## License
 
@@ -317,7 +380,7 @@ For questions, issues, or feature requests:
 
 - **Email**: [tango@makegov.com](mailto:tango@makegov.com)
 - **Issues**: [GitHub Issues](https://github.com/makegov/tango-node/issues)
-- **Documentation**: [https://tango.makegov.com/docs/tango-node](https://tango.makegov.com/docs/tango-node) _(Coming Soon!)_
+- **Documentation**: [https://docs.makegov.com/sdks/node/](https://docs.makegov.com/sdks/node/)
 
 ## Contributing
 

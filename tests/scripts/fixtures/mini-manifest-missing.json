@@ -1,0 +1,12 @@
+{
+  "meta": { "description": "Fixture: SDK is missing `awarding_agency` on bars." },
+  "resources": {
+    "bars": {
+      "runtime": {
+        "filter_params": ["search", "awarding_agency", "fiscal_year", "ordering"],
+        "ordering_fields": ["fiscal_year"],
+        "pagination": { "class": "PageNumberPagination" }
+      }
+    }
+  }
+}

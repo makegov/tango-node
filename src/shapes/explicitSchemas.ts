@@ -795,6 +795,17 @@ export const CONTRACT_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. Mirrors the server's
+  // `_EXPAND_ALIASES` (see makegov/tango#2257). When users request
+  // `shape=naics(code,description)` the server returns a `{code, description}`
+  // object on this key.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   number_of_actions: {
     name: "number_of_actions",
     type: "int",
@@ -864,6 +875,14 @@ export const CONTRACT_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See `naics` above.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   purchase_card_as_payment_method: {
     name: "purchase_card_as_payment_method",
@@ -1431,6 +1450,14 @@ export const FORECAST_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   place_of_performance: {
     name: "place_of_performance",
     type: "str",
@@ -1532,6 +1559,14 @@ export const OPPORTUNITY_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   notice_history: {
     name: "notice_history",
     type: "dict",
@@ -1573,6 +1608,14 @@ export const OPPORTUNITY_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See CONTRACT_SCHEMA.psc.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   response_deadline: {
     name: "response_deadline",
@@ -1654,6 +1697,14 @@ export const NOTICE_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   notice_id: {
     name: "notice_id",
     type: "str",
@@ -1681,6 +1732,14 @@ export const NOTICE_SCHEMA: FieldSchemaMap = {
     isOptional: false,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See CONTRACT_SCHEMA.psc.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   response_deadline: {
     name: "response_deadline",
@@ -2314,6 +2373,62 @@ export const VEHICLE_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  is_synthetic_solicitation: {
+    name: "is_synthetic_solicitation",
+    type: "bool",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  program_acronym: {
+    name: "program_acronym",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  organization: {
+    name: "organization",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "OrganizationOffice",
+  },
+  metrics: {
+    name: "metrics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "VehicleMetrics",
+  },
+  idv_count: {
+    name: "idv_count",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  total_obligated: {
+    name: "total_obligated",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  latest_award_date: {
+    name: "latest_award_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  opportunity_id: {
+    name: "opportunity_id",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
   agency_id: {
     name: "agency_id",
     type: "str",
@@ -2359,6 +2474,13 @@ export const VEHICLE_SCHEMA: FieldSchemaMap = {
   agency_details: {
     name: "agency_details",
     type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  description: {
+    name: "description",
+    type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
@@ -2447,12 +2569,28 @@ export const VEHICLE_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Canonical expand alias for `naics_code(...)`. See CONTRACT_SCHEMA.naics.
+  naics: {
+    name: "naics",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
+  },
   psc_code: {
     name: "psc_code",
     type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  // Canonical expand alias for `psc_code(...)`. See CONTRACT_SCHEMA.psc.
+  psc: {
+    name: "psc",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "CodeDescription",
   },
   set_aside: {
     name: "set_aside",
@@ -2484,6 +2622,1095 @@ export const VEHICLE_SCHEMA: FieldSchemaMap = {
   },
 };
 
+// Canonical 7-key office payload returned by the `organization(...)` shape
+// expand on awards, vehicles, forecasts, grants, IT Dashboard, and protests.
+// Resolved deterministically from the resource's organization_id.
+export const ORGANIZATION_OFFICE_SCHEMA: FieldSchemaMap = {
+  organization_id: {
+    name: "organization_id",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  office_code: {
+    name: "office_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  office_name: {
+    name: "office_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  agency_code: {
+    name: "agency_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  agency_name: {
+    name: "agency_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  department_code: {
+    name: "department_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  department_name: {
+    name: "department_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// Vehicles expose a "metrics(...)" expansion bundling computed metrics.
+export const VEHICLE_METRICS_SCHEMA: FieldSchemaMap = {
+  avg_offers_received: {
+    name: "avg_offers_received",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  award_concentration_hhi: {
+    name: "award_concentration_hhi",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  order_concentration_hhi: {
+    name: "order_concentration_hhi",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  competed_rate: {
+    name: "competed_rate",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  using_agency_count: {
+    name: "using_agency_count",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  avg_order_value: {
+    name: "avg_order_value",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  max_order_value: {
+    name: "max_order_value",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  top_recipient_share: {
+    name: "top_recipient_share",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recent_obligations_24mo: {
+    name: "recent_obligations_24mo",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recent_orders_24mo: {
+    name: "recent_orders_24mo",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  days_since_last_order: {
+    name: "days_since_last_order",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  obligation_to_ceiling_ratio: {
+    name: "obligation_to_ceiling_ratio",
+    type: "float",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// Organization (agencies hierarchy)
+export const ORGANIZATION_SCHEMA: FieldSchemaMap = {
+  key: {
+    name: "key",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  fh_key: {
+    name: "fh_key",
+    type: "str",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  name: {
+    name: "name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  short_name: {
+    name: "short_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  level: {
+    name: "level",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  type: {
+    name: "type",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// OTA (Other Transaction Agreement) - IDV-like
+export const OTA_SCHEMA: FieldSchemaMap = {
+  key: {
+    name: "key",
+    type: "str",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  piid: {
+    name: "piid",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  award_date: {
+    name: "award_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  description: {
+    name: "description",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  total_contract_value: {
+    name: "total_contract_value",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  obligated: {
+    name: "obligated",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient: {
+    name: "recipient",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "RecipientProfile",
+  },
+};
+
+// OTIDV (Other Transaction IDV) - IDV-like
+export const OTIDV_SCHEMA: FieldSchemaMap = {
+  key: {
+    name: "key",
+    type: "str",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  piid: {
+    name: "piid",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  award_date: {
+    name: "award_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  description: {
+    name: "description",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  total_contract_value: {
+    name: "total_contract_value",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  obligated: {
+    name: "obligated",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  idv_type: {
+    name: "idv_type",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient: {
+    name: "recipient",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "RecipientProfile",
+  },
+};
+
+// Subaward (prime/sub awards)
+//
+// Mirrors awards.serializers.subawards.SubawardSerializer on the server. The
+// top-level field list is the canonical `Meta.fields` plus the denormalized
+// lookup fields the API exposes for filter parity (prime_awardee_*,
+// recipient_*, usaspending_permalink). Expandable objects are modeled with
+// `nestedModel` so callers can request, e.g. `awarding_office(office_code)`.
+
+// `subaward_details` payload (action_date, amount, fiscal_year, ...).
+export const SUBAWARD_DETAILS_SCHEMA: FieldSchemaMap = {
+  action_date: {
+    name: "action_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  amount: {
+    name: "amount",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  description: {
+    name: "description",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  fiscal_year: {
+    name: "fiscal_year",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  number: {
+    name: "number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  type: {
+    name: "type",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// `fsrs_details` payload — provenance for the underlying FSRS submission.
+export const FSRS_DETAILS_SCHEMA: FieldSchemaMap = {
+  id: {
+    name: "id",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  last_modified_date: {
+    name: "last_modified_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  month: {
+    name: "month",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  year: {
+    name: "year",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// Subaward-specific place_of_performance — flat 4-key payload (city/state/zip/
+// country_code), distinct from the richer PLACE_OF_PERFORMANCE_SCHEMA used by
+// contracts/IDVs/vehicles.
+export const SUBAWARD_PLACE_OF_PERFORMANCE_SCHEMA: FieldSchemaMap = {
+  city: {
+    name: "city",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  country_code: {
+    name: "country_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  state: {
+    name: "state",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  zip: {
+    name: "zip",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// `highly_compensated_officers` element shape (list-of-dict expansion).
+export const HIGHLY_COMPENSATED_OFFICER_SCHEMA: FieldSchemaMap = {
+  amount: {
+    name: "amount",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  name: {
+    name: "name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+export const SUBAWARD_SCHEMA: FieldSchemaMap = {
+  // Core identifiers
+  key: {
+    name: "key",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  award_key: {
+    name: "award_key",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  piid: {
+    name: "piid",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  usaspending_permalink: {
+    name: "usaspending_permalink",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Denormalized prime-awardee lookup fields (mirrored from prime_awardee_uei)
+  prime_awardee_name: {
+    name: "prime_awardee_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  prime_awardee_uei: {
+    name: "prime_awardee_uei",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Denormalized subaward-recipient lookup fields (mirrored from recipient_uei)
+  recipient_business_types: {
+    name: "recipient_business_types",
+    type: "str",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  recipient_dba_name: {
+    name: "recipient_dba_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_duns: {
+    name: "recipient_duns",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_name: {
+    name: "recipient_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_parent_duns: {
+    name: "recipient_parent_duns",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_parent_name: {
+    name: "recipient_parent_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_parent_uei: {
+    name: "recipient_parent_uei",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_uei: {
+    name: "recipient_uei",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Expandable nested objects
+  awarding_office: {
+    name: "awarding_office",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "AwardOffice",
+  },
+  funding_office: {
+    name: "funding_office",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "AwardOffice",
+  },
+  fsrs_details: {
+    name: "fsrs_details",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "FsrsDetails",
+  },
+  highly_compensated_officers: {
+    name: "highly_compensated_officers",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: "HighlyCompensatedOfficer",
+  },
+  place_of_performance: {
+    name: "place_of_performance",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "SubawardPlaceOfPerformance",
+  },
+  prime_recipient: {
+    name: "prime_recipient",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "RecipientProfile",
+  },
+  subaward_details: {
+    name: "subaward_details",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "SubawardDetails",
+  },
+  subaward_recipient: {
+    name: "subaward_recipient",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "RecipientProfile",
+  },
+};
+
+export const PROTEST_DOCKET_SCHEMA: FieldSchemaMap = {
+  source_system: {
+    name: "source_system",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  case_number: {
+    name: "case_number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  docket_number: {
+    name: "docket_number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  title: {
+    name: "title",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  protester: {
+    name: "protester",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  agency: {
+    name: "agency",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  solicitation_number: {
+    name: "solicitation_number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  case_type: {
+    name: "case_type",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  outcome: {
+    name: "outcome",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  filed_date: {
+    name: "filed_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  posted_date: {
+    name: "posted_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  decision_date: {
+    name: "decision_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  due_date: {
+    name: "due_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  docket_url: {
+    name: "docket_url",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  decision_url: {
+    name: "decision_url",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  digest: {
+    name: "digest",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+export const PROTEST_SCHEMA: FieldSchemaMap = {
+  case_id: {
+    name: "case_id",
+    type: "str",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  case_number: {
+    name: "case_number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  title: {
+    name: "title",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  source_system: {
+    name: "source_system",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  outcome: {
+    name: "outcome",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  agency: {
+    name: "agency",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  protester: {
+    name: "protester",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  solicitation_number: {
+    name: "solicitation_number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  case_type: {
+    name: "case_type",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  filed_date: {
+    name: "filed_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  posted_date: {
+    name: "posted_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  decision_date: {
+    name: "decision_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  due_date: {
+    name: "due_date",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  docket_url: {
+    name: "docket_url",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  decision_url: {
+    name: "decision_url",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  digest: {
+    name: "digest",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  dockets: {
+    name: "dockets",
+    type: "dict",
+    isOptional: true,
+    isList: true,
+    nestedModel: "ProtestDocket",
+  },
+  organization: {
+    name: "organization",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "OrganizationOffice",
+  },
+};
+
+// GSA eLibrary IDV reference (the linked IDV summary on a GSA eLibrary contract)
+export const GSA_ELIBRARY_IDV_REF_SCHEMA: FieldSchemaMap = {
+  key: {
+    name: "key",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  award_date: {
+    name: "award_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+export const GSA_ELIBRARY_CONTRACT_SCHEMA: FieldSchemaMap = {
+  uuid: {
+    name: "uuid",
+    type: "str",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  contract_number: {
+    name: "contract_number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  cooperative_purchasing: {
+    name: "cooperative_purchasing",
+    type: "bool",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  disaster_recovery_purchasing: {
+    name: "disaster_recovery_purchasing",
+    type: "bool",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  file_urls: {
+    name: "file_urls",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  schedule: {
+    name: "schedule",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  sins: {
+    name: "sins",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  idv: {
+    name: "idv",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "GsaElibraryIdvRef",
+  },
+  recipient: {
+    name: "recipient",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "RecipientProfile",
+  },
+};
+
+// IT Dashboard Investment
+export const ITDASHBOARD_INVESTMENT_SCHEMA: FieldSchemaMap = {
+  uii: {
+    name: "uii",
+    type: "str",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  agency_code: {
+    name: "agency_code",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  agency_name: {
+    name: "agency_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  bureau_code: {
+    name: "bureau_code",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  bureau_name: {
+    name: "bureau_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  investment_title: {
+    name: "investment_title",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  type_of_investment: {
+    name: "type_of_investment",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  part_of_it_portfolio: {
+    name: "part_of_it_portfolio",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  updated_time: {
+    name: "updated_time",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  url: {
+    name: "url",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  business_case_html: {
+    name: "business_case_html",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Expansions: dict (funding/details) and list-of-dict (nested sub-tables).
+  // Modeled as opaque dict/list since their inner shapes are dynamic.
+  funding: {
+    name: "funding",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  details: {
+    name: "details",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  cio_evaluation: {
+    name: "cio_evaluation",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  contracts: {
+    name: "contracts",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  projects: {
+    name: "projects",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  cost_pools_towers: {
+    name: "cost_pools_towers",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  funding_sources: {
+    name: "funding_sources",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  performance_metrics: {
+    name: "performance_metrics",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  performance_actual: {
+    name: "performance_actual",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  operational_analysis: {
+    name: "operational_analysis",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  organization: {
+    name: "organization",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "OrganizationOffice",
+  },
+};
+
 export const EXPLICIT_SCHEMAS: ExplicitSchemas = {
   Office: OFFICE_SCHEMA,
   Location: LOCATION_SCHEMA,
@@ -2496,6 +3723,7 @@ export const EXPLICIT_SCHEMAS: ExplicitSchemas = {
   Department: DEPARTMENT_SCHEMA,
   Contact: CONTACT_SCHEMA,
   AwardOffice: AWARD_OFFICE_SCHEMA,
+  OrganizationOffice: ORGANIZATION_OFFICE_SCHEMA,
   IDVPeriodOfPerformance: IDV_PERIOD_OF_PERFORMANCE_SCHEMA,
   Officers: OFFICERS_SCHEMA,
   RecipientProfile: RECIPIENT_PROFILE_SCHEMA,
@@ -2504,12 +3732,26 @@ export const EXPLICIT_SCHEMAS: ExplicitSchemas = {
   Forecast: FORECAST_SCHEMA,
   Opportunity: OPPORTUNITY_SCHEMA,
   Notice: NOTICE_SCHEMA,
+  Protest: PROTEST_SCHEMA,
+  ProtestDocket: PROTEST_DOCKET_SCHEMA,
   Agency: AGENCY_SCHEMA,
   Grant: GRANT_SCHEMA,
   Vehicle: VEHICLE_SCHEMA,
   IDV: IDV_SCHEMA,
   VehicleCompetitionDetails: VEHICLE_COMPETITION_DETAILS_SCHEMA,
+  VehicleMetrics: VEHICLE_METRICS_SCHEMA,
   CFDANumber: CFDA_NUMBER_SCHEMA,
   CodeDescription: CODE_DESCRIPTION_SCHEMA,
   GrantAttachment: GRANT_ATTACHMENT_SCHEMA,
+  Organization: ORGANIZATION_SCHEMA,
+  OTA: OTA_SCHEMA,
+  OTIDV: OTIDV_SCHEMA,
+  Subaward: SUBAWARD_SCHEMA,
+  SubawardDetails: SUBAWARD_DETAILS_SCHEMA,
+  FsrsDetails: FSRS_DETAILS_SCHEMA,
+  SubawardPlaceOfPerformance: SUBAWARD_PLACE_OF_PERFORMANCE_SCHEMA,
+  HighlyCompensatedOfficer: HIGHLY_COMPENSATED_OFFICER_SCHEMA,
+  GsaElibraryContract: GSA_ELIBRARY_CONTRACT_SCHEMA,
+  GsaElibraryIdvRef: GSA_ELIBRARY_IDV_REF_SCHEMA,
+  ITDashboardInvestment: ITDASHBOARD_INVESTMENT_SCHEMA,
 };

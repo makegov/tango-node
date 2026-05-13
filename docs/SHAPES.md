@@ -64,6 +64,40 @@ shape: "recipient(*)";
 
 ---
 
+## ShapeConfig Presets
+
+The SDK ships with a `ShapeConfig` object of ready-made shape strings for common patterns. Import from the main entry point:
+
+```ts
+import { TangoClient, ShapeConfig } from "@makegov/tango-node";
+```
+
+| Constant                       | Intended use                    |
+| ------------------------------ | ------------------------------- |
+| `ShapeConfig.CONTRACTS_MINIMAL`        | `listContracts()`        |
+| `ShapeConfig.ENTITIES_MINIMAL`         | `listEntities()`         |
+| `ShapeConfig.ENTITIES_COMPREHENSIVE`   | `getEntity()`            |
+| `ShapeConfig.FORECASTS_MINIMAL`        | `listForecasts()`        |
+| `ShapeConfig.OPPORTUNITIES_MINIMAL`    | `listOpportunities()`    |
+| `ShapeConfig.NOTICES_MINIMAL`          | `listNotices()`          |
+| `ShapeConfig.GRANTS_MINIMAL`           | `listGrants()`           |
+| `ShapeConfig.IDVS_MINIMAL`             | `listIdvs()`             |
+| `ShapeConfig.IDVS_COMPREHENSIVE`       | `getIdv()`               |
+| `ShapeConfig.VEHICLES_MINIMAL`         | `listVehicles()`         |
+| `ShapeConfig.VEHICLES_COMPREHENSIVE`   | `getVehicle()`           |
+| `ShapeConfig.VEHICLE_AWARDEES_MINIMAL` | `listVehicleAwardees()`  |
+
+These are plain strings — you can use them directly or as a starting point:
+
+```ts
+const contracts = await client.listContracts({
+  shape: ShapeConfig.CONTRACTS_MINIMAL,
+  limit: 10,
+});
+```
+
+---
+
 ## Flat Responses
 
 ```ts
@@ -71,11 +105,14 @@ shape: ShapeConfig.CONTRACTS_MINIMAL,
 flat: true
 ```
 
-The Tango API returns dotted keys; the SDK unflattens them:
+When `flat: true` is passed, the Tango API returns dotted key names instead of nested objects. The SDK automatically unflattens them back into nested objects on the client side:
 
 ```ts
-recipient.display_name → recipient.display_name
+// API returns:       { "recipient.display_name": "Acme" }
+// SDK unflattens to: { recipient: { display_name: "Acme" } }
 ```
+
+You can override the separator character (default `"."`) with the `joiner` option.
 
 ---
 

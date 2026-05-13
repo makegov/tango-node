@@ -9,10 +9,11 @@ export const ShapeConfig = {
 
   // Default for getEntity()
   ENTITIES_COMPREHENSIVE:
-    "uei,legal_business_name,dba_name,cage_code,business_types,primary_naics," +
-    "naics_codes,psc_codes,email_address,entity_url,description,capabilities," +
-    "keywords,physical_address,mailing_address,federal_obligations," +
-    "congressional_district",
+    "uei,legal_business_name,dba_name,cage_code," +
+    "business_types,primary_naics,naics_codes,psc_codes," +
+    "email_address,entity_url,description,capabilities,keywords," +
+    "physical_address,mailing_address," +
+    "federal_obligations(*),congressional_district",
 
   // Default for listForecasts()
   FORECASTS_MINIMAL: "id,title,anticipated_award_date,fiscal_year,naics_code,status",
@@ -23,6 +24,9 @@ export const ShapeConfig = {
   // Default for listNotices()
   NOTICES_MINIMAL: "notice_id,title,solicitation_number,posted_date",
 
+  // Default for listProtests()
+  PROTESTS_MINIMAL: "case_id,case_number,title,source_system,outcome,filed_date",
+
   // Default for listGrants()
   GRANTS_MINIMAL: "grant_id,opportunity_number,title,status(*),agency_code",
 
@@ -31,24 +35,67 @@ export const ShapeConfig = {
 
   // Default for getIdv()
   IDVS_COMPREHENSIVE:
-    "key,piid,award_date,description,fiscal_year,total_contract_value,base_and_exercised_options_value,obligated," +
+    "key,piid,award_date,description,fiscal_year,total_contract_value,obligated," +
     "idv_type,multiple_or_single_award_idv,type_of_idc,period_of_performance(start_date,last_date_to_order)," +
-    "recipient(display_name,legal_business_name,uei,cage_code)," +
+    "recipient(display_name,legal_business_name,uei,cage)," +
     "awarding_office(*),funding_office(*),place_of_performance(*),parent_award(key,piid)," +
     "competition(*),legislative_mandates(*),transactions(*),subawards_summary(*)",
 
   // Default for listVehicles()
   VEHICLES_MINIMAL:
-    "uuid,solicitation_identifier,organization_id,awardee_count,order_count," +
-    "vehicle_obligations,vehicle_contracts_value,solicitation_title,solicitation_date",
+    "uuid,solicitation_identifier,is_synthetic_solicitation,program_acronym," +
+    "organization_id,organization,vehicle_type,description," +
+    "idv_count,awardee_count,order_count,total_obligated," +
+    "vehicle_obligations,vehicle_contracts_value,latest_award_date," +
+    "solicitation_title,solicitation_date",
 
   // Default for getVehicle()
   VEHICLES_COMPREHENSIVE:
-    "uuid,solicitation_identifier,agency_id,organization_id,vehicle_type,who_can_use," +
-    "solicitation_title,solicitation_description,solicitation_date,naics_code,psc_code,set_aside," +
-    "fiscal_year,award_date,last_date_to_order,awardee_count,order_count,vehicle_obligations,vehicle_contracts_value," +
-    "type_of_idc,contract_type,competition_details(*)",
+    "uuid,solicitation_identifier,is_synthetic_solicitation,agency_id,program_acronym," +
+    "organization_id,organization(*),vehicle_type,who_can_use," +
+    "solicitation_title,solicitation_description,solicitation_date,opportunity_id," +
+    "naics_code,psc_code,set_aside," +
+    "fiscal_year,award_date,latest_award_date,last_date_to_order," +
+    "description,idv_count,awardee_count,order_count,total_obligated," +
+    "vehicle_obligations,vehicle_contracts_value," +
+    "type_of_idc,contract_type,metrics(*)",
 
   // Default for listVehicleAwardees()
   VEHICLE_AWARDEES_MINIMAL: "uuid,key,piid,award_date,title,order_count,idv_obligations,idv_contracts_value,recipient(display_name,uei)",
+
+  // Default for listVehicleOrders()
+  VEHICLE_ORDERS_MINIMAL:
+    "key,piid,award_date,obligated,total_contract_value,description,recipient(display_name,uei)",
+
+  // Default for listOrganizations()
+  ORGANIZATIONS_MINIMAL: "key,fh_key,name,level,type,short_name",
+
+  // Default for listOtas()
+  OTAS_MINIMAL:
+    "key,piid,award_date,recipient(display_name,uei),description,total_contract_value,obligated",
+
+  // Default for listOtidvs()
+  OTIDVS_MINIMAL: "key,piid,award_date,recipient(display_name,uei),description,total_contract_value,obligated,idv_type",
+
+  // Default for listSubawards()
+  // Note: API does not accept "id" or "amount" in shape (unknown_field). Use only accepted fields.
+  SUBAWARDS_MINIMAL:
+    "award_key,prime_recipient(uei,display_name),subaward_recipient(uei,display_name)",
+
+  // Default for listGsaElibraryContracts()
+  GSA_ELIBRARY_CONTRACTS_MINIMAL:
+    "uuid,contract_number,schedule,recipient(display_name,uei),idv(key,award_date)",
+
+  // Default for listItdashboardInvestments()
+  // Free-tier safe: matches the API's INVESTMENT_LIST_DEFAULT_SHAPE.
+  ITDASHBOARD_INVESTMENTS_MINIMAL:
+    "uii,agency_name,bureau_name,investment_title," +
+    "type_of_investment,part_of_it_portfolio,updated_time,url",
+
+  // Default for getItdashboardInvestment()
+  // Free-tier safe: matches the API's INVESTMENT_RETRIEVE_DEFAULT_SHAPE.
+  ITDASHBOARD_INVESTMENTS_COMPREHENSIVE:
+    "uii,agency_code,agency_name,bureau_code,bureau_name," +
+    "investment_title,type_of_investment,part_of_it_portfolio," +
+    "updated_time,url",
 } as const;

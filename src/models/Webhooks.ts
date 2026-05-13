@@ -1,23 +1,3 @@
-export interface WebhookSubscriptionPayloadRecord {
-  event_type: string;
-  subject_type?: string | null;
-  subject_ids?: string[];
-  // Legacy compatibility (v1)
-  resource_ids?: string[];
-}
-
-export interface WebhookSubscriptionPayload {
-  records: WebhookSubscriptionPayloadRecord[];
-}
-
-export interface WebhookSubscription {
-  id: string;
-  endpoint?: string;
-  subscription_name: string;
-  payload: WebhookSubscriptionPayload | null;
-  created_at: string;
-}
-
 export interface WebhookEndpoint {
   id: string;
   name: string;
@@ -28,24 +8,57 @@ export interface WebhookEndpoint {
   updated_at: string;
 }
 
+export interface WebhookEndpointCreateInput {
+  name: string;
+  callback_url: string;
+  is_active?: boolean;
+}
+
+export type WebhookEndpointUpdateInput = Partial<WebhookEndpointCreateInput>;
+
+/**
+ * Filter-based subscription via the convenience `/api/webhooks/alerts/` API.
+ *
+ * Note the field naming differs from the canonical subscriptions endpoint:
+ * - `name` (here) vs `subscription_name` (canonical)
+ * - `filters` (here) vs `filter_definition` (canonical)
+ * - `query_type` is SINGULAR in both ("contract" not "contracts").
+ */
+export interface WebhookAlertCreateInput {
+  name: string;
+  query_type: string;
+  filters: Record<string, unknown>;
+  frequency?: string;
+  cron_expression?: string;
+  /**
+   * Endpoint UUID to deliver matches to. Required for accounts with multiple
+   * webhook endpoints; optional for single-endpoint accounts (the API will
+   * auto-resolve the sole endpoint). Server support landed in tango#2256.
+   */
+  endpoint?: string;
+}
+
+export interface WebhookAlert {
+  alert_id: string;
+  name: string;
+  query_type: string;
+  filters: Record<string, unknown>;
+  frequency: string;
+  cron_expression: string | null;
+  status: "active" | "paused";
+  created_at: string;
+  last_checked_at: string | null;
+  match_count: number;
+}
+
 export interface WebhookEventType {
   event_type: string;
-  default_subject_type: string;
   description: string;
   schema_version: number;
 }
 
-export interface WebhookSubjectTypeDefinition {
-  subject_type: string;
-  description: string;
-  id_format: string;
-  status: string;
-}
-
 export interface WebhookEventTypesResponse {
   event_types: WebhookEventType[];
-  subject_types: string[];
-  subject_type_definitions: WebhookSubjectTypeDefinition[];
 }
 
 export interface WebhookTestDeliveryResult {
@@ -59,11 +72,6 @@ export interface WebhookTestDeliveryResult {
   test_payload?: Record<string, unknown>;
 }
 
-export interface WebhookSampleSubject {
-  subject_type: string;
-  subject_id: string;
-}
-
 export interface WebhookSampleDelivery {
   timestamp: string;
   events: Array<Record<string, unknown>>;
@@ -72,8 +80,6 @@ export interface WebhookSampleDelivery {
 export interface WebhookSamplePayloadSingleResponse {
   event_type: string;
   sample_delivery: WebhookSampleDelivery;
-  sample_subjects: WebhookSampleSubject[];
-  sample_subscription_requests: Record<string, unknown>;
   signature_header: string;
   note: string;
 }
@@ -83,8 +89,6 @@ export interface WebhookSamplePayloadAllResponse {
     string,
     {
       sample_delivery: WebhookSampleDelivery;
-      sample_subjects: WebhookSampleSubject[];
-      sample_subscription_requests: Record<string, unknown>;
     }
   >;
   usage: string;

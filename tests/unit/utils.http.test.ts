@@ -58,6 +58,7 @@ describe("HttpClient", () => {
     const makeClient = (status: number, body: any) =>
       new HttpClient({
         baseUrl: "https://example.test",
+        retries: 0,
         fetchImpl: async (): Promise<any> => ({
           ok: status >= 200 && status < 300,
           status,
@@ -98,6 +99,7 @@ describe("HttpClient", () => {
   it("maps abort/timeout errors to TangoTimeoutError", async () => {
     const client = new HttpClient({
       baseUrl: "https://example.test",
+      retries: 0,
       fetchImpl: async () => {
         const err = new Error("This operation was aborted");
         err.name = "AbortError";
@@ -158,6 +160,7 @@ describe("HttpClient", () => {
   it("extracts validation detail from field errors", async () => {
     const client = new HttpClient({
       baseUrl: "https://example.test",
+      retries: 0,
       fetchImpl: async (): Promise<any> => ({
         ok: false,
         status: 400,
@@ -168,5 +171,150 @@ describe("HttpClient", () => {
     });
 
     await expect(client.get("/api/contracts/")).rejects.toThrow("Invalid request parameters: bad input");
+  });
+
+  it("retries on 5xx and eventually succeeds", async () => {
+    let calls = 0;
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 3,
+      retryBackoffMs: 1, // keep test fast
+      fetchImpl: async (): Promise<any> => {
+        calls += 1;
+        if (calls < 3) {
+          return {
+            ok: false,
+            status: 503,
+            headers: new Headers(),
+            async text() {
+              return "{}";
+            },
+          };
+        }
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          async text() {
+            return JSON.stringify({ ok: true });
+          },
+        };
+      },
+    });
+
+    const result = await client.get<{ ok: boolean }>("/api/contracts/");
+    expect(result.ok).toBe(true);
+    expect(calls).toBe(3);
+  });
+
+  it("does NOT retry on 4xx (except 408/429)", async () => {
+    let calls = 0;
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 5,
+      retryBackoffMs: 1,
+      fetchImpl: async (): Promise<any> => {
+        calls += 1;
+        return {
+          ok: false,
+          status: 403,
+          headers: new Headers(),
+          async text() {
+            return JSON.stringify({ detail: "forbidden" });
+          },
+        };
+      },
+    });
+
+    await expect(client.get("/api/contracts/")).rejects.toBeInstanceOf(TangoAPIError);
+    expect(calls).toBe(1);
+  });
+
+  it("honors Retry-After on 429", async () => {
+    let calls = 0;
+    const t0 = Date.now();
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 2,
+      retryBackoffMs: 5_000, // would dominate if not for Retry-After
+      fetchImpl: async (): Promise<any> => {
+        calls += 1;
+        if (calls === 1) {
+          return {
+            ok: false,
+            status: 429,
+            headers: new Headers({ "Retry-After": "0" }), // tell client to retry immediately
+            async text() {
+              return JSON.stringify({ detail: "slow down" });
+            },
+          };
+        }
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          async text() {
+            return JSON.stringify({ ok: true });
+          },
+        };
+      },
+    });
+
+    const result = await client.get<{ ok: boolean }>("/api/contracts/");
+    const elapsed = Date.now() - t0;
+    expect(result.ok).toBe(true);
+    expect(calls).toBe(2);
+    // Retry-After: 0 should mean we beat the (otherwise 5s) exponential backoff.
+    expect(elapsed).toBeLessThan(1000);
+  });
+
+  it("gives up after retries are exhausted", async () => {
+    let calls = 0;
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 2,
+      retryBackoffMs: 1,
+      fetchImpl: async (): Promise<any> => {
+        calls += 1;
+        return {
+          ok: false,
+          status: 500,
+          headers: new Headers(),
+          async text() {
+            return JSON.stringify({ detail: "boom" });
+          },
+        };
+      },
+    });
+
+    await expect(client.get("/api/contracts/")).rejects.toBeInstanceOf(TangoAPIError);
+    expect(calls).toBe(3); // 1 initial + 2 retries
+  });
+
+  it("retries on network errors", async () => {
+    let calls = 0;
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 2,
+      retryBackoffMs: 1,
+      fetchImpl: async (): Promise<any> => {
+        calls += 1;
+        if (calls < 2) {
+          throw new TypeError("fetch failed");
+        }
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          async text() {
+            return JSON.stringify({ ok: true });
+          },
+        };
+      },
+    });
+
+    const result = await client.get<{ ok: boolean }>("/api/contracts/");
+    expect(result.ok).toBe(true);
+    expect(calls).toBe(2);
   });
 });

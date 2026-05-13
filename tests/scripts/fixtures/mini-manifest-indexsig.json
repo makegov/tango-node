@@ -1,0 +1,12 @@
+{
+  "meta": { "description": "Fixture: SDK relies on index signature for missing filters." },
+  "resources": {
+    "baz": {
+      "runtime": {
+        "filter_params": ["search", "awarding_agency", "fiscal_year"],
+        "ordering_fields": [],
+        "pagination": { "class": "PageNumberPagination" }
+      }
+    }
+  }
+}

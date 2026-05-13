@@ -1,11 +1,14 @@
 {
   "name": "@makegov/tango-node",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Official Node.js SDK for the Tango API – dynamic response shaping, typed models, and full endpoint coverage.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "tango-node": "./dist/bin/tango-node.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -24,6 +27,11 @@
     }
   },
   "sideEffects": false,
+  "files": [
+    "dist/",
+    "docs/",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
@@ -32,6 +40,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "coverage": "vitest run --coverage",
+    "check-conformance": "tsx scripts/check-filter-shape-conformance.ts",
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint && npm run test && npm run build"
   },
@@ -66,8 +75,11 @@
     "eslint": "^9.0.0",
     "globals": "^15.12.0",
     "prettier": "^3.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.6.0",
     "vitest": "^2.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "commander": "^12.1.0"
+  }
 }

@@ -52,18 +52,6 @@ Returns a shaped Agency object. Responses are materialized via the dynamic model
 
 ---
 
-## Business Types
-
-### `listBusinessTypes(options?)`
-
-Lists SBA/USASpending business type entries.
-
-```ts
-const types = await client.listBusinessTypes();
-```
-
----
-
 ## Contracts
 
 ### `listContracts(options)`
@@ -106,8 +94,11 @@ shape: string,
 flat: boolean,
 flatLists: boolean,
 page: number,
-limit: number
+limit: number,
+cursor: string,  // mutually exclusive with `page` — if provided, `page` is ignored
 ```
+
+Contracts support both **page-based** and **cursor-based** pagination. Use `cursor` for deep pagination (faster and more stable on large result sets); use `page` for small offsets or when you need to jump to a specific page. `page` and `cursor` are mutually exclusive — if you pass `cursor`, the SDK ignores `page`.
 
 #### Returns (Contracts)
 
@@ -208,6 +199,8 @@ const tx = await client.listIdvTransactions("SOME_IDV_KEY", { limit: 100 });
 
 ### `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options?)`
 
+> **Deprecated.** These methods wrap the `/api/idvs/{identifier}/summary/` and `/api/idvs/{identifier}/summary/awards/` routes, which were removed server-side and now return **404**. The methods will be removed from the SDK in a future release. For solicitation-grouped views, query `/api/vehicles/` instead (see [Vehicles](#vehicles)).
+
 ```ts
 const summary = await client.getIdvSummary("SOLICITATION_IDENTIFIER");
 const awards = await client.listIdvSummaryAwards("SOLICITATION_IDENTIFIER", { limit: 25 });
@@ -267,66 +260,376 @@ Search SAM.gov opportunities with shaping.
 
 ---
 
+## Organizations / Offices / Departments
+
+### `listOrganizations(options?)`
+
+The canonical agency/department/office hierarchy. `level` filters by hierarchy depth: `1` = department, `2` = agency, `3` = sub-agency, and so on.
+
+```ts
+const orgs = await client.listOrganizations({
+  level: 1,                // 1 = department, 2 = agency, 3 = sub-agency, …
+  include_inactive: false,
+  search: "Defense",
+  limit: 25,
+});
+```
+
+### `getOrganization(identifier)`
+
+```ts
+const org = await client.getOrganization("ORG_KEY");
+```
+
+### `listOffices(options?)`
+
+```ts
+const offices = await client.listOffices({ search: "acquisitions" });
+```
+
+### `getOffice(code)`
+
+```ts
+const office = await client.getOffice("4732XX");
+```
+
+### `listDepartments(options?)`
+
+> **Deprecated.** Use `listOrganizations({ level: 1 })` instead. The standalone departments endpoint is retained for backward compatibility and will be removed in a future API version.
+
+```ts
+const depts = await client.listDepartments({ page: 1, limit: 25 });
+```
+
+### `getDepartment(code)`
+
+```ts
+const dept = await client.getDepartment("097");
+```
+
+---
+
+## OTAs
+
+Other Transaction Agreements — non-FAR-based awards.
+
+### `listOtas(options?)`
+
+Uses **keyset pagination** (`cursor` + `limit`).
+
+```ts
+const otas = await client.listOtas({ limit: 25, awarding_agency: "4700" });
+```
+
+### `getOta(key)`
+
+```ts
+const ota = await client.getOta("OTA_KEY");
+```
+
+---
+
+## OTIDVs
+
+Other Transaction IDVs — umbrella OT agreements with child awards.
+
+### `listOtidvs(options?)`
+
+Uses **keyset pagination** (`cursor` + `limit`).
+
+```ts
+const otidvs = await client.listOtidvs({ limit: 25 });
+```
+
+### `getOtidv(key)`
+
+```ts
+const otidv = await client.getOtidv("OTIDV_KEY");
+```
+
+### `listOtidvAwards(key, options?)`
+
+```ts
+const awards = await client.listOtidvAwards("OTIDV_KEY", { limit: 25 });
+```
+
+---
+
+## Subawards
+
+### `listSubawards(options?)`
+
+```ts
+const subs = await client.listSubawards({ prime_uei: "ABC123DEF456", limit: 25 });
+```
+
+---
+
+## GSA eLibrary Contracts
+
+### `listGsaElibraryContracts(options?)`
+
+```ts
+const contracts = await client.listGsaElibraryContracts({ schedule: "MAS", limit: 25 });
+```
+
+---
+
+## Protests
+
+### `listProtests(options?)`
+
+```ts
+const protests = await client.listProtests({ source_system: "gao", limit: 25 });
+```
+
+### `getProtest(caseNumber)`
+
+```ts
+const protest = await client.getProtest("CASE_UUID");
+```
+
+---
+
+## IT Dashboard
+
+### `listItDashboard(options?)`
+
+```ts
+const investments = await client.listItDashboard({ search: "cloud", limit: 25 });
+```
+
+### `getItDashboard(uii)`
+
+```ts
+const investment = await client.getItDashboard("023-000001234");
+```
+
+---
+
+## LCATs
+
+### `listLcats(options)`
+
+Requires either `{ uei }` (entity LCATs) or `{ idvKey }` (IDV LCATs) — throws `TangoValidationError` if neither is provided.
+
+```ts
+const lcats = await client.listLcats({ uei: "ABCDEF123456" });
+// or:
+const lcats = await client.listLcats({ idvKey: "GS-00F-XXXX" });
+```
+
+### `listIdvLcats(key, options?)`
+
+Labor Categories (`/api/idvs/{key}/lcats/`) attached to an IDV.
+
+```ts
+const lcats = await client.listIdvLcats("GS-00F-XXXX", { limit: 25 });
+```
+
+---
+
+## Metrics
+
+### `listMetrics(options)`
+
+List metrics for a NAICS code, PSC code, or entity. `ownerType`, `ownerId`, `months`, and `periodGrouping` are all required.
+
+```ts
+const metrics = await client.listMetrics({
+  ownerType: "naics",
+  ownerId: "541511",
+  months: 12,
+  periodGrouping: "month",
+});
+```
+
+### `getNaicsMetrics(code, months, periodGrouping)`
+
+```ts
+const m = await client.getNaicsMetrics("541511", 12, "month");
+```
+
+### `getPscMetrics(code, months, periodGrouping)`
+
+```ts
+const m = await client.getPscMetrics("D302", 12, "month");
+```
+
+### `getEntityMetrics(uei, months, periodGrouping)`
+
+```ts
+const m = await client.getEntityMetrics("ABCDEF123456", 12, "month");
+```
+
+---
+
+## Reference Lookups
+
+### `listNaics(options?)` / `getNaics(code)`
+
+```ts
+const naics = await client.listNaics({ search: "software" });
+const code = await client.getNaics("541511");
+```
+
+### `listPsc(options?)` / `getPsc(code)`
+
+```ts
+const psc = await client.listPsc();
+const code = await client.getPsc("D302");
+```
+
+### `listMasSins(options?)` / `getMasSin(sin)`
+
+```ts
+const sins = await client.listMasSins();
+const sin = await client.getMasSin("54151S");
+```
+
+### `listAssistanceListings(options?)` / `getAssistanceListing(number)`
+
+```ts
+const listings = await client.listAssistanceListings();
+const listing = await client.getAssistanceListing("10.310");
+```
+
+### `listBusinessTypes(options?)` / `getBusinessType(code)`
+
+```ts
+const types = await client.listBusinessTypes();
+const bt = await client.getBusinessType("A6");
+```
+
+---
+
+## Resolve / Validate
+
+### `resolve(input)`
+
+Resolve a free-text name to ranked entity or organization candidates.
+
+```ts
+const result = await client.resolve({ name: "Lockheed Martin", target_type: "entity" });
+// result.candidates[0].display_name, result.count
+```
+
+Required fields: `name`, `target_type` (`"entity"` | `"organization"`).
+
+### `validate(input)`
+
+Validate the format of a PIID, solicitation number, or UEI.
+
+```ts
+const result = await client.validate({ type: "uei", value: "ABCDEF123456" });
+```
+
+Required fields: `type` (`"piid"` | `"solicitation"` | `"uei"`), `value`.
+
+---
+
+## Entity Sub-resources
+
+### `listEntityContracts(uei, options?)`
+
+```ts
+const contracts = await client.listEntityContracts("ABCDEF123456", { limit: 25 });
+```
+
+### `listEntityIdvs(uei, options?)` / `listEntityOtas(uei, options?)` / `listEntityOtidvs(uei, options?)`
+
+```ts
+const idvs = await client.listEntityIdvs("ABCDEF123456");
+```
+
+### `listEntitySubawards(uei, options?)` / `listEntityLcats(uei, options?)`
+
+```ts
+const subawards = await client.listEntitySubawards("ABCDEF123456");
+```
+
+---
+
+## Agency Sub-resources
+
+### `listAgencyAwardingContracts(code, options?)`
+
+```ts
+const contracts = await client.listAgencyAwardingContracts("4700", { limit: 25 });
+```
+
+### `listAgencyFundingContracts(code, options?)`
+
+```ts
+const contracts = await client.listAgencyFundingContracts("4700", { limit: 25 });
+```
+
+---
+
+## Opportunities (attachments)
+
+### `searchOpportunityAttachments(options)`
+
+Semantic search over opportunity attachments. `q` is required.
+
+```ts
+const results = await client.searchOpportunityAttachments({
+  q: "cybersecurity",
+  topK: 10, // max results (optional)
+  includeExtractedText: false, // include raw extracted text (optional)
+});
+```
+
+| Name                   | Type      | Description                            |
+| ---------------------- | --------- | -------------------------------------- |
+| `q`                    | `string`  | **Required.** Search query.            |
+| `topK`                 | `number`  | Maximum number of results to return.   |
+| `includeExtractedText` | `boolean` | Whether to include raw extracted text. |
+
+---
+
+## Async Iteration
+
+All list methods can be iterated page-by-page via the generic `iterate()` helper or the named convenience wrappers.
+
+### `iterate(method, options?)`
+
+```ts
+for await (const contract of client.iterate("listContracts", { awarding_agency: "9700" })) {
+  console.log(contract.piid);
+}
+```
+
+Named wrappers: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, `iterateNotices`, `iterateGrants`, `iterateForecasts`, `iterateIdvs`, `iterateVehicles`.
+
+---
+
+## Utility
+
+### `getVersion()`
+
+```ts
+const v = await client.getVersion();
+```
+
+### `listApiKeys()`
+
+```ts
+const keys = await client.listApiKeys();
+```
+
+---
+
 ## Webhooks (v2)
 
 Webhook APIs let **Large / Enterprise** users manage subscription filters for outbound Tango webhooks.
 
 ### `listWebhookEventTypes()`
 
-Discover supported `event_type` values and subject types.
+Discover supported `event_type` values.
 
 ```ts
 const info = await client.listWebhookEventTypes();
-```
-
-### `listWebhookSubscriptions(options?)`
-
-```ts
-const subs = await client.listWebhookSubscriptions({ page: 1, pageSize: 25 });
-```
-
-Notes:
-
-- Uses `page` + `page_size` (not `limit`) for pagination on this endpoint.
-
-### `getWebhookSubscription(id)`
-
-```ts
-const sub = await client.getWebhookSubscription("SUBSCRIPTION_UUID");
-```
-
-### `createWebhookSubscription({ subscriptionName, payload })`
-
-```ts
-await client.createWebhookSubscription({
-  subscriptionName: "Track specific vendors",
-  payload: {
-    records: [
-      { event_type: "awards.new_award", subject_type: "entity", subject_ids: ["UEI123ABC"] },
-      { event_type: "awards.new_transaction", subject_type: "entity", subject_ids: ["UEI123ABC"] },
-    ],
-  },
-});
-```
-
-Notes:
-
-- Prefer v2 fields: `subject_type` + `subject_ids`.
-- Legacy compatibility: `resource_ids` is accepted as an alias for `subject_ids` (don’t send both).
-- Catch-all: `subject_ids: []` means “all subjects” for that record and is **Enterprise-only**. Large tier users must list specific IDs.
-
-### `updateWebhookSubscription(id, patch)`
-
-```ts
-await client.updateWebhookSubscription("SUBSCRIPTION_UUID", {
-  subscriptionName: "Updated name",
-});
-```
-
-### `deleteWebhookSubscription(id)`
-
-```ts
-await client.deleteWebhookSubscription("SUBSCRIPTION_UUID");
 ```
 
 ### Webhook endpoints
@@ -338,39 +641,88 @@ const endpoints = await client.listWebhookEndpoints({ page: 1, limit: 25 });
 const endpoint = await client.getWebhookEndpoint("ENDPOINT_UUID");
 ```
 
+`createWebhookEndpoint` accepts the canonical snake_case shape (`callback_url`, `is_active`, `name`) or the legacy camelCase aliases (`callbackUrl`, `isActive`). If `name` is not provided, the SDK falls back to the URL host.
+
 ```ts
-// Create (one endpoint per user)
-const created = await client.createWebhookEndpoint({ callbackUrl: "https://example.com/tango/webhooks" });
+// Create (canonical snake_case)
+const created = await client.createWebhookEndpoint({
+  name: "Prod receiver",
+  callback_url: "https://example.com/tango/webhooks",
+  // is_active defaults to true on create
+});
+
+// Legacy camelCase still works:
+const created2 = await client.createWebhookEndpoint({
+  callbackUrl: "https://example.com/tango/webhooks",
+  isActive: true,
+});
 
 // Update
-await client.updateWebhookEndpoint(created.id, { isActive: false });
+await client.updateWebhookEndpoint(created.id, { is_active: false });
 
 // Delete
 await client.deleteWebhookEndpoint(created.id);
 ```
 
-### `testWebhookDelivery(options?)`
+### `testWebhookEndpoint(endpointId)`
 
-Send an immediate test webhook to your configured endpoint.
+Send an immediate test webhook to a specific endpoint. `endpointId` is required. The SDK sends `{ endpoint: <id> }` in the request body (canonical post-tango#2252 cleanup; the API also accepts `endpoint_id` as a deprecated alias).
 
 ```ts
-const result = await client.testWebhookDelivery();
+const result = await client.testWebhookEndpoint("ENDPOINT_UUID");
+console.log(result.success, result.status_code);
+```
+
+### `testWebhookDelivery(options?)` _(legacy alias)_
+
+Legacy wrapper around `testWebhookEndpoint`. `endpointId` may be omitted, in which case the API auto-resolves the user's only endpoint (404 if 0, 400 if >1). Prefer `testWebhookEndpoint` for new code.
+
+```ts
+const result = await client.testWebhookDelivery({ endpointId: "ENDPOINT_UUID" });
 ```
 
 ### `getWebhookSamplePayload(options?)`
 
-Fetch Tango-shaped sample deliveries (and sample subscription request bodies).
+Fetch Tango-shaped sample deliveries.
 
 ```ts
-const sample = await client.getWebhookSamplePayload({ eventType: "awards.new_award" });
+const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contract.match" });
 ```
+
+### Webhook Alerts
+
+The Alerts API is a filter-subscription convenience layer on top of subscriptions. The SDK uses cleaner field names than the underlying API: `name` (vs `subscription_name`), `filters` (vs `filter_definition`), and singular `query_type` values.
+
+```ts
+// Create
+const alert = await client.createWebhookAlert({
+  name: "New IT cloud contracts",                  // vs subscription_name on the wire
+  query_type: "contract",                          // SINGULAR — not "contracts"
+  filters: { naics: "541511" },                    // vs filter_definition on the wire
+  frequency: "realtime",                           // realtime | daily | weekly | custom
+  cron_expression: undefined,                      // required if frequency === "custom"
+});
+
+// List
+const alerts = await client.listWebhookAlerts({ page: 1, pageSize: 25 });
+
+// Get / Update / Delete
+const got = await client.getWebhookAlert("ALERT_UUID");
+await client.updateWebhookAlert("ALERT_UUID", { name: "Updated name" });
+await client.deleteWebhookAlert("ALERT_UUID");
+```
+
+Notes:
+
+- `name` and `query_type` are required on create. `query_type` is **singular** (e.g. `"contract"`, not `"contracts"`).
+- Only `name`, `frequency`, `cronExpression`, and `isActive` are writable via `updateWebhookAlert` — `query_type` and `filters` are read-only after creation.
 
 ### Deliveries / redelivery
 
 The API does not currently expose a public `/api/webhooks/deliveries/` or redelivery endpoint. Use:
 
-- `testWebhookDelivery()` for connectivity checks
-- `getWebhookSamplePayload()` for building handlers + subscription payloads
+- `testWebhookEndpoint(endpointId)` for connectivity checks
+- `getWebhookSamplePayload()` for building handlers + alert payloads
 
 ### Receiving webhooks (signature verification)
 
@@ -378,18 +730,33 @@ Every delivery includes an HMAC signature header:
 
 - `X-Tango-Signature: sha256=<hex digest>`
 
-Compute the digest over the **raw request body bytes** using your shared secret.
+Use the SDK's `verifySignature` helper — **do not hand-roll HMAC**. Verify against the **raw request body bytes** (not a re-serialized parsed body). Arg order is `(body, header, secret)`.
 
 ```ts
-import crypto from "node:crypto";
+import { verifySignature } from "@makegov/tango-node";
 
-export function verifyTangoWebhookSignature(secret: string, rawBody: Buffer, signatureHeader: string | null): boolean {
-  if (!signatureHeader) return false;
-  const sig = signatureHeader.startsWith("sha256=") ? signatureHeader.slice("sha256=".length) : signatureHeader;
-  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(sig, "hex"));
-}
+// Express — use express.raw() to get the body as a Buffer before JSON parsing
+app.post("/tango/webhooks", express.raw({ type: "application/json" }), (req, res) => {
+  const rawBody = req.body; // Buffer
+  const signatureHeader = req.headers["x-tango-signature"];
+
+  if (!verifySignature(rawBody, signatureHeader, process.env.TANGO_WEBHOOK_SECRET)) {
+    return res.status(401).json({ error: "invalid_signature" });
+  }
+
+  const payload = JSON.parse(rawBody.toString("utf8"));
+  // ... handle payload.events ...
+  res.json({ ok: true });
+});
 ```
+
+`verifySignature` signature:
+
+```ts
+function verifySignature(body: string | Buffer, header: string | null | undefined, secret: string): boolean;
+```
+
+Returns `false` for missing, malformed, or mismatched headers — never throws on mismatch. Uses `timingSafeEqual` internally. See [`WEBHOOKS.md` § Signature verification](WEBHOOKS.md#signature-verification-in-your-handler) for Fastify and framework-agnostic examples.
 
 ---
 

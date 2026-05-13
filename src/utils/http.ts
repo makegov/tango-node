@@ -1,11 +1,16 @@
 import { TangoAPIError, TangoAuthError, TangoNotFoundError, TangoRateLimitError, TangoTimeoutError, TangoValidationError } from "../errors.js";
 import { DEFAULT_BASE_URL } from "../config.js";
+import type { RateLimitInfo } from "../types.js";
 
 export interface HttpClientOptions {
   baseUrl?: string;
   apiKey?: string | null;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
+  /** Number of retry attempts on retryable failures. Default: 3. */
+  retries?: number;
+  /** Initial backoff in ms for exponential backoff. Default: 250. */
+  retryBackoffMs?: number;
 }
 
 export interface RequestOptions {
@@ -52,18 +57,122 @@ function buildSearchParams(params?: Record<string, unknown>): string {
   return queryString;
 }
 
+const MAX_BACKOFF_MS = 10_000;
+
+/**
+ * Sleep helper. Uses `setTimeout` and resolves on tick.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Parse a `Retry-After` header. Accepts both a delta-seconds form and an
+ * HTTP-date form. Returns milliseconds, or `null` if header is missing/invalid.
+ */
+function parseRetryAfter(headers: Headers | undefined | null): number | null {
+  if (!headers) return null;
+  const raw = headers.get("retry-after") ?? headers.get("Retry-After");
+  if (!raw) return null;
+
+  // Numeric (delta seconds)
+  const asNum = Number(raw);
+  if (Number.isFinite(asNum) && asNum >= 0) {
+    return Math.min(Math.floor(asNum * 1000), MAX_BACKOFF_MS);
+  }
+
+  // HTTP-date
+  const asDate = Date.parse(raw);
+  if (Number.isFinite(asDate)) {
+    const delta = asDate - Date.now();
+    if (delta > 0) return Math.min(delta, MAX_BACKOFF_MS);
+    return 0;
+  }
+
+  return null;
+}
+
+/**
+ * Decide whether a given status code is retryable.
+ *
+ * - 5xx: always retry
+ * - 408 (Request Timeout) and 429 (Too Many Requests): retry
+ * - other 4xx: do NOT retry
+ */
+function isRetryableStatus(status: number): boolean {
+  if (status >= 500 && status < 600) return true;
+  if (status === 408 || status === 429) return true;
+  return false;
+}
+
+function parseInt10(value: string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function getHeader(headers: Headers | Record<string, string> | null | undefined, name: string): string | null {
+  if (!headers) return null;
+  if (typeof (headers as Headers).get === "function") {
+    return (headers as Headers).get(name);
+  }
+  const rec = headers as Record<string, string>;
+  return rec[name] ?? rec[name.toLowerCase()] ?? null;
+}
+
+function parseRateLimit(headers: Headers | Record<string, string> | null | undefined): RateLimitInfo {
+  return {
+    remaining: parseInt10(getHeader(headers, "x-ratelimit-remaining")),
+    limit: parseInt10(getHeader(headers, "x-ratelimit-limit")),
+    resetIn: parseInt10(getHeader(headers, "x-ratelimit-reset")),
+    retryAfter: parseInt10(getHeader(headers, "retry-after")),
+    limitType: getHeader(headers, "x-ratelimit-type"),
+  };
+}
+
+function headersToRecord(headers: Headers | Record<string, string> | null | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!headers) return out;
+  if (typeof (headers as Headers).forEach === "function") {
+    (headers as Headers).forEach((value, key) => {
+      out[key.toLowerCase()] = value;
+    });
+    return out;
+  }
+  for (const [k, v] of Object.entries(headers as Record<string, string>)) {
+    out[k.toLowerCase()] = v;
+  }
+  return out;
+}
+
 export class HttpClient {
   readonly baseUrl: string;
   readonly apiKey: string | null;
   readonly timeoutMs: number;
+  readonly retries: number;
+  readonly retryBackoffMs: number;
   private readonly fetchImpl: typeof fetch;
 
+  /** Snapshot of headers from the most recent response (null until a request completes). */
+  lastResponseHeaders: Record<string, string> | null = null;
+  /** Parsed rate-limit info from the most recent response. */
+  rateLimitInfo: RateLimitInfo | null = null;
+
   constructor(options: HttpClientOptions = {}) {
-    const { baseUrl = DEFAULT_BASE_URL, apiKey = null, timeoutMs = 30000, fetchImpl } = options;
+    const {
+      baseUrl = DEFAULT_BASE_URL,
+      apiKey = null,
+      timeoutMs = 30000,
+      fetchImpl,
+      retries = 3,
+      retryBackoffMs = 250,
+    } = options;
 
     this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.apiKey = apiKey;
     this.timeoutMs = timeoutMs;
+    this.retries = Math.max(0, retries);
+    this.retryBackoffMs = Math.max(0, retryBackoffMs);
 
     const globalFetch: typeof fetch | undefined = typeof fetch !== "undefined" ? fetch : undefined;
 
@@ -74,7 +183,15 @@ export class HttpClient {
     this.fetchImpl = (fetchImpl ?? globalFetch)!;
   }
 
-  async request<T = unknown>(options: RequestOptions): Promise<T> {
+  /**
+   * Execute a single HTTP attempt without retry/backoff logic.
+   *
+   * Returns either a parsed success body, or throws a Tango* error. When the
+   * error is potentially retryable (5xx, 408, 429, or network failure), the
+   * thrown error carries `__retryable = true` plus an optional `__retryAfterMs`
+   * extracted from the response's `Retry-After` header.
+   */
+  private async attemptRequest<T>(options: RequestOptions): Promise<T> {
     const { method, path, query, body } = options;
 
     const url = new URL(path.replace(/^\//, ""), this.baseUrl.endsWith("/") ? `${this.baseUrl}` : `${this.baseUrl}/`);
@@ -120,13 +237,23 @@ export class HttpClient {
       if (timeoutId) clearTimeout(timeoutId);
       const name = (err as { name?: string } | null)?.name ?? null;
       if (name === "AbortError") {
-        throw new TangoTimeoutError(`Request timed out after ${this.timeoutMs}ms`, 408, undefined);
+        const timeoutErr = new TangoTimeoutError(`Request timed out after ${this.timeoutMs}ms`, 408, undefined);
+        (timeoutErr as unknown as Record<string, unknown>).__retryable = true;
+        throw timeoutErr;
       }
       const msg = err instanceof Error ? err.message : String(err);
-      throw new TangoAPIError(`Request failed: ${msg}`);
+      // Network-level errors (DNS, ECONNREFUSED, fetch network errors, ...) — retryable.
+      const networkErr = new TangoAPIError(`Request failed: ${msg}`);
+      (networkErr as unknown as Record<string, unknown>).__retryable = true;
+      throw networkErr;
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
     }
+
+    // Snapshot response metadata for observability (rate_limit_info /
+    // last_response_headers parity with the Python SDK).
+    this.lastResponseHeaders = headersToRecord(res.headers);
+    this.rateLimitInfo = parseRateLimit(res.headers);
 
     let text: string;
     let data: unknown = null;
@@ -136,6 +263,8 @@ export class HttpClient {
     } catch {
       data = null;
     }
+
+    const retryAfterMs = parseRetryAfter(res.headers);
 
     if (res.status === 401) {
       throw new TangoAuthError("Invalid API key or authentication required", res.status, data);
@@ -173,11 +302,23 @@ export class HttpClient {
     }
 
     if (res.status === 429) {
-      throw new TangoRateLimitError("Rate limit exceeded", res.status, data);
+      const e = new TangoRateLimitError("Rate limit exceeded", res.status, data);
+      (e as unknown as Record<string, unknown>).__retryable = true;
+      if (retryAfterMs !== null) {
+        (e as unknown as Record<string, unknown>).__retryAfterMs = retryAfterMs;
+      }
+      throw e;
     }
 
     if (!res.ok) {
-      throw new TangoAPIError(`API request failed with status ${res.status}`, res.status, data);
+      const e = new TangoAPIError(`API request failed with status ${res.status}`, res.status, data);
+      if (isRetryableStatus(res.status)) {
+        (e as unknown as Record<string, unknown>).__retryable = true;
+        if (retryAfterMs !== null) {
+          (e as unknown as Record<string, unknown>).__retryAfterMs = retryAfterMs;
+        }
+      }
+      throw e;
     }
 
     if (res.ok && isRecord(data) && typeof data.error === "string") {
@@ -186,6 +327,43 @@ export class HttpClient {
     }
 
     return (data ?? {}) as T;
+  }
+
+  async request<T = unknown>(options: RequestOptions): Promise<T> {
+    let attempt = 0;
+    // We do `retries` retries in addition to the first try, for a total of
+    // `retries + 1` attempts.
+    const maxAttempts = this.retries + 1;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        return await this.attemptRequest<T>(options);
+      } catch (err) {
+        const meta = err as unknown as { __retryable?: boolean; __retryAfterMs?: number };
+        const retryable = Boolean(meta && meta.__retryable);
+        attempt += 1;
+
+        if (!retryable || attempt >= maxAttempts) {
+          throw err;
+        }
+
+        // Pick wait time: prefer server's Retry-After hint when present;
+        // otherwise exponential backoff with the configured base, capped at 10s.
+        let waitMs: number;
+        if (typeof meta.__retryAfterMs === "number") {
+          waitMs = meta.__retryAfterMs;
+        } else {
+          // attempt is 1-based after the first failure, so backoff doubles each retry.
+          const exp = this.retryBackoffMs * Math.pow(2, attempt - 1);
+          waitMs = Math.min(exp, MAX_BACKOFF_MS);
+        }
+
+        if (waitMs > 0) {
+          await sleep(waitMs);
+        }
+      }
+    }
   }
 
   get<T = unknown>(path: string, query?: Record<string, unknown>): Promise<T> {

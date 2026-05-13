@@ -550,7 +550,7 @@ describe("TangoClient", () => {
     expect(parsedCalls[0].searchParams.get("shape")).toBe(ShapeConfig.IDVS_MINIMAL);
   });
 
-  it("supports webhooks v2 endpoints (event types, subscriptions, test delivery, sample payload)", async () => {
+  it("supports webhooks v2 endpoints (event types, endpoints CRUD, test delivery, sample payload)", async () => {
     const calls: { url: string; init: RequestInit }[] = [];
 
     const fetchImpl = async (url: string | URL, init?: RequestInit): Promise<any> => {
@@ -564,55 +564,8 @@ describe("TangoClient", () => {
           status: 200,
           async text() {
             return JSON.stringify({
-              event_types: [{ event_type: "awards.new_award", default_subject_type: "entity", description: "", schema_version: 1 }],
-              subject_types: ["entity"],
-              subject_type_definitions: [{ subject_type: "entity", description: "Entity UEI", id_format: "UEI", status: "active" }],
+              event_types: [{ event_type: "awards.new_award", description: "", schema_version: 1 }],
             });
-          },
-        };
-      }
-
-      if (parsed.pathname === "/api/webhooks/subscriptions/" && method === "GET") {
-        return {
-          ok: true,
-          status: 200,
-          async text() {
-            return JSON.stringify({
-              count: 1,
-              next: null,
-              previous: null,
-              results: [{ id: "sub-1", subscription_name: "My sub", payload: { records: [] }, created_at: "2026-01-01T00:00:00Z" }],
-            });
-          },
-        };
-      }
-
-      if (parsed.pathname === "/api/webhooks/subscriptions/" && method === "POST") {
-        return {
-          ok: true,
-          status: 201,
-          async text() {
-            return JSON.stringify({ id: "sub-1", subscription_name: "My sub", payload: { records: [] }, created_at: "2026-01-01T00:00:00Z" });
-          },
-        };
-      }
-
-      if (parsed.pathname === "/api/webhooks/subscriptions/sub-1/" && method === "PATCH") {
-        return {
-          ok: true,
-          status: 200,
-          async text() {
-            return JSON.stringify({ id: "sub-1", subscription_name: "Updated", payload: { records: [] }, created_at: "2026-01-01T00:00:00Z" });
-          },
-        };
-      }
-
-      if (parsed.pathname === "/api/webhooks/subscriptions/sub-1/" && method === "DELETE") {
-        return {
-          ok: true,
-          status: 204,
-          async text() {
-            return "";
           },
         };
       }
@@ -635,8 +588,6 @@ describe("TangoClient", () => {
             return JSON.stringify({
               event_type: "awards.new_award",
               sample_delivery: { timestamp: "2026-01-01T00:00:00Z", events: [{ event_type: "awards.new_award" }] },
-              sample_subjects: [{ subject_type: "entity", subject_id: "UEI123" }],
-              sample_subscription_requests: {},
               signature_header: "X-Tango-Signature: sha256=<hmac>",
               note: "sample",
             });
@@ -721,14 +672,6 @@ describe("TangoClient", () => {
     const eventTypes = await client.listWebhookEventTypes();
     expect(eventTypes.event_types[0].event_type).toBe("awards.new_award");
 
-    const subs = await client.listWebhookSubscriptions({ page: 2, pageSize: 25 });
-    expect(subs.count).toBe(1);
-    expect(subs.results[0].subscription_name).toBe("My sub");
-
-    await client.createWebhookSubscription({ subscriptionName: "My sub", payload: { records: [] } });
-    await client.updateWebhookSubscription("sub-1", { subscriptionName: "Updated" });
-    await client.deleteWebhookSubscription("sub-1");
-
     const testResult = await client.testWebhookDelivery();
     expect(testResult.success).toBe(true);
 
@@ -739,7 +682,10 @@ describe("TangoClient", () => {
     expect(endpoints.count).toBe(1);
     expect(endpoints.results[0].name).toBe("yoni");
 
-    const created = await client.createWebhookEndpoint({ callbackUrl: "https://example.com/tango/webhooks" });
+    const created = await client.createWebhookEndpoint({
+      callbackUrl: "https://example.com/tango/webhooks",
+      name: "example-receiver",
+    });
     expect((created as any).secret).toBe("secret");
 
     const updated = await client.updateWebhookEndpoint(created.id, { isActive: false });
@@ -747,26 +693,10 @@ describe("TangoClient", () => {
 
     await client.deleteWebhookEndpoint(created.id);
 
-    const listSubsCall = calls.find(
-      (c) => new URL(c.url).pathname === "/api/webhooks/subscriptions/" && String(c.init.method ?? "GET").toUpperCase() === "GET",
-    );
-    expect(listSubsCall).toBeTruthy();
-    const listSubsQuery = new URL(listSubsCall!.url).searchParams;
-    expect(listSubsQuery.get("page")).toBe("2");
-    expect(listSubsQuery.get("page_size")).toBe("25");
-
     const sampleCall = calls.find((c) => new URL(c.url).pathname === "/api/webhooks/endpoints/sample-payload/");
     expect(sampleCall).toBeTruthy();
     const sampleQuery = new URL(sampleCall!.url).searchParams;
     expect(sampleQuery.get("event_type")).toBe("awards.new_award");
-
-    const createCall = calls.find(
-      (c) => new URL(c.url).pathname === "/api/webhooks/subscriptions/" && String(c.init.method).toUpperCase() === "POST",
-    );
-    expect(createCall).toBeTruthy();
-    const createBody = JSON.parse(String(createCall!.init.body ?? "{}"));
-    expect(createBody.subscription_name).toBe("My sub");
-    expect(createBody.payload).toEqual({ records: [] });
 
     const listEndpointsCall = calls.find(
       (c) => new URL(c.url).pathname === "/api/webhooks/endpoints/" && String(c.init.method ?? "GET").toUpperCase() === "GET",

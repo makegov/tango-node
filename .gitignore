@@ -26,6 +26,7 @@ coverage/
 # Other
 ROADMAP.md
 yoni/
+.worktrees/
 # >>> mg-tools >>>
 # --- mg-tools (per-developer; re-run 'mg-tools install' after clone) ---
 .claude-plugin/plugin-pointer.json

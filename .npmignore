@@ -1,4 +1,8 @@
-# Do not publish dev artifacts
+# Belt-and-suspenders for the `files` whitelist in package.json. If anyone
+# ever drops the whitelist, this still keeps the most-likely-leaked stuff
+# out of the published tarball.
+
+# Dev / CI artifacts
 node_modules/
 coverage/
 tests/
@@ -8,9 +12,26 @@ scripts/
 .idea/
 .env
 .env.*
+package-lock.json
+tsconfig.json
+vitest.config.ts
+eslint.config.js
+.prettierrc
 
-# Keep dist (build output)
+# Source (build output ships from dist/)
 src/
 
-# Other
+# mg-tools / Claude Code / per-developer state — never publish
+.claude/
+.claude-plugin/
+.claude.bak.*/
+.cursor.bak.*/
+CLAUDE.md
+.mcp.json
+.mcp.disabled.json
+.mcp.json.bak.*
+.mg-tools/
+
+# Internal-only repo docs
 ROADMAP.md
+*.code-workspace
