@@ -2925,9 +2925,147 @@ export const OTIDV_SCHEMA: FieldSchemaMap = {
 };
 
 // Subaward (prime/sub awards)
-export const SUBAWARD_SCHEMA: FieldSchemaMap = {
+//
+// Mirrors awards.serializers.subawards.SubawardSerializer on the server. The
+// top-level field list is the canonical `Meta.fields` plus the denormalized
+// lookup fields the API exposes for filter parity (prime_awardee_*,
+// recipient_*, usaspending_permalink). Expandable objects are modeled with
+// `nestedModel` so callers can request, e.g. `awarding_office(office_code)`.
+
+// `subaward_details` payload (action_date, amount, fiscal_year, ...).
+export const SUBAWARD_DETAILS_SCHEMA: FieldSchemaMap = {
+  action_date: {
+    name: "action_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  amount: {
+    name: "amount",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  description: {
+    name: "description",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  fiscal_year: {
+    name: "fiscal_year",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  number: {
+    name: "number",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  type: {
+    name: "type",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// `fsrs_details` payload — provenance for the underlying FSRS submission.
+export const FSRS_DETAILS_SCHEMA: FieldSchemaMap = {
   id: {
     name: "id",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  last_modified_date: {
+    name: "last_modified_date",
+    type: "date",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  month: {
+    name: "month",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  year: {
+    name: "year",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// Subaward-specific place_of_performance — flat 4-key payload (city/state/zip/
+// country_code), distinct from the richer PLACE_OF_PERFORMANCE_SCHEMA used by
+// contracts/IDVs/vehicles.
+export const SUBAWARD_PLACE_OF_PERFORMANCE_SCHEMA: FieldSchemaMap = {
+  city: {
+    name: "city",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  country_code: {
+    name: "country_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  state: {
+    name: "state",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  zip: {
+    name: "zip",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+// `highly_compensated_officers` element shape (list-of-dict expansion).
+export const HIGHLY_COMPENSATED_OFFICER_SCHEMA: FieldSchemaMap = {
+  amount: {
+    name: "amount",
+    type: "Decimal",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  name: {
+    name: "name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
+export const SUBAWARD_SCHEMA: FieldSchemaMap = {
+  // Core identifiers
+  key: {
+    name: "key",
     type: "str",
     isOptional: true,
     isList: false,
@@ -2940,12 +3078,127 @@ export const SUBAWARD_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
-  amount: {
-    name: "amount",
-    type: "Decimal",
+  piid: {
+    name: "piid",
+    type: "str",
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  usaspending_permalink: {
+    name: "usaspending_permalink",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Denormalized prime-awardee lookup fields (mirrored from prime_awardee_uei)
+  prime_awardee_name: {
+    name: "prime_awardee_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  prime_awardee_uei: {
+    name: "prime_awardee_uei",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Denormalized subaward-recipient lookup fields (mirrored from recipient_uei)
+  recipient_business_types: {
+    name: "recipient_business_types",
+    type: "str",
+    isOptional: true,
+    isList: true,
+    nestedModel: null,
+  },
+  recipient_dba_name: {
+    name: "recipient_dba_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_duns: {
+    name: "recipient_duns",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_name: {
+    name: "recipient_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_parent_duns: {
+    name: "recipient_parent_duns",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_parent_name: {
+    name: "recipient_parent_name",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_parent_uei: {
+    name: "recipient_parent_uei",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  recipient_uei: {
+    name: "recipient_uei",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  // Expandable nested objects
+  awarding_office: {
+    name: "awarding_office",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "AwardOffice",
+  },
+  funding_office: {
+    name: "funding_office",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "AwardOffice",
+  },
+  fsrs_details: {
+    name: "fsrs_details",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "FsrsDetails",
+  },
+  highly_compensated_officers: {
+    name: "highly_compensated_officers",
+    type: "list",
+    isOptional: true,
+    isList: true,
+    nestedModel: "HighlyCompensatedOfficer",
+  },
+  place_of_performance: {
+    name: "place_of_performance",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "SubawardPlaceOfPerformance",
   },
   prime_recipient: {
     name: "prime_recipient",
@@ -2953,6 +3206,13 @@ export const SUBAWARD_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: "RecipientProfile",
+  },
+  subaward_details: {
+    name: "subaward_details",
+    type: "dict",
+    isOptional: true,
+    isList: false,
+    nestedModel: "SubawardDetails",
   },
   subaward_recipient: {
     name: "subaward_recipient",
@@ -3487,6 +3747,10 @@ export const EXPLICIT_SCHEMAS: ExplicitSchemas = {
   OTA: OTA_SCHEMA,
   OTIDV: OTIDV_SCHEMA,
   Subaward: SUBAWARD_SCHEMA,
+  SubawardDetails: SUBAWARD_DETAILS_SCHEMA,
+  FsrsDetails: FSRS_DETAILS_SCHEMA,
+  SubawardPlaceOfPerformance: SUBAWARD_PLACE_OF_PERFORMANCE_SCHEMA,
+  HighlyCompensatedOfficer: HIGHLY_COMPENSATED_OFFICER_SCHEMA,
   GsaElibraryContract: GSA_ELIBRARY_CONTRACT_SCHEMA,
   GsaElibraryIdvRef: GSA_ELIBRARY_IDV_REF_SCHEMA,
   ITDashboardInvestment: ITDASHBOARD_INVESTMENT_SCHEMA,

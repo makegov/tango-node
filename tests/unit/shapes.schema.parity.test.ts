@@ -54,13 +54,41 @@ describe("Ported explicit schemas — parity with Python SDK", () => {
     expect(OTIDV_SCHEMA.award_date.type).toBe("date");
   });
 
-  it("SUBAWARD_SCHEMA has 5 fields with prime and subaward recipients", () => {
-    expect(Object.keys(SUBAWARD_SCHEMA)).toHaveLength(5);
-    expect(SUBAWARD_SCHEMA.id).toBeDefined();
+  it("SUBAWARD_SCHEMA matches the server's SubawardSerializer", () => {
+    // 4 core identifiers + 10 denormalized lookup fields + 8 expandable objects
+    expect(Object.keys(SUBAWARD_SCHEMA)).toHaveLength(22);
+
+    // Fields the previous (incorrect) port declared but the server has never
+    // exposed — guard against regressions to the broken shape.
+    expect(SUBAWARD_SCHEMA.id).toBeUndefined();
+    expect(SUBAWARD_SCHEMA.amount).toBeUndefined();
+
+    // Core identifiers from the canonical serializer.
+    expect(SUBAWARD_SCHEMA.key).toBeDefined();
     expect(SUBAWARD_SCHEMA.award_key).toBeDefined();
-    expect(SUBAWARD_SCHEMA.amount.type).toBe("Decimal");
+    expect(SUBAWARD_SCHEMA.piid).toBeDefined();
+    expect(SUBAWARD_SCHEMA.piid.type).toBe("str");
+    expect(SUBAWARD_SCHEMA.usaspending_permalink.type).toBe("str");
+
+    // Denormalized lookup fields (sampled).
+    expect(SUBAWARD_SCHEMA.prime_awardee_uei.type).toBe("str");
+    expect(SUBAWARD_SCHEMA.recipient_uei.type).toBe("str");
+    expect(SUBAWARD_SCHEMA.recipient_business_types.isList).toBe(true);
+
+    // Expandable nested objects.
     expect(SUBAWARD_SCHEMA.prime_recipient.nestedModel).toBe("RecipientProfile");
     expect(SUBAWARD_SCHEMA.subaward_recipient.nestedModel).toBe("RecipientProfile");
+    expect(SUBAWARD_SCHEMA.awarding_office.nestedModel).toBe("AwardOffice");
+    expect(SUBAWARD_SCHEMA.funding_office.nestedModel).toBe("AwardOffice");
+    expect(SUBAWARD_SCHEMA.place_of_performance.nestedModel).toBe(
+      "SubawardPlaceOfPerformance",
+    );
+    expect(SUBAWARD_SCHEMA.subaward_details.nestedModel).toBe("SubawardDetails");
+    expect(SUBAWARD_SCHEMA.fsrs_details.nestedModel).toBe("FsrsDetails");
+    expect(SUBAWARD_SCHEMA.highly_compensated_officers.isList).toBe(true);
+    expect(SUBAWARD_SCHEMA.highly_compensated_officers.nestedModel).toBe(
+      "HighlyCompensatedOfficer",
+    );
   });
 
   it("PROTEST_SCHEMA has 18 fields including dockets and organization expansions", () => {
