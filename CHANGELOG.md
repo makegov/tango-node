@@ -15,6 +15,8 @@ This release brings `tango-node` to **full feature parity** with both the Tango 
   - Added `TangoTimeoutError` to the documented error class list (it has been exported from `src/errors.ts` since v0.4 but the README omitted it).
   - Replaced the "_(Coming Soon!)_" marker on the docs link with the live `https://docs.makegov.com/sdks/node/` URL.
   - Rewrote the "Comprehensive API Coverage" feature bullet — the old enumeration listed fewer than half of the actually-implemented domains. New bullet points at the canonical "API Methods" section for the full surface.
+- New `docs/CLIENT.md` — `TangoClient` constructor reference, environment variables, full retry/backoff semantics (including `Retry-After` handling), error-handling patterns, `fetchImpl` injection, and staging/local targeting. Ported from `docs.makegov.com/sdks/node/client.md` ahead of the docs-site auto-pull cutover (makegov/docs#15 / makegov/docs#16).
+- `docs/API_REFERENCE.md` enriched with notes from the docs-site `methods.md` that hadn't been folded in yet: `listContracts` page/cursor mutual exclusion, `getIdvSummary` / `listIdvSummaryAwards` deprecation (server returns 404), `listIdvLcats` clarification, `listOrganizations` `level` semantics, `createWebhookEndpoint` snake_case canonical vs camelCase legacy aliases (with `name` URL-host fallback), `testWebhookEndpoint` post-#2252 cleanup (`{ endpoint: <id> }` is canonical), and `createWebhookAlert` field-rename notes (`name` vs `subscription_name`, `filters` vs `filter_definition`, singular `query_type`, update-writable field list).
 
 ### Parity closure — all previously-tracked gaps addressed
 

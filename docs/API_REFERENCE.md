@@ -94,8 +94,11 @@ shape: string,
 flat: boolean,
 flatLists: boolean,
 page: number,
-limit: number
+limit: number,
+cursor: string,  // mutually exclusive with `page` — if provided, `page` is ignored
 ```
+
+Contracts support both **page-based** and **cursor-based** pagination. Use `cursor` for deep pagination (faster and more stable on large result sets); use `page` for small offsets or when you need to jump to a specific page. `page` and `cursor` are mutually exclusive — if you pass `cursor`, the SDK ignores `page`.
 
 #### Returns (Contracts)
 
@@ -196,6 +199,8 @@ const tx = await client.listIdvTransactions("SOME_IDV_KEY", { limit: 100 });
 
 ### `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options?)`
 
+> **Deprecated.** These methods wrap the `/api/idvs/{identifier}/summary/` and `/api/idvs/{identifier}/summary/awards/` routes, which were removed server-side and now return **404**. The methods will be removed from the SDK in a future release. For solicitation-grouped views, query `/api/vehicles/` instead (see [Vehicles](#vehicles)).
+
 ```ts
 const summary = await client.getIdvSummary("SOLICITATION_IDENTIFIER");
 const awards = await client.listIdvSummaryAwards("SOLICITATION_IDENTIFIER", { limit: 25 });
@@ -259,8 +264,15 @@ Search SAM.gov opportunities with shaping.
 
 ### `listOrganizations(options?)`
 
+The canonical agency/department/office hierarchy. `level` filters by hierarchy depth: `1` = department, `2` = agency, `3` = sub-agency, and so on.
+
 ```ts
-const orgs = await client.listOrganizations({ search: "Defense", limit: 25 });
+const orgs = await client.listOrganizations({
+  level: 1,                // 1 = department, 2 = agency, 3 = sub-agency, …
+  include_inactive: false,
+  search: "Defense",
+  limit: 25,
+});
 ```
 
 ### `getOrganization(identifier)`
@@ -408,6 +420,8 @@ const lcats = await client.listLcats({ idvKey: "GS-00F-XXXX" });
 ```
 
 ### `listIdvLcats(key, options?)`
+
+Labor Categories (`/api/idvs/{key}/lcats/`) attached to an IDV.
 
 ```ts
 const lcats = await client.listIdvLcats("GS-00F-XXXX", { limit: 25 });
@@ -627,12 +641,24 @@ const endpoints = await client.listWebhookEndpoints({ page: 1, limit: 25 });
 const endpoint = await client.getWebhookEndpoint("ENDPOINT_UUID");
 ```
 
+`createWebhookEndpoint` accepts the canonical snake_case shape (`callback_url`, `is_active`, `name`) or the legacy camelCase aliases (`callbackUrl`, `isActive`). If `name` is not provided, the SDK falls back to the URL host.
+
 ```ts
-// Create (one endpoint per user)
-const created = await client.createWebhookEndpoint({ callbackUrl: "https://example.com/tango/webhooks" });
+// Create (canonical snake_case)
+const created = await client.createWebhookEndpoint({
+  name: "Prod receiver",
+  callback_url: "https://example.com/tango/webhooks",
+  // is_active defaults to true on create
+});
+
+// Legacy camelCase still works:
+const created2 = await client.createWebhookEndpoint({
+  callbackUrl: "https://example.com/tango/webhooks",
+  isActive: true,
+});
 
 // Update
-await client.updateWebhookEndpoint(created.id, { isActive: false });
+await client.updateWebhookEndpoint(created.id, { is_active: false });
 
 // Delete
 await client.deleteWebhookEndpoint(created.id);
@@ -640,10 +666,11 @@ await client.deleteWebhookEndpoint(created.id);
 
 ### `testWebhookEndpoint(endpointId)`
 
-Send an immediate test webhook to a specific endpoint. `endpointId` is required.
+Send an immediate test webhook to a specific endpoint. `endpointId` is required. The SDK sends `{ endpoint: <id> }` in the request body (canonical post-tango#2252 cleanup; the API also accepts `endpoint_id` as a deprecated alias).
 
 ```ts
 const result = await client.testWebhookEndpoint("ENDPOINT_UUID");
+console.log(result.success, result.status_code);
 ```
 
 ### `testWebhookDelivery(options?)` _(legacy alias)_
@@ -664,21 +691,23 @@ const sample = await client.getWebhookSamplePayload({ eventType: "alerts.contrac
 
 ### Webhook Alerts
 
-The Alerts API is a filter-subscription convenience layer on top of subscriptions.
+The Alerts API is a filter-subscription convenience layer on top of subscriptions. The SDK uses cleaner field names than the underlying API: `name` (vs `subscription_name`), `filters` (vs `filter_definition`), and singular `query_type` values.
 
 ```ts
 // Create
 const alert = await client.createWebhookAlert({
-  name: "New IT cloud contracts",
-  query_type: "contract",
-  filters: { naics: "541511" },
+  name: "New IT cloud contracts",                  // vs subscription_name on the wire
+  query_type: "contract",                          // SINGULAR — not "contracts"
+  filters: { naics: "541511" },                    // vs filter_definition on the wire
+  frequency: "realtime",                           // realtime | daily | weekly | custom
+  cron_expression: undefined,                      // required if frequency === "custom"
 });
 
 // List
 const alerts = await client.listWebhookAlerts({ page: 1, pageSize: 25 });
 
 // Get / Update / Delete
-const alert = await client.getWebhookAlert("ALERT_UUID");
+const got = await client.getWebhookAlert("ALERT_UUID");
 await client.updateWebhookAlert("ALERT_UUID", { name: "Updated name" });
 await client.deleteWebhookAlert("ALERT_UUID");
 ```
@@ -686,6 +715,7 @@ await client.deleteWebhookAlert("ALERT_UUID");
 Notes:
 
 - `name` and `query_type` are required on create. `query_type` is **singular** (e.g. `"contract"`, not `"contracts"`).
+- Only `name`, `frequency`, `cronExpression`, and `isActive` are writable via `updateWebhookAlert` — `query_type` and `filters` are read-only after creation.
 
 ### Deliveries / redelivery
 
