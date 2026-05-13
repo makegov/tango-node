@@ -335,12 +335,12 @@ export class HttpClient {
     // `retries + 1` attempts.
     const maxAttempts = this.retries + 1;
 
-    // eslint-disable-next-line no-constant-condition
+     
     while (true) {
       try {
         return await this.attemptRequest<T>(options);
       } catch (err) {
-        const meta = err as unknown as { __retryable?: boolean; __retryAfterMs?: number };
+        const meta = err as { __retryable?: boolean; __retryAfterMs?: number };
         const retryable = Boolean(meta && meta.__retryable);
         attempt += 1;
 

@@ -29,7 +29,6 @@
  */
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { AddressInfo } from "node:net";
 
 import { SIGNATURE_HEADER, verifySignature } from "./signing.js";
 
@@ -48,7 +47,7 @@ export interface Delivery {
   /** Raw request body bytes. */
   bodyBytes: Buffer;
   /** Parsed JSON body, or `null` if the body isn't valid JSON. */
-  bodyJson: unknown | null;
+  bodyJson: unknown;
   /** True iff the signature verified against `secret`. */
   verified: boolean;
   /** Remote socket address (best-effort), or `null` if unavailable. */
@@ -173,7 +172,7 @@ export class WebhookReceiver {
       await new Promise<void>((resolve) => server.close(() => resolve()));
       throw new Error("Failed to determine bound address");
     }
-    const info = addr as AddressInfo;
+    const info = addr;
     this._server = server;
     this._boundPort = info.port;
     this._boundHost = info.address === "::" ? "127.0.0.1" : info.address;
@@ -206,18 +205,23 @@ export class WebhookReceiver {
    */
   async run(): Promise<RunningReceiver> {
     await this.start();
-    const receiver = this;
-    const handle: RunningReceiver = {
-      get url(): string {
-        return receiver.url;
+    // Arrow methods + property descriptors avoid `const receiver = this`,
+    // which the type-checked lint config flags as `no-this-alias`. The
+    // getters need to close over the live class instance (so callers see
+    // the post-stop()/restart() state if any), hence the explicit closures.
+    const getUrl = (): string => this.url;
+    const getDeliveries = (): Delivery[] => this.deliveries;
+    const stop = (): Promise<void> => this.stop();
+    return {
+      get url() {
+        return getUrl();
       },
-      get deliveries(): Delivery[] {
-        return receiver.deliveries;
+      get deliveries() {
+        return getDeliveries();
       },
-      stop: () => receiver.stop(),
-      [Symbol.asyncDispose]: () => receiver.stop(),
+      stop,
+      [Symbol.asyncDispose]: stop,
     };
-    return handle;
   }
 
   // --- request handling --------------------------------------------------

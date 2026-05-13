@@ -41,7 +41,7 @@ function toEndpointRequestBody(input: AnyRecord): AnyRecord {
   if (!input || typeof input !== "object") return {};
   const out: AnyRecord = {};
 
-  const rec = input as AnyRecord;
+  const rec = input;
   if (typeof rec.callbackUrl === "string") out.callback_url = rec.callbackUrl;
   if (typeof rec.isActive === "boolean") out.is_active = rec.isActive;
 
@@ -746,7 +746,7 @@ export class TangoClient {
 
     const results = this.materializeList("Contract", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
   }
@@ -786,7 +786,7 @@ export class TangoClient {
 
     const results = this.materializeList("Entity", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
   }
@@ -814,7 +814,7 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>(`/api/entities/${encodeURIComponent(key)}/`, params);
 
     const result = this.materializeOne("Entity", shapeSpec, data, flat);
-    return result as Record<string, unknown>;
+    return result;
   }
 
   // ---------------------------------------------------------------------------
@@ -844,7 +844,7 @@ export class TangoClient {
 
     const results = this.materializeList("Forecast", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
   }
@@ -876,7 +876,7 @@ export class TangoClient {
 
     const results = this.materializeList("Opportunity", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
   }
@@ -908,7 +908,7 @@ export class TangoClient {
 
     const results = this.materializeList("Notice", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
   }
@@ -940,7 +940,7 @@ export class TangoClient {
 
     const results = this.materializeList("Grant", shapeSpec, rawResults, flat);
 
-    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
   }
@@ -977,7 +977,7 @@ export class TangoClient {
 
     const results = this.materializeList("Vehicle", shapeSpec, rawResults, flat);
 
-    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
   }
 
   async getVehicle(
@@ -1010,7 +1010,7 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>(`/api/vehicles/${encodeURIComponent(uuid)}/`, params);
 
     const result = this.materializeOne("Vehicle", shapeSpec, data, flat, joiner);
-    return result as Record<string, unknown>;
+    return result;
   }
 
   async listVehicleAwardees(
@@ -1044,7 +1044,7 @@ export class TangoClient {
 
     const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
 
-    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
   }
 
   // ---------------------------------------------------------------------------
@@ -1076,7 +1076,7 @@ export class TangoClient {
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
     const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
-    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
   }
 
   async getIdv(
@@ -1104,7 +1104,7 @@ export class TangoClient {
     const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(key)}/`, params);
 
     const result = this.materializeOne("IDV", shapeSpec, data, flat, joiner);
-    return result as Record<string, unknown>;
+    return result;
   }
 
   async listIdvAwards(
@@ -1141,7 +1141,7 @@ export class TangoClient {
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
     const results = this.materializeList("Contract", shapeSpec, rawResults, flat, joiner);
-    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
   }
 
   async listIdvChildIdvs(options: { key: string } & ListIdvsOptions): Promise<PaginatedResponse<Record<string, unknown>>> {
@@ -1174,7 +1174,7 @@ export class TangoClient {
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
     const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
-    return buildPaginatedResponse<AnyRecord>({ ...data, results } as AnyRecord);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
   }
 
   async listIdvTransactions(
@@ -1278,7 +1278,7 @@ export class TangoClient {
     patch: WebhookEndpointUpdateInput | { callbackUrl?: string; isActive?: boolean; name?: string },
   ): Promise<WebhookEndpoint> {
     if (!id) throw new TangoValidationError("Webhook endpoint id is required");
-    const body = toEndpointRequestBody(patch as AnyRecord);
+    const body = toEndpointRequestBody(patch);
     return await this.http.patch<WebhookEndpoint>(`/api/webhooks/endpoints/${encodeURIComponent(id)}/`, body);
   }
 
@@ -1451,35 +1451,35 @@ export class TangoClient {
   }
 
   iterateContracts(options: ListContractsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listContracts", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listContracts", options);
   }
 
   iterateEntities(options: ListEntitiesOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listEntities", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listEntities", options);
   }
 
   iterateOpportunities(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listOpportunities", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listOpportunities", options);
   }
 
   iterateNotices(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listNotices", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listNotices", options);
   }
 
   iterateGrants(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listGrants", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listGrants", options);
   }
 
   iterateForecasts(options: ListOptionsBase & Record<string, unknown> = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listForecasts", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listForecasts", options);
   }
 
   iterateIdvs(options: ListIdvsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listIdvs", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listIdvs", options);
   }
 
   iterateVehicles(options: ListVehiclesOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
-    return this.iterate<Record<string, unknown>>("listVehicles", options as AnyRecord);
+    return this.iterate<Record<string, unknown>>("listVehicles", options);
   }
 
   // ---------------------------------------------------------------------------
@@ -1501,7 +1501,7 @@ export class TangoClient {
 
   /** List NAICS codes. */
   async listNaics(options: ListNaicsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/naics/", options as AnyRecord);
+    return this._genericPaginatedList("/api/naics/", options);
   }
 
   /** Get a single NAICS code by its 6-digit code. */
@@ -1512,7 +1512,7 @@ export class TangoClient {
 
   /** List PSC (Product/Service) codes. */
   async listPsc(options: ListPscOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/psc/", options as AnyRecord);
+    return this._genericPaginatedList("/api/psc/", options);
   }
 
   /** Get a single PSC code. */
@@ -1523,7 +1523,7 @@ export class TangoClient {
 
   /** List GSA MAS SINs. */
   async listMasSins(options: ListMasSinsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/mas_sins/", options as AnyRecord);
+    return this._genericPaginatedList("/api/mas_sins/", options);
   }
 
   /** Get a single MAS SIN by its identifier. */
@@ -1534,7 +1534,7 @@ export class TangoClient {
 
   /** List CFDA / Assistance Listings. */
   async listAssistanceListings(options: ListAssistanceListingsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/assistance_listings/", options as AnyRecord);
+    return this._genericPaginatedList("/api/assistance_listings/", options);
   }
 
   /** Get a single Assistance Listing by CFDA number. */
@@ -1545,7 +1545,7 @@ export class TangoClient {
 
   /** List organizations (the canonical agency/dept/office hierarchy). */
   async listOrganizations(options: ListOrganizationsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/organizations/", options as AnyRecord);
+    return this._genericPaginatedList("/api/organizations/", options);
   }
 
   /**
@@ -1559,7 +1559,7 @@ export class TangoClient {
 
   /** List offices. */
   async listOffices(options: ListOfficesOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/offices/", options as AnyRecord);
+    return this._genericPaginatedList("/api/offices/", options);
   }
 
   /** Get a single office by code. */
@@ -1576,7 +1576,7 @@ export class TangoClient {
    * removed in a future API version. See #1461 (legacy agency tables retirement).
    */
   async listDepartments(options: ListDepartmentsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/departments/", options as AnyRecord);
+    return this._genericPaginatedList("/api/departments/", options);
   }
 
   // ---------------------------------------------------------------------------
@@ -1585,7 +1585,7 @@ export class TangoClient {
 
   /** List OTA (Other Transaction Authority) award actions. */
   async listOtas(options: ListOtasOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/otas/", options as AnyRecord);
+    return this._genericPaginatedList("/api/otas/", options);
   }
 
   /** Get a single OTA by its key. */
@@ -1596,7 +1596,7 @@ export class TangoClient {
 
   /** List OTIDV (Other Transaction IDV) parents. */
   async listOtidvs(options: ListOtidvsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/otidvs/", options as AnyRecord);
+    return this._genericPaginatedList("/api/otidvs/", options);
   }
 
   /** Get a single OTIDV by its key. */
@@ -1608,17 +1608,17 @@ export class TangoClient {
   /** List child awards under an OTIDV. */
   async listOtidvAwards(key: string, options: ListOtidvAwardsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     if (!key) throw new TangoValidationError("OTIDV key is required");
-    return this._genericPaginatedList(`/api/otidvs/${encodeURIComponent(key)}/awards/`, options as AnyRecord);
+    return this._genericPaginatedList(`/api/otidvs/${encodeURIComponent(key)}/awards/`, options);
   }
 
   /** List subawards (FSRS / USAspending-derived). */
   async listSubawards(options: ListSubawardsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/subawards/", options as AnyRecord);
+    return this._genericPaginatedList("/api/subawards/", options);
   }
 
   /** List GSA eLibrary contracts. */
   async listGsaElibraryContracts(options: ListGsaElibraryContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/gsa_elibrary_contracts/", options as AnyRecord);
+    return this._genericPaginatedList("/api/gsa_elibrary_contracts/", options);
   }
 
   /**
@@ -1638,7 +1638,7 @@ export class TangoClient {
       throw new TangoValidationError("listLcats requires either { uei } or { idvKey }");
     }
     const path = uei ? `/api/entities/${encodeURIComponent(uei)}/lcats/` : `/api/idvs/${encodeURIComponent(idvKey as string)}/lcats/`;
-    return this._genericPaginatedList(path, rest as AnyRecord);
+    return this._genericPaginatedList(path, rest);
   }
 
   // ---------------------------------------------------------------------------
@@ -1647,7 +1647,7 @@ export class TangoClient {
 
   /** List protests (GAO + CoFC). */
   async listProtests(options: ListProtestsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/protests/", options as AnyRecord);
+    return this._genericPaginatedList("/api/protests/", options);
   }
 
   /** Get a single protest by case number / id. */
@@ -1658,7 +1658,7 @@ export class TangoClient {
 
   /** List IT Dashboard investments. */
   async listItDashboard(options: ListItDashboardOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/itdashboard/", options as AnyRecord);
+    return this._genericPaginatedList("/api/itdashboard/", options);
   }
 
   /** Get a single IT Dashboard investment by UII. */
@@ -1809,7 +1809,7 @@ export class TangoClient {
   /** List Labor Categories (LCATs) for an entity (`/api/entities/{uei}/lcats/`). */
   async listEntityLcats(uei: string, options: EntityLcatsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     if (!uei) throw new TangoValidationError("UEI is required");
-    return this._genericPaginatedList(`/api/entities/${encodeURIComponent(uei)}/lcats/`, options as AnyRecord);
+    return this._genericPaginatedList(`/api/entities/${encodeURIComponent(uei)}/lcats/`, options);
   }
 
   /** Get rolling metrics for an entity (`/api/entities/{uei}/metrics/{months}/{periodGrouping}/`). */
@@ -1829,7 +1829,7 @@ export class TangoClient {
   /** List Labor Categories under an IDV (`/api/idvs/{key}/lcats/`). */
   async listIdvLcats(key: string, options: EntityLcatsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     if (!key) throw new TangoValidationError("IDV key is required");
-    return this._genericPaginatedList(`/api/idvs/${encodeURIComponent(key)}/lcats/`, options as AnyRecord);
+    return this._genericPaginatedList(`/api/idvs/${encodeURIComponent(key)}/lcats/`, options);
   }
 
   // ---------------------------------------------------------------------------

@@ -21,6 +21,12 @@ First stable release. `tango-node` is now at **full feature parity** with both t
 - `tests/unit/client.iterate.test.ts` — corrected the comment above the first `page` assertion; previous text claimed the first call should NOT carry a page, but the assertion (correctly) expects `page=1` since `listContracts` defaults to it.
 - `docs/DEVELOPERS.md` — `listContracts({ offset: 25 })` example replaced with `{ page: 2 }` and "manual offset tracking" → "manual page/cursor tracking" (the method has never accepted `offset`).
 - `CHANGELOG.md` — corrected "4 new unit test files" to "5"; the parenthesized list always contained 5 paths.
+- Lint cleanup ahead of the npm publish — 44 redundant `as AnyRecord` / `as <T>` type-assertion casts dropped across `src/` (`@typescript-eslint/no-unnecessary-type-assertion` fires under the newer plugin minor that CI resolves). `src/webhooks/receiver.ts`: dropped the unused `AddressInfo` import, simplified `Delivery.bodyJson: unknown | null` → `unknown` (the latter already includes `null`), and restructured `WebhookReceiver.run()` to avoid `const receiver = this` (replaced with arrow-function closures over `getUrl`/`getDeliveries`/`stop`). No behavior change — tests still pass 220/220.
+- `eslint.config.js` — disabled the core `no-undef` rule for TS files. TypeScript itself does undefined-symbol checking with knowledge of TS-only types (`AsyncDisposable`, `Disposable`, etc.); the core rule double-fires and false-flags those. Matches the typescript-eslint upstream guidance.
+
+### Internal
+
+- Pinned `devDependencies` to exact versions (dropped `^` from `package.json`). The previous unpinned ranges + gitignored `package-lock.json` meant CI re-resolved deps on every run and could pick up minor versions with stricter behavior that local installs hadn't seen yet — that's how the lint mismatch above slipped past local checks.
 
 ### Docs
 

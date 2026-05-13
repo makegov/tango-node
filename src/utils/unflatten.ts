@@ -9,7 +9,7 @@
  */
 export function unflattenResponse<T extends Record<string, unknown>>(data: T, joiner = "."): Record<string, unknown> {
   if (!data || typeof data !== "object") {
-    return data as unknown as Record<string, unknown>;
+    return data;
   }
 
   const keys = Object.keys(data);
