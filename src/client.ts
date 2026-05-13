@@ -5,7 +5,15 @@ import { ShapeParser } from "./shapes/parser.js";
 import type { ShapeSpec } from "./shapes/types.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
-import { PaginatedResponse, TangoClientOptions } from "./types.js";
+import {
+  AgencyRecord,
+  PaginatedResponse,
+  ProtestRecord,
+  RateLimitInfo,
+  ResolveResult,
+  TangoClientOptions,
+  ValidateResult,
+} from "./types.js";
 import type {
   WebhookAlert,
   WebhookAlertCreateInput,
@@ -46,6 +54,16 @@ function toEndpointRequestBody(input: AnyRecord): AnyRecord {
   return out;
 }
 
+function extractCursorFromUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url, "http://_/");
+    return u.searchParams.get("cursor");
+  } catch {
+    return null;
+  }
+}
+
 function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedResponse<T> {
   const results = Array.isArray(raw?.results) ? (raw.results as T[]) : [];
   const rawCount = raw?.count;
@@ -58,12 +76,14 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
   const next = typeof nextVal === "string" ? nextVal : null;
   const previous = typeof previousVal === "string" ? previousVal : null;
   const pageMetadata = isRecord(pageMetadataVal) ? pageMetadataVal : null;
+  const cursor = extractCursorFromUrl(next);
 
   return {
     count,
     next,
     previous,
     pageMetadata,
+    cursor,
     results,
   };
 }
@@ -123,17 +143,98 @@ export interface ListOptionsBase {
 }
 
 export interface ListContractsOptions extends ListOptionsBase {
+  /** Cursor-based pagination (mirror Python parity). Mutually exclusive with `page`. */
+  cursor?: string | null;
+  /** Bag of arbitrary filters (legacy passthrough). Prefer named kwargs below. */
   filters?: AnyRecord;
+
+  // Date / FY / dollar bounds
+  award_date?: string;
+  award_date_gte?: string;
+  award_date_lte?: string;
+  award_type?: string;
+  fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  obligated_gte?: number | string;
+  obligated_lte?: number | string;
+
+  // Period of performance / expiring
+  pop_start_date_gte?: string;
+  pop_start_date_lte?: string;
+  pop_end_date_gte?: string;
+  pop_end_date_lte?: string;
+  expiring_gte?: string;
+  expiring_lte?: string;
+
+  // Agencies / identifiers
+  awarding_agency?: string;
+  funding_agency?: string;
+  piid?: string;
+  solicitation_identifier?: string;
+  naics?: string;
+  naics_code?: string;       // SDK-friendly alias mapped to `naics`
+  psc?: string;
+  psc_code?: string;         // SDK-friendly alias mapped to `psc`
+  recipient?: string;
+  recipient_name?: string;   // SDK-friendly alias mapped to `recipient`
+  uei?: string;
+  recipient_uei?: string;    // SDK-friendly alias mapped to `uei`
+  set_aside?: string;
+  set_aside_type?: string;   // SDK-friendly alias mapped to `set_aside`
+
+  // Search + ordering
+  search?: string;
+  keyword?: string;          // SDK-friendly alias mapped to `search`
+  ordering?: string;
+  sort?: string;             // SDK-friendly alias combined with `order` → `ordering`
+  order?: "asc" | "desc";
+
   [key: string]: unknown;
 }
 
 export interface ListEntitiesOptions extends ListOptionsBase {
   search?: string;
+  cage_code?: string;
+  naics?: string;
+  name?: string;
+  psc?: string;
+  purpose_of_registration_code?: string;
+  socioeconomic?: string;
+  state?: string;
+  total_awards_obligated_gte?: number | string;
+  total_awards_obligated_lte?: number | string;
+  uei?: string;
+  zip_code?: string;
   [key: string]: unknown;
 }
 
 export interface ListVehiclesOptions extends ListOptionsBase {
+  joiner?: string;
   search?: string;
+  vehicle_type?: string;
+  type_of_idc?: string;
+  contract_type?: string;
+  set_aside?: string;
+  who_can_use?: string;
+  naics_code?: number | string;
+  psc_code?: string;
+  program_acronym?: string;
+  agency?: string;
+  organization_id?: string;
+  total_obligated_min?: number | string;
+  total_obligated_max?: number | string;
+  idv_count_min?: number;
+  idv_count_max?: number;
+  order_count_min?: number;
+  order_count_max?: number;
+  fiscal_year?: number | string;
+  award_date_after?: string;
+  award_date_before?: string;
+  last_date_to_order_after?: string;
+  last_date_to_order_before?: string;
+  /** Server enforces a strict 8-field allowlist; passing other values 400s. */
+  ordering?: string;
   [key: string]: unknown;
 }
 
@@ -144,6 +245,118 @@ export interface ListIdvsOptions {
   flat?: boolean;
   flatLists?: boolean;
   joiner?: string;
+
+  award_date?: string;
+  award_date_gte?: string;
+  award_date_lte?: string;
+  awarding_agency?: string;
+  funding_agency?: string;
+  expiring_gte?: string;
+  expiring_lte?: string;
+  fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  idv_type?: string;
+  last_date_to_order_gte?: string;
+  last_date_to_order_lte?: string;
+  naics?: string;
+  ordering?: string;
+  piid?: string;
+  pop_start_date_gte?: string;
+  pop_start_date_lte?: string;
+  psc?: string;
+  recipient?: string;
+  search?: string;
+  set_aside?: string;
+  solicitation_identifier?: string;
+  uei?: string;
+
+  [key: string]: unknown;
+}
+
+/**
+ * Forecasts list options — matches `tango_python.TangoClient.list_forecasts`.
+ */
+export interface ListForecastsOptions extends ListOptionsBase {
+  agency?: string;
+  award_date_after?: string;
+  award_date_before?: string;
+  fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  modified_after?: string;
+  modified_before?: string;
+  naics_code?: string;
+  naics_starts_with?: string;
+  ordering?: string;
+  search?: string;
+  source_system?: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Opportunities list options — matches `tango_python.TangoClient.list_opportunities`.
+ */
+export interface ListOpportunitiesOptions extends ListOptionsBase {
+  active?: boolean;
+  agency?: string;
+  first_notice_date_after?: string;
+  first_notice_date_before?: string;
+  last_notice_date_after?: string;
+  last_notice_date_before?: string;
+  naics?: string;
+  notice_type?: string;
+  ordering?: string;
+  place_of_performance?: string;
+  psc?: string;
+  response_deadline_after?: string;
+  response_deadline_before?: string;
+  search?: string;
+  set_aside?: string;
+  solicitation_number?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Notices list options — matches `tango_python.TangoClient.list_notices`.
+ *
+ * The notices viewset rejects every `?ordering=` value at runtime, so this
+ * interface does not expose an `ordering` kwarg (mirrors Python v0.7.0 removal).
+ */
+export interface ListNoticesOptions extends ListOptionsBase {
+  active?: boolean;
+  agency?: string;
+  naics?: string;
+  notice_type?: string;
+  posted_date_after?: string;
+  posted_date_before?: string;
+  psc?: string;
+  response_deadline_after?: string;
+  response_deadline_before?: string;
+  search?: string;
+  set_aside?: string;
+  solicitation_number?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Grants list options — matches `tango_python.TangoClient.list_grants`.
+ */
+export interface ListGrantsOptions extends ListOptionsBase {
+  agency?: string;
+  applicant_types?: string;
+  cfda_number?: string;
+  funding_categories?: string;
+  funding_instruments?: string;
+  opportunity_number?: string;
+  ordering?: string;
+  posted_date_after?: string;
+  posted_date_before?: string;
+  response_date_after?: string;
+  response_date_before?: string;
+  search?: string;
+  status?: string;
   [key: string]: unknown;
 }
 
@@ -210,15 +423,33 @@ export interface ListDepartmentsOptions extends ListOptionsBase {
 }
 
 export interface ListOtasOptions extends ListOptionsBase {
+  cursor?: string | null;
+  joiner?: string;
   uei?: string;
   piid?: string;
   search?: string;
   awarding_agency?: string;
   funding_agency?: string;
   fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  award_date?: string;
+  award_date_gte?: string;
+  award_date_lte?: string;
+  expiring_gte?: string;
+  expiring_lte?: string;
+  pop_start_date_gte?: string;
+  pop_start_date_lte?: string;
+  pop_end_date_gte?: string;
+  pop_end_date_lte?: string;
   psc?: string;
   recipient?: string;
   ordering?: string;
+  [key: string]: unknown;
+}
+
+export interface ListAgenciesOptions extends ListOptionsBase {
+  search?: string;
   [key: string]: unknown;
 }
 
@@ -414,11 +645,32 @@ export class TangoClient {
     this.modelFactory = new ModelFactory();
   }
 
+  /**
+   * Snapshot of rate-limit headers from the most recent API response.
+   * `null` until the first request completes.
+   *
+   * Mirrors `tango_python.TangoClient.rate_limit_info`.
+   */
+  get rateLimitInfo(): RateLimitInfo | null {
+    return this.http.rateLimitInfo;
+  }
+
+  /**
+   * Lowercased headers from the most recent response. Useful for inspecting
+   * `x-request-id`, `x-tango-trace-id`, etc.
+   * `null` until the first request completes.
+   *
+   * Mirrors `tango_python.TangoClient.last_response_headers`.
+   */
+  get lastResponseHeaders(): Record<string, string> | null {
+    return this.http.lastResponseHeaders;
+  }
+
   // ---------------------------------------------------------------------------
   // Agencies
   // ---------------------------------------------------------------------------
 
-  async listAgencies(options: { page?: number; limit?: number } = {}): Promise<PaginatedResponse<AnyRecord>> {
+  async listAgencies(options: ListAgenciesOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     const { page = 1, limit = 25 } = options;
     const params: AnyRecord = {
       page,
@@ -429,7 +681,7 @@ export class TangoClient {
     return buildPaginatedResponse<AnyRecord>(data);
   }
 
-  async getAgency(code: string): Promise<AnyRecord> {
+  async getAgency(code: string): Promise<AgencyRecord> {
     if (!code) {
       throw new TangoValidationError("Agency code is required");
     }
@@ -460,12 +712,18 @@ export class TangoClient {
   // ---------------------------------------------------------------------------
 
   async listContracts(options: ListContractsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, filters = {}, ...restFilters } = options;
+    const { page, cursor, limit = 25, shape, flat = false, flatLists = false, filters = {}, ...restFilters } = options;
 
     const params: AnyRecord = {
-      page,
       limit: Math.min(limit, 100),
     };
+    // /api/contracts/ supports both page- and cursor-based pagination. Prefer
+    // cursor when provided (Python parity); otherwise fall back to page.
+    if (cursor) {
+      params.cursor = cursor;
+    } else {
+      params.page = page ?? 1;
+    }
 
     const shapeToUse = shape ?? ShapeConfig.CONTRACTS_MINIMAL;
     const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
@@ -563,7 +821,7 @@ export class TangoClient {
   // Forecasts
   // ---------------------------------------------------------------------------
 
-  async listForecasts(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listForecasts(options: ListForecastsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -595,7 +853,7 @@ export class TangoClient {
   // Opportunities
   // ---------------------------------------------------------------------------
 
-  async listOpportunities(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listOpportunities(options: ListOpportunitiesOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -627,7 +885,7 @@ export class TangoClient {
   // Notices
   // ---------------------------------------------------------------------------
 
-  async listNotices(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listNotices(options: ListNoticesOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -659,7 +917,7 @@ export class TangoClient {
   // Grants
   // ---------------------------------------------------------------------------
 
-  async listGrants(options: ListOptionsBase & Record<string, unknown> = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+  async listGrants(options: ListGrantsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
     const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
 
     const params: AnyRecord = {
@@ -974,7 +1232,7 @@ export class TangoClient {
 
     // Endpoints are commonly paginated like other Tango resources, but keep this resilient.
     if (Array.isArray(data)) {
-      return { count: data.length, next: null, previous: null, pageMetadata: null, results: data as WebhookEndpoint[] };
+      return { count: data.length, next: null, previous: null, pageMetadata: null, cursor: null, results: data as WebhookEndpoint[] };
     }
     return buildPaginatedResponse<WebhookEndpoint>(data);
   }
@@ -1386,7 +1644,7 @@ export class TangoClient {
   }
 
   /** Get a single protest by case number / id. */
-  async getProtest(caseNumber: string): Promise<AnyRecord> {
+  async getProtest(caseNumber: string): Promise<ProtestRecord> {
     if (!caseNumber) throw new TangoValidationError("Protest case number is required");
     return await this.http.get<AnyRecord>(`/api/protests/${encodeURIComponent(caseNumber)}/`);
   }
@@ -1443,10 +1701,10 @@ export class TangoClient {
    * @example
    *   await client.resolve({ name: "Lockheed Martin", target_type: "entity" });
    */
-  async resolve(input: ResolveInput): Promise<{ candidates: AnyRecord[]; count: number; [key: string]: unknown }> {
+  async resolve(input: ResolveInput): Promise<ResolveResult> {
     if (!input || !input.name) throw new TangoValidationError("resolve: 'name' is required");
     if (!input?.target_type) throw new TangoValidationError("resolve: 'target_type' is required");
-    return await this.http.post("/api/resolve/", input);
+    return await this.http.post<ResolveResult>("/api/resolve/", input);
   }
 
   /**
@@ -1455,10 +1713,10 @@ export class TangoClient {
    * @example
    *   await client.validate({ type: "uei", value: "ABCDEF123456" });
    */
-  async validate(input: ValidateInput): Promise<AnyRecord> {
+  async validate(input: ValidateInput): Promise<ValidateResult> {
     if (!input || !input.type) throw new TangoValidationError("validate: 'type' is required");
     if (!input?.value) throw new TangoValidationError("validate: 'value' is required");
-    return await this.http.post<AnyRecord>("/api/validate/", input);
+    return await this.http.post<ValidateResult>("/api/validate/", input);
   }
 
   // ---------------------------------------------------------------------------

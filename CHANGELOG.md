@@ -16,18 +16,97 @@ This release brings `tango-node` to **full feature parity** with both the Tango 
   - Replaced the "_(Coming Soon!)_" marker on the docs link with the live `https://docs.makegov.com/sdks/node/` URL.
   - Rewrote the "Comprehensive API Coverage" feature bullet — the old enumeration listed fewer than half of the actually-implemented domains. New bullet points at the canonical "API Methods" section for the full surface.
 
-### Known gaps (tracked, not addressed in this release)
+### Parity closure — all previously-tracked gaps addressed
 
-Audit against `tango-python` (`feat/api-parity`, May 2026) surfaced several intentional parity gaps that will land in subsequent minors:
+Every gap surfaced in the May 2026 parity audit is now closed:
 
-- **Typed `Options` interfaces for list-method filters.** Most `list*` methods currently accept filters via `[key: string]: unknown` index signatures. Python enumerates filter parameters as explicit kwargs (per `CLAUDE.md` non-negotiable). To close: enumerate the same kwargs in typed `Options` interfaces per method.
-- **`ShapeConfig` presets** missing on Node: `PROTESTS_MINIMAL`, `VEHICLE_ORDERS_MINIMAL`, `ORGANIZATIONS_MINIMAL`, `OTAS_MINIMAL`, `OTIDVS_MINIMAL`, `SUBAWARDS_MINIMAL`, `GSA_ELIBRARY_CONTRACTS_MINIMAL`, `ITDASHBOARD_INVESTMENTS_MINIMAL`, `ITDASHBOARD_INVESTMENTS_COMPREHENSIVE`. Calls to those endpoints currently send `shape=undefined` and get the server's default shape (not Python's curated minimal).
-- **Explicit schemas** missing on Node: `ORGANIZATION_SCHEMA`, `OTA_SCHEMA`, `OTIDV_SCHEMA`, `SUBAWARD_SCHEMA`, `PROTEST_SCHEMA`, `PROTEST_DOCKET_SCHEMA`, `GSA_ELIBRARY_*`, `ITDASHBOARD_INVESTMENT_SCHEMA`, `VEHICLE_METRICS_SCHEMA`, `ORGANIZATION_OFFICE_SCHEMA`. Those endpoints fall through to raw passthrough (`_genericPaginatedList`) without `modelFactory`.
-- **Typed return models** for `resolve`, `validate`, `getAgency`, `getProtest`, etc. — all currently `AnyRecord`.
-- **WebhookReceiver / CLI / simulator** — Python ships them; Node ships only signature helpers (`signing.ts`). Receiver framework and CLI are the largest gap.
-- **`rate_limit_info` + `last_response_headers`** instance properties — present on Python `TangoClient`, missing on Node.
-- **Conformance script** equivalent to `tango-python/scripts/check_filter_shape_conformance.py` — there is currently no gate validating Node against the canonical filter/shape manifest.
-- **Pagination drift on `listContracts`** — Python is cursor-based, Node is page-based. The API supports both. To be resolved as a deliberate SDK design choice in a future minor.
+#### Typed filter `Options` interfaces
+
+- `listForecasts`, `listOpportunities`, `listNotices`, `listGrants` — previously `ListOptionsBase & Record<string, unknown>` with zero typed filters; now ship full `Options` interfaces (`ListForecastsOptions`, `ListOpportunitiesOptions`, `ListNoticesOptions`, `ListGrantsOptions`) enumerating every filter kwarg from the Python signatures. `ListNoticesOptions` deliberately omits `ordering` (server rejects it).
+- `ListContractsOptions` expanded to enumerate all 27+ Python kwargs (`award_date*`, `awarding_agency`, `funding_agency`, `obligated_gte/lte`, `pop_*`, `expiring_*`, `keyword`/`recipient_name`/`recipient_uei`/`set_aside_type`/`naics_code`/`psc_code` aliases, `sort`+`order`→`ordering`, etc.).
+- `ListEntitiesOptions` expanded with the 12 Python kwargs (`cage_code`, `naics`, `name`, `psc`, `purpose_of_registration_code`, `socioeconomic`, `state`, `total_awards_obligated_gte/lte`, `uei`, `zip_code`).
+- `ListVehiclesOptions` expanded with all 21 filter kwargs (`vehicle_type`, `type_of_idc`, `contract_type`, `who_can_use`, `total_obligated_min/max`, etc.).
+- `ListIdvsOptions` expanded with the full IDV filter surface.
+- `ListOtasOptions` / `ListOtidvsOptions` expanded with the missing `_gte`/`_lte` ranges (`award_date_gte/lte`, `fiscal_year_gte/lte`, `expiring_gte/lte`, `pop_start_date_gte/lte`, `pop_end_date_gte/lte`).
+- `ListAgenciesOptions` added (was inline `{ page?, limit? }`).
+
+All `Options` interfaces keep a `[key: string]: unknown` index signature for forward-compatibility with new server-side filters that haven't been ported yet — typed fields give autocomplete and typo-protection on known filters; unknown fields still pass through.
+
+#### `ShapeConfig` preset parity
+
+Added: `PROTESTS_MINIMAL`, `OTAS_MINIMAL`, `OTIDVS_MINIMAL`, `SUBAWARDS_MINIMAL`, `GSA_ELIBRARY_CONTRACTS_MINIMAL`, `ORGANIZATIONS_MINIMAL`, `VEHICLE_ORDERS_MINIMAL`, `ITDASHBOARD_INVESTMENTS_MINIMAL`, `ITDASHBOARD_INVESTMENTS_COMPREHENSIVE`.
+
+Updated to match Python field lists: `ENTITIES_COMPREHENSIVE` (now uses `federal_obligations(*)` expansion), `VEHICLES_MINIMAL` (extended to mirror Python's larger field list), `VEHICLES_COMPREHENSIVE` (dropped `competition_details(*)` per SDK v0.6.0; added `program_acronym`, `is_synthetic_solicitation`, `metrics(*)`, organization expansion).
+
+#### Explicit schemas
+
+Added 11 schemas + registry entries: `ORGANIZATION_OFFICE_SCHEMA`, `VEHICLE_METRICS_SCHEMA`, `ORGANIZATION_SCHEMA`, `OTA_SCHEMA`, `OTIDV_SCHEMA`, `SUBAWARD_SCHEMA`, `PROTEST_DOCKET_SCHEMA`, `PROTEST_SCHEMA`, `GSA_ELIBRARY_IDV_REF_SCHEMA`, `GSA_ELIBRARY_CONTRACT_SCHEMA`, `ITDASHBOARD_INVESTMENT_SCHEMA`. Wired into the `EXPLICIT_SCHEMAS` registry under canonical model names.
+
+Also extended `VEHICLE_SCHEMA` with the fields the new `VEHICLES_*` presets reference: `is_synthetic_solicitation`, `program_acronym`, `organization` (expandable to `OrganizationOffice`), `metrics` (expandable to `VehicleMetrics`), `idv_count`, `total_obligated`, `latest_award_date`, `opportunity_id`, `description`.
+
+#### Typed return models
+
+- `client.resolve(input)` → `Promise<ResolveResult>` with typed `ResolveCandidate[]` (was `Promise<{ candidates: AnyRecord[]; count: number }>`).
+- `client.validate(input)` → `Promise<ValidateResult>` (was `Promise<AnyRecord>`).
+- `client.getAgency(code)` → `Promise<AgencyRecord>` (was `Promise<AnyRecord>`).
+- `client.getProtest(caseNumber)` → `Promise<ProtestRecord>` with typed `docket`, `resolved_*`, etc.
+
+All new types exported from package root.
+
+#### Observability — `rateLimitInfo` + `lastResponseHeaders`
+
+Two new instance properties on `TangoClient` mirroring Python's `rate_limit_info` / `last_response_headers`:
+
+```typescript
+await client.listContracts({ limit: 5 });
+console.log(client.rateLimitInfo);
+// { remaining: 98, limit: 100, resetIn: 60, retryAfter: null, limitType: "per_minute" }
+console.log(client.lastResponseHeaders?.["x-request-id"]);
+```
+
+Both `null` until the first request completes; populated after every successful request. `HttpClient` parses `X-RateLimit-{Remaining,Limit,Reset,Type}` + `Retry-After` headers into a `RateLimitInfo` snapshot.
+
+#### `listContracts` cursor pagination (non-breaking)
+
+`ListContractsOptions` now accepts `cursor` alongside `page`. When `cursor` is supplied, the request omits `page` and uses keyset pagination (Python parity); otherwise falls back to page-based. `PaginatedResponse` gained a `cursor` field auto-extracted from `next` so callers can `client.listContracts({ cursor: resp.cursor })` for the next page without parsing the URL themselves.
+
+#### `WebhookReceiver` framework
+
+New `src/webhooks/receiver.ts`. `WebhookReceiver` dataclass-style class with `start()`, `stop()`, `url`, `deliveries`, `onDelivery` callback, optional `forwardTo` mirror, history cap, signature verification (via existing `verifySignature`). Two run patterns shipped:
+
+- `await using rx = await new WebhookReceiver(opts).run();` (modern, `Symbol.asyncDispose`).
+- `await WebhookReceiver.withRunning(opts, async (rx) => { ... });` (portable callback scope).
+
+Pure `node:http` + native `fetch` — no new dependencies.
+
+#### Webhook simulator
+
+New `src/webhooks/simulate.ts`. `sign(payload, secret)` returns a `SignedRequest` (body bytes, signature header value, content-type). `deliver({ targetUrl, payload, secret, ... })` signs and POSTs via native `fetch` with `AbortSignal.timeout()`. Includes a `stableStringify` helper that matches Python's `json.dumps(sort_keys=True, separators=(",", ":"))` byte-for-byte so signatures are reproducible across languages.
+
+#### Webhook CLI — `tango-node webhooks`
+
+New `bin/tango-node` (entry in `src/bin/tango-node.ts`) backed by `commander`. Subcommands: `listen`, `simulate`, `trigger`, `fetch-sample`, `list-event-types`, `endpoints {list, get, create, delete}` — mirroring the Python `tango webhooks` CLI. New runtime dep: `commander@^12.1.0`.
+
+#### Conformance gate
+
+New `scripts/check-filter-shape-conformance.ts` + `npm run check-conformance` script. Walks `src/client.ts` with the TypeScript compiler AST, extracts each `list*` method's `Options` interface, and validates against the canonical manifest at `tango/contracts/filter_shape_contract.json`. JSON output + exit codes match the Python conformance script. Current state: **0 errors, 0 warnings** — parity verified.
+
+#### Test coverage
+
+Net **+74 tests** across the new work (220 total now passing, up from 146 pre-audit):
+
+- ShapeConfig preset parity (`config.shapes.parity`)
+- Explicit schema parity (`shapes.schema.parity`, 12 tests)
+- WebhookReceiver lifecycle, signature paths, forwarding, history cap, `withRunning` + `Symbol.asyncDispose` (`webhooks/receiver`, 21 tests)
+- Webhook simulator stable-stringify, sign-verify round-trip, deliver against a real `http.createServer`, timeout (`webhooks/simulate`, 17 tests)
+- CLI subcommand wiring (`webhooks/cli`, 7 tests)
+- Conformance script (`scripts/conformance`, 5 tests)
+- Observability + cursor pagination + typed return models (`client.observability`, 11 tests)
+
+### Internal
+
+- `tsx` added as a devDependency to run the new conformance script.
+- `HttpClient` constructor body unchanged; just adds two readonly fields (`lastResponseHeaders`, `rateLimitInfo`) populated on every successful response.
 
 ### Removed
 

@@ -153,12 +153,30 @@ export class TypeGenerator {
     let nestedModel: GeneratedModel | null = null;
 
     if (spec.nestedFields && spec.nestedFields.length > 0) {
+      // Wildcard-only expansion (e.g., `federal_obligations(*)`) means "return
+      // the whole nested object as-is" — no field projection. For schema-less
+      // dict fields, this is the only valid expansion. Mirrors Python (which
+      // treats `field(*)` as `is_wildcard=True` with no nested_fields and
+      // skips the nested-model check entirely).
+      const isWildcardOnly =
+        spec.nestedFields.length === 1 &&
+        (spec.nestedFields[0].isWildcard || spec.nestedFields[0].name === "*");
+
       const nestedModelName =
         fieldSchema.nestedModel && typeof fieldSchema.nestedModel === "string" && fieldSchema.nestedModel.trim() !== ""
           ? fieldSchema.nestedModel
           : this.inferNestedModelName(fieldSchema);
 
       if (!nestedModelName) {
+        if (isWildcardOnly) {
+          // Pass-through: no nested model needed for a pure wildcard.
+          return {
+            field: fieldSchema,
+            spec: { ...spec, isWildcard: true, nestedFields: undefined },
+            alias,
+            nestedModel: null,
+          };
+        }
         throw new ShapeValidationError(`Field "${requestedName}" on model "${fieldSchema.name}" does not support nested fields.`);
       }
 

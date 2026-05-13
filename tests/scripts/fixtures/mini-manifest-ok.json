@@ -1,0 +1,12 @@
+{
+  "meta": { "description": "Fixture: SDK fully exposes filters for `foos`." },
+  "resources": {
+    "foos": {
+      "runtime": {
+        "filter_params": ["search", "awarding_agency", "fiscal_year", "ordering"],
+        "ordering_fields": ["fiscal_year"],
+        "pagination": { "class": "PageNumberPagination" }
+      }
+    }
+  }
+}

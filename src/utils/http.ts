@@ -1,5 +1,6 @@
 import { TangoAPIError, TangoAuthError, TangoNotFoundError, TangoRateLimitError, TangoTimeoutError, TangoValidationError } from "../errors.js";
 import { DEFAULT_BASE_URL } from "../config.js";
+import type { RateLimitInfo } from "../types.js";
 
 export interface HttpClientOptions {
   baseUrl?: string;
@@ -104,6 +105,46 @@ function isRetryableStatus(status: number): boolean {
   return false;
 }
 
+function parseInt10(value: string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function getHeader(headers: Headers | Record<string, string> | null | undefined, name: string): string | null {
+  if (!headers) return null;
+  if (typeof (headers as Headers).get === "function") {
+    return (headers as Headers).get(name);
+  }
+  const rec = headers as Record<string, string>;
+  return rec[name] ?? rec[name.toLowerCase()] ?? null;
+}
+
+function parseRateLimit(headers: Headers | Record<string, string> | null | undefined): RateLimitInfo {
+  return {
+    remaining: parseInt10(getHeader(headers, "x-ratelimit-remaining")),
+    limit: parseInt10(getHeader(headers, "x-ratelimit-limit")),
+    resetIn: parseInt10(getHeader(headers, "x-ratelimit-reset")),
+    retryAfter: parseInt10(getHeader(headers, "retry-after")),
+    limitType: getHeader(headers, "x-ratelimit-type"),
+  };
+}
+
+function headersToRecord(headers: Headers | Record<string, string> | null | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!headers) return out;
+  if (typeof (headers as Headers).forEach === "function") {
+    (headers as Headers).forEach((value, key) => {
+      out[key.toLowerCase()] = value;
+    });
+    return out;
+  }
+  for (const [k, v] of Object.entries(headers as Record<string, string>)) {
+    out[k.toLowerCase()] = v;
+  }
+  return out;
+}
+
 export class HttpClient {
   readonly baseUrl: string;
   readonly apiKey: string | null;
@@ -111,6 +152,11 @@ export class HttpClient {
   readonly retries: number;
   readonly retryBackoffMs: number;
   private readonly fetchImpl: typeof fetch;
+
+  /** Snapshot of headers from the most recent response (null until a request completes). */
+  lastResponseHeaders: Record<string, string> | null = null;
+  /** Parsed rate-limit info from the most recent response. */
+  rateLimitInfo: RateLimitInfo | null = null;
 
   constructor(options: HttpClientOptions = {}) {
     const {
@@ -203,6 +249,11 @@ export class HttpClient {
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
     }
+
+    // Snapshot response metadata for observability (rate_limit_info /
+    // last_response_headers parity with the Python SDK).
+    this.lastResponseHeaders = headersToRecord(res.headers);
+    this.rateLimitInfo = parseRateLimit(res.headers);
 
     let text: string;
     let data: unknown = null;
