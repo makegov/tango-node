@@ -27,6 +27,11 @@
     }
   },
   "sideEffects": false,
+  "files": [
+    "dist/",
+    "docs/",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
