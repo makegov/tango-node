@@ -1251,18 +1251,20 @@ export class TangoClient {
    * default rather than failing.
    */
   async createWebhookEndpoint(
-    input: WebhookEndpointCreateInput | { callbackUrl: string; isActive?: boolean; name?: string },
+    input: WebhookEndpointCreateInput | { callbackUrl: string; isActive?: boolean; name: string },
   ): Promise<WebhookEndpoint> {
     const body = toEndpointRequestBody(input as AnyRecord);
     if (!body.callback_url) {
       throw new TangoValidationError("Webhook callback_url is required");
     }
+    // `name` is required as of 1.0.0 (was a silent URL-host fallback in 0.4.x,
+    // which masked the server's unique(user, name) constraint until first
+    // duplicate). Raising client-side gives a clearer error and matches the
+    // Python SDK's 1.0.0 behavior.
     if (!body.name) {
-      try {
-        body.name = new URL(body.callback_url as string).host || "endpoint";
-      } catch {
-        body.name = "endpoint";
-      }
+      throw new TangoValidationError(
+        "createWebhookEndpoint: `name` is required. The Tango API enforces unique(user, name) on endpoints.",
+      );
     }
     // Preserve historical default for create: active endpoints unless caller opts out.
     if (body.is_active === undefined) {
@@ -1328,8 +1330,13 @@ export class TangoClient {
   async createWebhookAlert(input: WebhookAlertCreateInput): Promise<WebhookAlert> {
     if (!input?.name) throw new TangoValidationError("Webhook alert name is required");
     if (!input.query_type) throw new TangoValidationError('Webhook alert query_type is required (singular, e.g. "contract")');
-    if (!input.filters || typeof input.filters !== "object") {
-      throw new TangoValidationError("Webhook alert filters must be a non-empty object");
+    if (
+      !input.filters ||
+      typeof input.filters !== "object" ||
+      Array.isArray(input.filters) ||
+      Object.keys(input.filters).length === 0
+    ) {
+      throw new TangoValidationError("Webhook alert filters must be a non-empty plain object");
     }
 
     const body: AnyRecord = {

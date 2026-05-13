@@ -360,7 +360,7 @@ await client.listContracts({ shape: "key,typo_field" });
 // Descriptor generated once, reused for every call with this shape
 const SHAPE = "key,piid,recipient(display_name)";
 const page1 = await client.listContracts({ shape: SHAPE });
-const page2 = await client.listContracts({ shape: SHAPE, offset: 25 });
+const page2 = await client.listContracts({ shape: SHAPE, page: 2 });
 ```
 
 Store shape strings in constants (like `ShapeConfig`) rather than building them inline — identical strings hit the cache; equivalent-but-distinct strings miss.
@@ -381,7 +381,7 @@ const contracts = await client.listContracts({
 
 ### Pagination via `iterateContracts`
 
-For large result sets, use the iterator methods rather than repeated `listContracts` calls with manual offset tracking:
+For large result sets, use the iterator methods rather than repeated `listContracts` calls with manual page/cursor tracking:
 
 ```ts
 for await (const contract of client.iterateContracts({

@@ -682,7 +682,10 @@ describe("TangoClient", () => {
     expect(endpoints.count).toBe(1);
     expect(endpoints.results[0].name).toBe("yoni");
 
-    const created = await client.createWebhookEndpoint({ callbackUrl: "https://example.com/tango/webhooks" });
+    const created = await client.createWebhookEndpoint({
+      callbackUrl: "https://example.com/tango/webhooks",
+      name: "example-receiver",
+    });
     expect((created as any).secret).toBe("secret");
 
     const updated = await client.updateWebhookEndpoint(created.id, { isActive: false });

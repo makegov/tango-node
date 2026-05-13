@@ -62,9 +62,10 @@ describe("TangoClient.iterate (offset pagination)", () => {
     expect(seen).toEqual(["A1", "A2", "B1", "B2", "C1"]);
     expect(calls.length).toBe(3);
 
-    // First call should NOT carry a page; subsequent should carry page=2 then page=3.
+    // First call carries listContracts' default page=1; subsequent calls
+    // advance to page=2 then page=3. Iteration stops when `next` is null.
     const u1 = new URL(calls[0]);
-    expect(u1.searchParams.get("page")).toBe("1"); // listContracts defaults page=1
+    expect(u1.searchParams.get("page")).toBe("1");
     expect(u1.searchParams.get("awarding_agency")).toBe("9700");
 
     const u2 = new URL(calls[1]);

@@ -11,6 +11,17 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 First stable release. `tango-node` is now at **full feature parity** with both the Tango API and `tango-python` for the surface that remains after the subject-based webhook removal (see "Removed" below). Every read method and every endpoint/alert/signing helper available on `tango_python.TangoClient` has an idiomatic camelCase counterpart on `TangoClient`, the SDK's docs are auto-published to `docs.makegov.com/sdks/node/` via the composer pipeline (makegov/docs#15 / makegov/docs#16), and from `1.x` on we'll only ship breaking changes on a major bump.
 
+### Changed (breaking)
+
+- **`createWebhookEndpoint({ name, ... })`** — `name` is now required. Previously the SDK silently fell back to the callback URL's host when `name` was omitted, which masked the server's `unique(user, name)` constraint until the second duplicate endpoint. Raising client-side gives a clearer error and matches `tango-python` 1.0.0's behavior.
+- **`createWebhookAlert({ filters, ... })`** — `filters` is now validated as a non-empty plain object. Previously `{}` and arrays passed the check; the error message claimed "non-empty object" but didn't enforce it. Matches the server-side validation.
+
+### Fixed
+
+- `tests/unit/client.iterate.test.ts` — corrected the comment above the first `page` assertion; previous text claimed the first call should NOT carry a page, but the assertion (correctly) expects `page=1` since `listContracts` defaults to it.
+- `docs/DEVELOPERS.md` — `listContracts({ offset: 25 })` example replaced with `{ page: 2 }` and "manual offset tracking" → "manual page/cursor tracking" (the method has never accepted `offset`).
+- `CHANGELOG.md` — corrected "4 new unit test files" to "5"; the parenthesized list always contained 5 paths.
+
 ### Docs
 
 - **README** updated for the docs-review sweep:
@@ -18,7 +29,7 @@ First stable release. `tango-node` is now at **full feature parity** with both t
   - Replaced the "_(Coming Soon!)_" marker on the docs link with the live `https://docs.makegov.com/sdks/node/` URL.
   - Rewrote the "Comprehensive API Coverage" feature bullet — the old enumeration listed fewer than half of the actually-implemented domains. New bullet points at the canonical "API Methods" section for the full surface.
 - New `docs/CLIENT.md` — `TangoClient` constructor reference, environment variables, full retry/backoff semantics (including `Retry-After` handling), error-handling patterns, `fetchImpl` injection, and staging/local targeting. Ported from `docs.makegov.com/sdks/node/client.md` ahead of the docs-site auto-pull cutover (makegov/docs#15 / makegov/docs#16).
-- `docs/API_REFERENCE.md` enriched with notes from the docs-site `methods.md` that hadn't been folded in yet: `listContracts` page/cursor mutual exclusion, `getIdvSummary` / `listIdvSummaryAwards` deprecation (server returns 404), `listIdvLcats` clarification, `listOrganizations` `level` semantics, `createWebhookEndpoint` snake_case canonical vs camelCase legacy aliases (with `name` URL-host fallback), `testWebhookEndpoint` post-#2252 cleanup (`{ endpoint: <id> }` is canonical), and `createWebhookAlert` field-rename notes (`name` vs `subscription_name`, `filters` vs `filter_definition`, singular `query_type`, update-writable field list).
+- `docs/API_REFERENCE.md` enriched with notes from the docs-site `methods.md` that hadn't been folded in yet: `listContracts` page/cursor mutual exclusion, `getIdvSummary` / `listIdvSummaryAwards` deprecation (server returns 404), `listIdvLcats` clarification, `listOrganizations` `level` semantics, `createWebhookEndpoint` snake_case canonical vs camelCase legacy aliases (`name` is required either way per the 1.0.0 change above), `testWebhookEndpoint` post-#2252 cleanup (`{ endpoint: <id> }` is canonical), and `createWebhookAlert` field-rename notes (`name` vs `subscription_name`, `filters` vs `filter_definition`, singular `query_type`, update-writable field list).
 
 ### CI
 
@@ -209,7 +220,7 @@ Typed iterators: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, 
 ### Internal
 
 - Live smoke harnesses at `scripts/smoke-{reads,writes,extras,parity}.ts` exercise every new method against a running Tango instance. All four require `TANGO_API_KEY` in the environment (hard-fail if unset — no fallback).
-- 4 new unit test files (`tests/unit/{client.parity,client.iterate,client.baseurl,webhooks.signing,config.shapes}.test.ts`) added; total suite is now 16 files / 111 tests / 82% line coverage.
+- 5 new unit test files (`tests/unit/{client.parity,client.iterate,client.baseurl,webhooks.signing,config.shapes}.test.ts`) added; total suite is now 16 files / 111 tests / 82% line coverage.
 - ESM build (`tsc -p tsconfig.json`) clean.
 
 ## [0.3.0] - 2026-02-09
