@@ -1,12 +1,12 @@
-# Tango Node SDK
+# Tango Node.js SDK
 
 [![npm](https://img.shields.io/npm/v/@makegov/tango-node.svg)](https://www.npmjs.com/package/@makegov/tango-node)
-[![Node Version](https://img.shields.io/node/v/@makegov/tango-node.svg)](https://www.npmjs.com/package/@makegov/tango-node)
+[![Node.js Version](https://img.shields.io/node/v/@makegov/tango-node.svg)](https://www.npmjs.com/package/@makegov/tango-node)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring dynamic response shaping, strong TypeScript types, and full coverage of the core Tango endpoints.
 
-> This is the Node/TypeScript port of the official Tango Python SDK.
+> This is the Node.js/TypeScript port of the official Tango Python SDK.
 
 ## Features
 
@@ -14,12 +14,12 @@ A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring d
 - **Type-Safe by Design** – Shape strings are validated against Tango schemas and mapped to generated TypeScript types.
 - **Full Tango API surface** – Awards (contracts, IDVs, OTAs, OTIDVs, subawards, vehicles, GSA eLibrary), opportunities + notices, forecasts, grants, protests, IT Dashboard, entities (with sub-resources), agencies/organizations/offices/departments, lookups (NAICS, PSC, MAS SINs, assistance listings, business types), metrics, resolve/validate, webhooks. See `## API Methods` below for the full list.
 - **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing, materialized via the dynamic model pipeline.
-- **Modern Node** – Built for Node 18+ with native `fetch` and ESM-first design.
+- **Modern Node.js** – Built for Node.js 18+ with native `fetch` and ESM-first design.
 - **Tested Against the Real API** – Integration tests (mirroring the Python SDK) keep behavior aligned.
 
 ## Installation
 
-**Requirements:** Node 18 or higher.
+**Requirements:** Node.js 18 or higher.
 
 ```bash
 npm install @makegov/tango-node
@@ -96,7 +96,7 @@ console.log(entity.uei, entity.legal_business_name, entity.primary_naics);
 
 ## Authentication
 
-The Node SDK uses the same model as the Python one: you can either pass the API key directly or read it from `TANGO_API_KEY`.
+The Node.js SDK uses the same model as the Python one: you can either pass the API key directly or read it from `TANGO_API_KEY`.
 
 ### With API key
 
@@ -137,7 +137,7 @@ const contracts = await client.listContracts({
 - Keep responses focused on what your app actually uses.
 - Drive type safety – the SDK maps the shape to a TypeScript type.
 
-**The Node SDK includes:**
+**The Node.js SDK includes:**
 
 - A **shape parser** that validates shape strings.
 - A **schema registry** that knows what fields exist on each resource.
@@ -165,11 +165,11 @@ const contracts = await client.listContracts({
 });
 ```
 
-The Node SDK mirrors the Python client's behavior for `shape`, `flat`, and `flat_lists`.
+The Node.js SDK mirrors the Python client's behavior for `shape`, `flat`, and `flat_lists`.
 
 ## API Methods
 
-The Node client mirrors the Python SDK's high-level API. Selected highlights:
+The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 
 **Agencies / Offices / Organizations / Departments**
 
@@ -365,7 +365,7 @@ Useful scripts:
 
 ## Requirements
 
-- Node 18 or higher.
+- Node.js 18 or higher.
 - A valid [Tango API key](https://tango.makegov.com/).
 
 ## Documentation
