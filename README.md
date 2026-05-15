@@ -1,5 +1,9 @@
 # Tango Node SDK
 
+[![npm](https://img.shields.io/npm/v/@makegov/tango-node.svg)](https://www.npmjs.com/package/@makegov/tango-node)
+[![Node Version](https://img.shields.io/node/v/@makegov/tango-node.svg)](https://www.npmjs.com/package/@makegov/tango-node)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring dynamic response shaping, strong TypeScript types, and full coverage of the core Tango endpoints.
 
 > This is the Node/TypeScript port of the official Tango Python SDK.
