@@ -7,6 +7,48 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed (breaking)
+- Removed `getIdvSummary` and `listIdvSummaryAwards`. These called
+  `/api/idvs/{id}/summary/` and `/api/idvs/{id}/summary/awards/`, which have
+  never existed in the Tango API (no OpenAPI backing), so no consumer could
+  have been using them successfully. Use `getIdv` + `listIdvAwards` instead.
+
+### Fixed
+- `Contract` interface: removed dead fields (`id`, `award_id`,
+  `recipient_name`, `award_amount`, `awarding_agency`, `funding_agency`) and
+  added the real API fields from `ContractListSerializer` (`key`, `piid`,
+  `obligated`, `total_contract_value`, `base_and_exercised_options_value`,
+  `awarding_office`, `funding_office`, `naics_code`, `psc_code`, `set_aside`,
+  `solicitation_identifier`, `parent_award`, `legislative_mandates`,
+  `subawards_summary`, `place_of_performance`). All fields optional (the
+  endpoint is shape-on-demand). The deprecated fields remain declared (marked
+  `@deprecated`) for one minor cycle and will be removed in `2.0.0`. New
+  exported types: `OrganizationOfficePayload`, `PlaceOfPerformance`,
+  `SubawardsSummary`, `LegislativeMandates`, `ParentAwardReference`,
+  `EntityBasic`.
+- `listContracts`: no longer sends `page=1` to the cursor-only `/api/contracts/`
+  endpoint. When no cursor is supplied, neither `page` nor `cursor` is sent and
+  the API returns the first page by default. The stale code comment claiming
+  page-based pagination support has been corrected.
+
+### Added
+- Budget accounts surface (tango v4.6.8): `listBudgetAccounts`,
+  `getBudgetAccount`, `getBudgetAccountQuarters`, `getBudgetAccountRecipients`.
+  New exported `BudgetAccount` interface and `ListBudgetAccountsOptions`.
+- Singleton detail GETs: `getContract`, `getContractSubawards`,
+  `getContractTransactions`, `getForecast`, `getGrant`, `getNotice`,
+  `getOpportunity`, `getSubaward`.
+- `getEntityBudgetFlows(uei)` for `/api/entities/{uei}/budget-flows/`.
+- `listVehicleOrders(uuid, options)` for `/api/vehicles/{uuid}/orders/`
+  (parity with Python).
+- `grantId` filter on `listGrants` (camelCase alias mapped to the `grant_id`
+  API param; `grant_id` also accepted directly).
+
+### CI
+- Added `ci.yml` PR + push-to-main gate (lint, typecheck, build, test on Node
+  18/20/22). The filter/shape conformance check is a separate non-blocking job
+  pending a token for the private manifest repo.
+
 ## [1.0.0] - 2026-05-13
 
 First stable release. `tango-node` is now at **full feature parity** with both the Tango API and `tango-python` for the surface that remains after the subject-based webhook removal (see "Removed" below). Every read method and every endpoint/alert/signing helper available on `tango_python.TangoClient` has an idiomatic camelCase counterpart on `TangoClient`, the SDK's docs are auto-published to `docs.makegov.com/sdks/node/` via the composer pipeline (makegov/docs#15 / makegov/docs#16), and from `1.x` on we'll only ship breaking changes on a major bump.

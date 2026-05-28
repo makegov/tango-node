@@ -72,7 +72,8 @@ describe("TangoClient", () => {
     expect(parsed.searchParams.get("shape")).toBe(ShapeConfig.CONTRACTS_MINIMAL);
     expect(parsed.searchParams.get("flat")).toBe("true");
     expect(parsed.searchParams.get("limit")).toBe("5");
-    expect(parsed.searchParams.get("page")).toBe("2");
+    // /api/contracts/ is cursor-only: `page` is never forwarded.
+    expect(parsed.searchParams.get("page")).toBeNull();
   });
 
   it("uses default shapes for entities and supports search", async () => {
@@ -537,8 +538,6 @@ describe("TangoClient", () => {
 
     await client.listIdvChildIdvs({ key: "IDV-KEY", limit: 5 });
     await client.listIdvTransactions("IDV-KEY", { limit: 50 });
-    await client.getIdvSummary("SOL");
-    await client.listIdvSummaryAwards("SOL", { limit: 25, ordering: "-award_date" });
 
     const parsedCalls = calls.map((u) => new URL(u));
 

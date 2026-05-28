@@ -1,0 +1,79 @@
+name: CI
+
+# Lint + typecheck + test gate runs on every PR and push to main.
+#
+# The SDK filter/shape conformance check needs the canonical manifest from the
+# private makegov/tango repo. That checkout requires a token the public CI does
+# not have, so the conformance step is kept separate and non-blocking
+# (continue-on-error) until a TANGO_API_REPO_ACCESS_TOKEN secret is wired up.
+# The lint + test gate below is fully self-contained and blocks the PR on failure.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node-version: ["18", "20", "22"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        # No lockfile is committed (package-lock.json is gitignored), and the
+        # "prepare" script runs a build that needs tsc — so ignore scripts here
+        # and build explicitly below.
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        # `vitest run` forces a single non-watch pass in CI.
+        run: npx vitest run
+
+  conformance:
+    # Non-blocking: requires checkout of the private makegov/tango repo for the
+    # canonical filter_shape manifest. Wire a TANGO_API_REPO_ACCESS_TOKEN secret
+    # and flip continue-on-error to make this a hard gate.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout tango API repo (manifest source)
+        uses: actions/checkout@v4
+        with:
+          repository: makegov/tango
+          path: tango-api
+          token: ${{ secrets.TANGO_API_REPO_ACCESS_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Check SDK filter/shape conformance
+        run: npx tsx scripts/check-filter-shape-conformance.ts --manifest tango-api/contracts/filter_shape_contract.json

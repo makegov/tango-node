@@ -143,7 +143,7 @@ export interface ListOptionsBase {
 }
 
 export interface ListContractsOptions extends ListOptionsBase {
-  /** Cursor-based pagination (mirror Python parity). Mutually exclusive with `page`. */
+  /** Cursor-based pagination. /api/contracts/ is cursor-only; `page` is ignored. */
   cursor?: string | null;
   /** Bag of arbitrary filters (legacy passthrough). Prefer named kwargs below. */
   filters?: AnyRecord;
@@ -349,6 +349,10 @@ export interface ListGrantsOptions extends ListOptionsBase {
   cfda_number?: string;
   funding_categories?: string;
   funding_instruments?: string;
+  /** SDK-friendly alias for `grant_id`. Supports multi-value OR via `|`. */
+  grantId?: string;
+  /** Filter by grant ID (detail-endpoint identifier). Multi-value OR via `|`. */
+  grant_id?: string;
   opportunity_number?: string;
   ordering?: string;
   posted_date_after?: string;
@@ -357,6 +361,22 @@ export interface ListGrantsOptions extends ListOptionsBase {
   response_date_before?: string;
   search?: string;
   status?: string;
+  [key: string]: unknown;
+}
+
+export interface ListBudgetAccountsOptions extends ListOptionsBase {
+  federal_account_symbol?: string;
+  fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  agency_code?: string;
+  bureau_name?: string;
+  account_title?: string;
+  bea_category?: string;
+  on_off_budget?: string;
+  subfunction_code?: string;
+  search?: string;
+  ordering?: string;
   [key: string]: unknown;
 }
 
@@ -712,17 +732,19 @@ export class TangoClient {
   // ---------------------------------------------------------------------------
 
   async listContracts(options: ListContractsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page, cursor, limit = 25, shape, flat = false, flatLists = false, filters = {}, ...restFilters } = options;
+    // `page` is destructured out and intentionally discarded: /api/contracts/ is
+    // cursor-only (KeysetPagination) and does not honor page-based pagination.
+    const { page: _page, cursor, limit = 25, shape, flat = false, flatLists = false, filters = {}, ...restFilters } = options;
+    void _page;
 
     const params: AnyRecord = {
       limit: Math.min(limit, 100),
     };
-    // /api/contracts/ supports both page- and cursor-based pagination. Prefer
-    // cursor when provided (Python parity); otherwise fall back to page.
+    // /api/contracts/ is cursor-only (KeysetPagination). Send the cursor when
+    // provided; otherwise send neither page nor cursor — the API returns the
+    // first page by default. (Previously sent page=1, which the endpoint ignores.)
     if (cursor) {
       params.cursor = cursor;
-    } else {
-      params.page = page ?? 1;
     }
 
     const shapeToUse = shape ?? ShapeConfig.CONTRACTS_MINIMAL;
@@ -749,6 +771,46 @@ export class TangoClient {
     const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
+  }
+
+  /** Get a single contract by its key (`/api/contracts/{key}/`). */
+  async getContract(
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!key) throw new TangoValidationError("Contract key is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.CONTRACTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/contracts/${encodeURIComponent(key)}/`, params);
+    return this.materializeOne("Contract", shapeSpec, data, flat, joiner);
+  }
+
+  /** List subawards under a contract (`/api/contracts/{key}/subawards/`). */
+  async getContractSubawards(key: string, options: ListSubawardsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    if (!key) throw new TangoValidationError("Contract key is required");
+    return this._genericPaginatedList(`/api/contracts/${encodeURIComponent(key)}/subawards/`, options);
+  }
+
+  /** List transactions under a contract (`/api/contracts/{key}/transactions/`). */
+  async getContractTransactions(
+    key: string,
+    options: ListOptionsBase & { [key: string]: unknown } = {},
+  ): Promise<PaginatedResponse<AnyRecord>> {
+    if (!key) throw new TangoValidationError("Contract key is required");
+    return this._genericPaginatedList(`/api/contracts/${encodeURIComponent(key)}/transactions/`, options);
   }
 
   // ---------------------------------------------------------------------------
@@ -849,6 +911,31 @@ export class TangoClient {
     return paginated;
   }
 
+  /** Get a single forecast by id (`/api/forecasts/{id}/`). */
+  async getForecast(
+    id: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!id) throw new TangoValidationError("Forecast id is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.FORECASTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/forecasts/${encodeURIComponent(id)}/`, params);
+    return this.materializeOne("Forecast", shapeSpec, data, flat, joiner);
+  }
+
   // ---------------------------------------------------------------------------
   // Opportunities
   // ---------------------------------------------------------------------------
@@ -879,6 +966,31 @@ export class TangoClient {
     const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
+  }
+
+  /** Get a single opportunity by id (`/api/opportunities/{opportunity_id}/`). */
+  async getOpportunity(
+    opportunityId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!opportunityId) throw new TangoValidationError("opportunity_id is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.OPPORTUNITIES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/opportunities/${encodeURIComponent(opportunityId)}/`, params);
+    return this.materializeOne("Opportunity", shapeSpec, data, flat, joiner);
   }
 
   // ---------------------------------------------------------------------------
@@ -913,12 +1025,37 @@ export class TangoClient {
     return paginated;
   }
 
+  /** Get a single notice by id (`/api/notices/{notice_id}/`). */
+  async getNotice(
+    noticeId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!noticeId) throw new TangoValidationError("notice_id is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.NOTICES_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/notices/${encodeURIComponent(noticeId)}/`, params);
+    return this.materializeOne("Notice", shapeSpec, data, flat, joiner);
+  }
+
   // ---------------------------------------------------------------------------
   // Grants
   // ---------------------------------------------------------------------------
 
   async listGrants(options: ListGrantsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, grantId, ...filters } = options;
 
     const params: AnyRecord = {
       page,
@@ -933,6 +1070,11 @@ export class TangoClient {
       if (flatLists) params.flat_lists = "true";
     }
 
+    // SDK-friendly camelCase alias maps to the snake_case API param.
+    if (grantId !== undefined && filters.grant_id === undefined) {
+      filters.grant_id = grantId;
+    }
+
     Object.assign(params, filters);
 
     const data = await this.http.get<AnyRecord>("/api/grants/", params);
@@ -943,6 +1085,31 @@ export class TangoClient {
     const paginated = buildPaginatedResponse<AnyRecord>({ ...data, results });
 
     return paginated;
+  }
+
+  /** Get a single grant by its grant id (`/api/grants/{grant_id}/`). */
+  async getGrant(
+    grantId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!grantId) throw new TangoValidationError("grant_id is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.GRANTS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/grants/${encodeURIComponent(grantId)}/`, params);
+    return this.materializeOne("Grant", shapeSpec, data, flat, joiner);
   }
 
   // ---------------------------------------------------------------------------
@@ -1043,6 +1210,56 @@ export class TangoClient {
     const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
 
     const results = this.materializeList("IDV", shapeSpec, rawResults, flat, joiner);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /**
+   * List task orders under a Vehicle's IDVs (`/api/vehicles/{uuid}/orders/`).
+   *
+   * `ordering` allows server-side sort: `award_date` (default), `obligated`,
+   * `total_contract_value`. Prefix with `-` for descending.
+   */
+  async listVehicleOrders(
+    uuid: string,
+    options: {
+      page?: number;
+      limit?: number;
+      shape?: string | null;
+      flat?: boolean;
+      flatLists?: boolean;
+      joiner?: string;
+      ordering?: string;
+    } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    if (!uuid) {
+      throw new TangoValidationError("Vehicle uuid is required");
+    }
+
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, joiner = ".", ordering } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.VEHICLE_ORDERS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    if (ordering) params.ordering = ordering;
+
+    const data = await this.http.get<AnyRecord>(`/api/vehicles/${encodeURIComponent(uuid)}/orders/`, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("Contract", shapeSpec, rawResults, flat, joiner);
 
     return buildPaginatedResponse<AnyRecord>({ ...data, results });
   }
@@ -1190,30 +1407,6 @@ export class TangoClient {
     if (cursor) params.cursor = cursor;
 
     const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(key)}/transactions/`, params);
-    return buildPaginatedResponse<Record<string, unknown>>(data);
-  }
-
-  async getIdvSummary(identifier: string): Promise<Record<string, unknown>> {
-    if (!identifier) {
-      throw new TangoValidationError("IDV solicitation identifier is required");
-    }
-    return await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(identifier)}/summary/`);
-  }
-
-  async listIdvSummaryAwards(
-    identifier: string,
-    options: { limit?: number; cursor?: string | null; ordering?: string } = {},
-  ): Promise<PaginatedResponse<Record<string, unknown>>> {
-    if (!identifier) {
-      throw new TangoValidationError("IDV solicitation identifier is required");
-    }
-
-    const { limit = 25, cursor = null, ordering } = options;
-    const params: AnyRecord = { limit: Math.min(limit, 100) };
-    if (cursor) params.cursor = cursor;
-    if (ordering) params.ordering = ordering;
-
-    const data = await this.http.get<AnyRecord>(`/api/idvs/${encodeURIComponent(identifier)}/summary/awards/`, params);
     return buildPaginatedResponse<Record<string, unknown>>(data);
   }
 
@@ -1616,6 +1809,12 @@ export class TangoClient {
     return this._genericPaginatedList("/api/subawards/", options);
   }
 
+  /** Get a single subaward by its key (`/api/subawards/{key}/`). */
+  async getSubaward(key: string): Promise<AnyRecord> {
+    if (!key) throw new TangoValidationError("Subaward key is required");
+    return await this.http.get<AnyRecord>(`/api/subawards/${encodeURIComponent(key)}/`);
+  }
+
   /** List GSA eLibrary contracts. */
   async listGsaElibraryContracts(options: ListGsaElibraryContractsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     return this._genericPaginatedList("/api/gsa_elibrary_contracts/", options);
@@ -1639,6 +1838,71 @@ export class TangoClient {
     }
     const path = uei ? `/api/entities/${encodeURIComponent(uei)}/lcats/` : `/api/idvs/${encodeURIComponent(idvKey as string)}/lcats/`;
     return this._genericPaginatedList(path, rest);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Budget (federal account x fiscal year rollups)
+  // ---------------------------------------------------------------------------
+
+  /** List budget accounts (`/api/budget/accounts/`). One row per federal account x fiscal year. */
+  async listBudgetAccounts(options: ListBudgetAccountsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/budget/accounts/", options);
+  }
+
+  /** Get a single budget account by id (`/api/budget/accounts/{id}/`). */
+  async getBudgetAccount(
+    id: string | number,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean } = {},
+  ): Promise<AnyRecord> {
+    if (id === undefined || id === null || id === "") {
+      throw new TangoValidationError("Budget account id is required");
+    }
+    const { shape, flat, flatLists } = options;
+    const params: AnyRecord = {};
+    if (shape) params.shape = shape;
+    if (flat) params.flat = "true";
+    if (flatLists) params.flat_lists = "true";
+    return await this.http.get<AnyRecord>(`/api/budget/accounts/${encodeURIComponent(String(id))}/`, params);
+  }
+
+  /**
+   * Get quarterly TAS-grain obligation / outlay flow for a budget account
+   * (`/api/budget/accounts/{id}/quarters/`). FY21+ only.
+   *
+   * `tas` narrows to a single Treasury Account Symbol.
+   */
+  async getBudgetAccountQuarters(
+    id: string | number,
+    options: { tas?: string; limit?: number } = {},
+  ): Promise<PaginatedResponse<AnyRecord>> {
+    if (id === undefined || id === null || id === "") {
+      throw new TangoValidationError("Budget account id is required");
+    }
+    const { tas, limit = 25 } = options;
+    const params: AnyRecord = { limit: Math.min(limit, 100) };
+    if (tas) params.tas = tas;
+    const data = await this.http.get<AnyRecord>(`/api/budget/accounts/${encodeURIComponent(String(id))}/quarters/`, params);
+    return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  /**
+   * Get funding-office x recipient contract-flow detail for a budget account
+   * (`/api/budget/accounts/{id}/recipients/`).
+   *
+   * `funding_organization_id` narrows to a single funding office (Organization UUID).
+   */
+  async getBudgetAccountRecipients(
+    id: string | number,
+    options: { funding_organization_id?: string; limit?: number } = {},
+  ): Promise<PaginatedResponse<AnyRecord>> {
+    if (id === undefined || id === null || id === "") {
+      throw new TangoValidationError("Budget account id is required");
+    }
+    const { funding_organization_id, limit = 25 } = options;
+    const params: AnyRecord = { limit: Math.min(limit, 100) };
+    if (funding_organization_id) params.funding_organization_id = funding_organization_id;
+    const data = await this.http.get<AnyRecord>(`/api/budget/accounts/${encodeURIComponent(String(id))}/recipients/`, params);
+    return buildPaginatedResponse<AnyRecord>(data);
   }
 
   // ---------------------------------------------------------------------------
@@ -1810,6 +2074,12 @@ export class TangoClient {
   async listEntityLcats(uei: string, options: EntityLcatsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     if (!uei) throw new TangoValidationError("UEI is required");
     return this._genericPaginatedList(`/api/entities/${encodeURIComponent(uei)}/lcats/`, options);
+  }
+
+  /** Get budget flows for an entity (`/api/entities/{uei}/budget-flows/`). */
+  async getEntityBudgetFlows(uei: string): Promise<AnyRecord> {
+    if (!uei) throw new TangoValidationError("UEI is required");
+    return await this.http.get<AnyRecord>(`/api/entities/${encodeURIComponent(uei)}/budget-flows/`);
   }
 
   /** Get rolling metrics for an entity (`/api/entities/{uei}/metrics/{months}/{periodGrouping}/`). */

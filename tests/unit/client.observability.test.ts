@@ -91,7 +91,7 @@ describe("listContracts cursor pagination", () => {
     expect(capturedUrl).not.toContain("page=");
   });
 
-  it("falls back to page when cursor is absent", async () => {
+  it("sends neither page nor cursor when cursor is absent (cursor-only endpoint)", async () => {
     let capturedUrl = "";
     const fakeFetch = async (url: string) => {
       capturedUrl = url;
@@ -108,8 +108,9 @@ describe("listContracts cursor pagination", () => {
       fetchImpl: fakeFetch as unknown as typeof fetch,
       retries: 0,
     });
+    // `page` is ignored: /api/contracts/ is cursor-only.
     await client.listContracts({ page: 3 });
-    expect(capturedUrl).toContain("page=3");
+    expect(capturedUrl).not.toContain("page=");
     expect(capturedUrl).not.toContain("cursor=");
   });
 

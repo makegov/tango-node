@@ -1,6 +1,7 @@
 export { TangoClient } from "./client.js";
 export type {
   ListOptionsBase,
+  ListBudgetAccountsOptions,
   ListContractsOptions,
   ListEntitiesOptions,
   ListVehiclesOptions,

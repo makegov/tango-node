@@ -1,7 +1,15 @@
 export type { Agency } from "./Agency.js";
-export type { Contract } from "./Contract.js";
+export type { BudgetAccount } from "./BudgetAccount.js";
+export type {
+  Contract,
+  OrganizationOfficePayload,
+  PlaceOfPerformance,
+  SubawardsSummary,
+  LegislativeMandates,
+  ParentAwardReference,
+} from "./Contract.js";
 export type { Department } from "./Department.js";
-export type { Entity } from "./Entity.js";
+export type { Entity, EntityBasic } from "./Entity.js";
 export type { Forecast } from "./Forecast.js";
 export type { Grant } from "./Grant.js";
 export type { Location } from "./Location.js";

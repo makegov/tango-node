@@ -64,6 +64,7 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   naics: "listNaics",
   gsa_elibrary_contracts: "listGsaElibraryContracts",
   itdashboard: "listItDashboard",
+  budget_accounts: "listBudgetAccounts",
   offices: "listOffices",
 };
 
