@@ -247,7 +247,9 @@ describe("deliver - round-trip through real http server", () => {
     } finally {
       await close(server);
     }
-  });
+    // Real HTTP server round-trip + crypto signing: the default 5s vitest
+    // timeout is tight on slower/cold runtimes (observed flaking on Node 18 CI).
+  }, 20000);
 
   it("propagates the server's status code and body", async () => {
     const { server, url } = await listen((req, res) => {

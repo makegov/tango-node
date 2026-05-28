@@ -3,10 +3,11 @@ name: CI
 # Lint + typecheck + test gate runs on every PR and push to main.
 #
 # The SDK filter/shape conformance check needs the canonical manifest from the
-# private makegov/tango repo. That checkout requires a token the public CI does
-# not have, so the conformance step is kept separate and non-blocking
-# (continue-on-error) until a TANGO_API_REPO_ACCESS_TOKEN secret is wired up.
-# The lint + test gate below is fully self-contained and blocks the PR on failure.
+# private makegov/tango repo, which requires a TANGO_API_REPO_ACCESS_TOKEN secret
+# the public CI does not have. The conformance job SKIPS cleanly when the token
+# is absent (rather than failing on an empty token) and becomes a hard gate the
+# moment the secret is configured. The lint + test gate below is self-contained
+# and blocks the PR on failure.
 on:
   push:
     branches: [ main ]
@@ -51,16 +52,30 @@ jobs:
         run: npx vitest run
 
   conformance:
-    # Non-blocking: requires checkout of the private makegov/tango repo for the
-    # canonical filter_shape manifest. Wire a TANGO_API_REPO_ACCESS_TOKEN secret
-    # and flip continue-on-error to make this a hard gate.
+    # Requires the canonical filter_shape manifest from the private makegov/tango
+    # repo. When TANGO_API_REPO_ACCESS_TOKEN is not configured, every real step
+    # is skipped and the job passes (rather than failing on an empty token).
+    # Configure the secret to turn this into a hard gate automatically.
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
+      - name: Determine token availability
+        id: gate
+        env:
+          TANGO_API_REPO_ACCESS_TOKEN: ${{ secrets.TANGO_API_REPO_ACCESS_TOKEN }}
+        run: |
+          if [ -n "$TANGO_API_REPO_ACCESS_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping SDK conformance check — TANGO_API_REPO_ACCESS_TOKEN not configured."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.ready == 'true'
 
       - name: Checkout tango API repo (manifest source)
+        if: steps.gate.outputs.ready == 'true'
         uses: actions/checkout@v4
         with:
           repository: makegov/tango
@@ -68,12 +83,15 @@ jobs:
           token: ${{ secrets.TANGO_API_REPO_ACCESS_TOKEN }}
 
       - name: Set up Node.js
+        if: steps.gate.outputs.ready == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install dependencies
+        if: steps.gate.outputs.ready == 'true'
         run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Check SDK filter/shape conformance
+        if: steps.gate.outputs.ready == 'true'
         run: npx tsx scripts/check-filter-shape-conformance.ts --manifest tango-api/contracts/filter_shape_contract.json
