@@ -267,5 +267,7 @@ describe("deliver - round-trip through real http server", () => {
     } finally {
       await close(server);
     }
-  });
+    // Real HTTP server round-trip: default 5s timeout is tight on slower
+    // runtimes (observed flaking on Node 18 CI).
+  }, 20000);
 });

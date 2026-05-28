@@ -53,7 +53,7 @@ This project follows [Semantic Versioning](https://semver.org/).
   18/20/22). The filter/shape conformance check is a separate job that skips
   cleanly until a `TANGO_API_REPO_ACCESS_TOKEN` secret for the private manifest
   repo is configured, at which point it becomes a hard gate.
-- Gave the webhooks real-HTTP-server round-trip test an explicit 20s timeout
+- Gave the webhooks real-HTTP-server round-trip tests an explicit 20s timeout
   (the default 5s was tight on the slower Node 18 CI runtime).
 
 ## [1.0.0] - 2026-05-13
