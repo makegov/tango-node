@@ -7,6 +7,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-29
+
 ### Changed (breaking)
 - Removed `getIdvSummary` and `listIdvSummaryAwards`. These called
   `/api/idvs/{id}/summary/` and `/api/idvs/{id}/summary/awards/`, which have
