@@ -33,44 +33,46 @@ function makeFetch(
 
 describe("TangoClient.iterate (offset pagination)", () => {
   it("walks pages via the `next` URL's `?page=` parameter", async () => {
+    // Uses `iterateEntities` because /api/entities/ is genuinely page-based.
+    // (/api/contracts/ is cursor-only and is covered by the cursor test below.)
     const base = "https://example.test";
     const { fetchImpl, calls } = makeFetch([
       {
         count: 5,
-        next: `${base}/api/contracts/?page=2`,
-        results: [{ piid: "A1" }, { piid: "A2" }],
+        next: `${base}/api/entities/?page=2`,
+        results: [{ uei: "A1" }, { uei: "A2" }],
       },
       {
         count: 5,
-        next: `${base}/api/contracts/?page=3`,
-        results: [{ piid: "B1" }, { piid: "B2" }],
+        next: `${base}/api/entities/?page=3`,
+        results: [{ uei: "B1" }, { uei: "B2" }],
       },
       {
         count: 5,
         next: null,
-        results: [{ piid: "C1" }],
+        results: [{ uei: "C1" }],
       },
     ]);
 
     const client = new TangoClient({ apiKey: "k", baseUrl: base, fetchImpl, retries: 0 });
 
     const seen: string[] = [];
-    for await (const c of client.iterateContracts({ awarding_agency: "9700" })) {
-      seen.push(String((c as Record<string, unknown>).piid ?? ""));
+    for await (const c of client.iterateEntities({ state: "VA" })) {
+      seen.push(String((c as Record<string, unknown>).uei ?? ""));
     }
 
     expect(seen).toEqual(["A1", "A2", "B1", "B2", "C1"]);
     expect(calls.length).toBe(3);
 
-    // First call carries listContracts' default page=1; subsequent calls
-    // advance to page=2 then page=3. Iteration stops when `next` is null.
+    // First call carries listEntities' default page=1; the iterator then
+    // follows `?page=` from each response's `next` URL. Stops when `next` is null.
     const u1 = new URL(calls[0]);
     expect(u1.searchParams.get("page")).toBe("1");
-    expect(u1.searchParams.get("awarding_agency")).toBe("9700");
+    expect(u1.searchParams.get("state")).toBe("VA");
 
     const u2 = new URL(calls[1]);
     expect(u2.searchParams.get("page")).toBe("2");
-    expect(u2.searchParams.get("awarding_agency")).toBe("9700");
+    expect(u2.searchParams.get("state")).toBe("VA");
 
     const u3 = new URL(calls[2]);
     expect(u3.searchParams.get("page")).toBe("3");
