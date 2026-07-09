@@ -91,8 +91,8 @@ describe("Ported explicit schemas — parity with Python SDK", () => {
     );
   });
 
-  it("PROTEST_SCHEMA has 18 fields including dockets and organization expansions", () => {
-    expect(Object.keys(PROTEST_SCHEMA)).toHaveLength(18);
+  it("PROTEST_SCHEMA has 23 fields including dockets and organization expansions", () => {
+    expect(Object.keys(PROTEST_SCHEMA)).toHaveLength(23);
     expect(PROTEST_SCHEMA.case_id.isOptional).toBe(false);
     expect(PROTEST_SCHEMA.title).toBeDefined();
     expect(PROTEST_SCHEMA.filed_date.type).toBe("datetime");
@@ -101,13 +101,30 @@ describe("Ported explicit schemas — parity with Python SDK", () => {
     expect(PROTEST_SCHEMA.organization.nestedModel).toBe("OrganizationOffice");
   });
 
-  it("PROTEST_DOCKET_SCHEMA has 16 fields", () => {
-    expect(Object.keys(PROTEST_DOCKET_SCHEMA)).toHaveLength(16);
+  it("PROTEST_SCHEMA carries the five SBA OHA fields as optional scalars", () => {
+    for (const field of [
+      "challenged_party",
+      "naics_code",
+      "size_standard",
+      "outcome_reason",
+      "judge",
+    ]) {
+      expect(PROTEST_SCHEMA[field].type).toBe("str");
+      expect(PROTEST_SCHEMA[field].isOptional).toBe(true);
+      expect(PROTEST_SCHEMA[field].nestedModel).toBeNull();
+    }
+  });
+
+  it("PROTEST_DOCKET_SCHEMA has 21 fields", () => {
+    expect(Object.keys(PROTEST_DOCKET_SCHEMA)).toHaveLength(21);
     expect(PROTEST_DOCKET_SCHEMA.docket_number).toBeDefined();
     expect(PROTEST_DOCKET_SCHEMA.case_number).toBeDefined();
     expect(PROTEST_DOCKET_SCHEMA.filed_date.type).toBe("datetime");
     expect(PROTEST_DOCKET_SCHEMA.docket_url.type).toBe("str");
     expect(PROTEST_DOCKET_SCHEMA.digest).toBeDefined();
+    // The five SBA OHA fields are servable inside dockets(...) too.
+    expect(PROTEST_DOCKET_SCHEMA.challenged_party).toBeDefined();
+    expect(PROTEST_DOCKET_SCHEMA.judge).toBeDefined();
   });
 
   it("GSA_ELIBRARY_CONTRACT_SCHEMA has 9 fields with idv ref and recipient expansions", () => {

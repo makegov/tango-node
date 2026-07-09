@@ -3336,6 +3336,41 @@ export const PROTEST_DOCKET_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  challenged_party: {
+    name: "challenged_party",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  naics_code: {
+    name: "naics_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  size_standard: {
+    name: "size_standard",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  outcome_reason: {
+    name: "outcome_reason",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  judge: {
+    name: "judge",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
 };
 
 export const PROTEST_SCHEMA: FieldSchemaMap = {
@@ -3446,6 +3481,41 @@ export const PROTEST_SCHEMA: FieldSchemaMap = {
   },
   digest: {
     name: "digest",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  challenged_party: {
+    name: "challenged_party",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  naics_code: {
+    name: "naics_code",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  size_standard: {
+    name: "size_standard",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  outcome_reason: {
+    name: "outcome_reason",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  judge: {
+    name: "judge",
     type: "str",
     isOptional: true,
     isList: false,

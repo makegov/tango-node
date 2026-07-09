@@ -526,6 +526,8 @@ export interface ListProtestsOptions {
   agency?: string;
   case_number?: string;
   solicitation_number?: string;
+  /** NAICS code at issue. Sent verbatim — not the `naics` remap used elsewhere. */
+  naics_code?: string;
   protester?: string;
   search?: string;
   filed_date_after?: string;
@@ -1909,7 +1911,7 @@ export class TangoClient {
   // Protests + IT Dashboard + Metrics
   // ---------------------------------------------------------------------------
 
-  /** List protests (GAO + CoFC). */
+  /** List protests (GAO + CoFC + SBA OHA). */
   async listProtests(options: ListProtestsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     return this._genericPaginatedList("/api/protests/", options);
   }

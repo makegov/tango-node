@@ -725,4 +725,35 @@ describe("TangoClient", () => {
     );
     expect(deleteEndpointCall).toBeTruthy();
   });
+
+  it("sends the protests naics_code filter verbatim, not as the `naics` remap", async () => {
+    const calls: { url: string }[] = [];
+
+    const fetchImpl = async (url: string | URL): Promise<any> => {
+      calls.push({ url: String(url) });
+      const payload = { count: 0, next: null, previous: null, results: [] };
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify(payload);
+        },
+      };
+    };
+
+    const client = new TangoClient({
+      apiKey: "test",
+      baseUrl: "https://example.test",
+      fetchImpl,
+    });
+
+    await client.listProtests({ source_system: "sba_oha", naics_code: "541512" });
+
+    const parsed = new URL(calls[0].url);
+    expect(parsed.pathname).toBe("/api/protests/");
+    expect(parsed.searchParams.get("source_system")).toBe("sba_oha");
+    // listContracts remaps naics_code -> `naics`; the protests API param is literally naics_code.
+    expect(parsed.searchParams.get("naics_code")).toBe("541512");
+    expect(parsed.searchParams.get("naics")).toBeNull();
+  });
 });

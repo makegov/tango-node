@@ -147,5 +147,11 @@ export interface ProtestRecord {
   resolved_agency?: Record<string, unknown> | null;
   resolved_protester?: Record<string, unknown> | null;
   docket?: Array<Record<string, unknown>>;
+  // SBA OHA only; null on gao/cofc rows. Opt-in via shape=, like digest.
+  challenged_party?: string | null;
+  naics_code?: string | null;
+  size_standard?: string | null;
+  outcome_reason?: string | null;
+  judge?: string | null;
   [key: string]: unknown;
 }

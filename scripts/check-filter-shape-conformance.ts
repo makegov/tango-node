@@ -65,6 +65,7 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   gsa_elibrary_contracts: "listGsaElibraryContracts",
   itdashboard: "listItDashboard",
   budget_accounts: "listBudgetAccounts",
+  protests: "listProtests",
   offices: "listOffices",
 };
 
