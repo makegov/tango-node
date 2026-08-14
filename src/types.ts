@@ -48,6 +48,35 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   pageMetadata: Record<string, unknown> | null;
   /**
+   * Response-level metadata the API attached to this page, when present.
+   * Currently carries agency-filter diagnostics: `resolved_filters` maps each
+   * agency filter to the organizations its `|`-separated tokens resolved to
+   * (or `null`), and `warnings` lists human-readable notes about tokens that
+   * were dropped or matched loosely. See `agencyWarnings`,
+   * `unresolvedAgencyTokens`, and `resolvedAgencies` for the parsed views.
+   */
+  meta: Record<string, unknown> | null;
+  /**
+   * Warnings the API raised about agency filters on this request. Empty when
+   * every supplied agency token resolved cleanly — a non-empty list means part
+   * of the filter did not apply, so a small or empty `results` is not evidence
+   * that no such records exist.
+   */
+  agencyWarnings: string[];
+  /**
+   * Agency tokens that matched no organization, keyed by filter name. Empty
+   * when everything resolved. Use this to fail loudly in a pipeline rather
+   * than treating a silently-narrowed result set as an answer.
+   */
+  unresolvedAgencyTokens: Record<string, string[]>;
+  /**
+   * What each agency token actually resolved to, keyed by filter name. Agency
+   * resolution is fuzzy, so a token can match an organization the caller did
+   * not intend — checking the resolved `name` is the only way to catch that
+   * from the client side.
+   */
+  resolvedAgencies: Record<string, Array<Record<string, unknown>>>;
+  /**
    * Cursor for keyset-paginated endpoints, extracted from `next`. Pass it back
    * via the next request's `cursor` option. `null` when the endpoint is
    * page-based or the cursor isn't present in `next`.

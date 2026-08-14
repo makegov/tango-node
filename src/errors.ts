@@ -33,6 +33,30 @@ export class TangoValidationError extends TangoAPIError {
     super(message, statusCode, responseData);
     this.name = "TangoValidationError";
   }
+
+  /**
+   * Structured validation issues from the API response. For shape errors the
+   * API returns entries like `{"path": "tradeoff_process", "reason": "unknown_field"}`.
+   * Empty array when the response carried no structured issues.
+   */
+  get issues(): Array<Record<string, unknown>> {
+    const data = this.responseData;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return [];
+    const val = (data as Record<string, unknown>).issues;
+    if (!Array.isArray(val)) return [];
+    return val.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item));
+  }
+
+  /**
+   * The endpoint's valid field set, when the API includes one.
+   */
+  get availableFields(): Record<string, unknown> | null {
+    const data = this.responseData;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+    const val = (data as Record<string, unknown>).available_fields;
+    if (!val || typeof val !== "object" || Array.isArray(val)) return null;
+    return val as Record<string, unknown>;
+  }
 }
 
 export class TangoRateLimitError extends TangoAPIError {

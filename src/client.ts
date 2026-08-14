@@ -64,6 +64,39 @@ function extractCursorFromUrl(url: string | null): string | null {
   }
 }
 
+// `meta` is server-controlled, so every parser below tolerates a shape change
+// rather than crashing a caller's pagination loop.
+function parseAgencyWarnings(meta: AnyRecord | null): string[] {
+  const warnings = meta?.warnings;
+  return Array.isArray(warnings) ? warnings.map(String) : [];
+}
+
+function parseUnresolvedAgencyTokens(meta: AnyRecord | null): Record<string, string[]> {
+  const resolved = meta?.resolved_filters;
+  if (!isRecord(resolved)) return {};
+  const dropped: Record<string, string[]> = {};
+  for (const [filterName, entries] of Object.entries(resolved)) {
+    if (!Array.isArray(entries)) continue;
+    const tokens = entries
+      .filter((e): e is AnyRecord => isRecord(e) && e.resolved === null && e.token !== null && e.token !== undefined)
+      .map((e) => String(e.token));
+    if (tokens.length) dropped[filterName] = tokens;
+  }
+  return dropped;
+}
+
+function parseResolvedAgencies(meta: AnyRecord | null): Record<string, Array<Record<string, unknown>>> {
+  const resolved = meta?.resolved_filters;
+  if (!isRecord(resolved)) return {};
+  const matched: Record<string, Array<Record<string, unknown>>> = {};
+  for (const [filterName, entries] of Object.entries(resolved)) {
+    if (!Array.isArray(entries)) continue;
+    const orgs = entries.filter((e): e is AnyRecord => isRecord(e) && isRecord(e.resolved)).map((e) => e.resolved as AnyRecord);
+    if (orgs.length) matched[filterName] = orgs;
+  }
+  return matched;
+}
+
 function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedResponse<T> {
   const results = Array.isArray(raw?.results) ? (raw.results as T[]) : [];
   const rawCount = raw?.count;
@@ -72,10 +105,12 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
   const nextVal = raw?.next;
   const previousVal = raw?.previous;
   const pageMetadataVal = raw?.page_metadata;
+  const metaVal = raw?.meta;
 
   const next = typeof nextVal === "string" ? nextVal : null;
   const previous = typeof previousVal === "string" ? previousVal : null;
   const pageMetadata = isRecord(pageMetadataVal) ? pageMetadataVal : null;
+  const meta = isRecord(metaVal) ? metaVal : null;
   const cursor = extractCursorFromUrl(next);
 
   return {
@@ -83,6 +118,10 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
     next,
     previous,
     pageMetadata,
+    meta,
+    agencyWarnings: parseAgencyWarnings(meta),
+    unresolvedAgencyTokens: parseUnresolvedAgencyTokens(meta),
+    resolvedAgencies: parseResolvedAgencies(meta),
     cursor,
     results,
   };
@@ -1706,7 +1745,7 @@ export class TangoClient {
 
     // Endpoints are commonly paginated like other Tango resources, but keep this resilient.
     if (Array.isArray(data)) {
-      return { count: data.length, next: null, previous: null, pageMetadata: null, cursor: null, results: data as WebhookEndpoint[] };
+      return buildPaginatedResponse<WebhookEndpoint>({ results: data });
     }
     return buildPaginatedResponse<WebhookEndpoint>(data);
   }
