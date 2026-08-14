@@ -28,10 +28,10 @@ jobs:
         node-version: ["18", "20", "22"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -63,10 +63,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: npm
@@ -105,7 +105,7 @@ jobs:
 
       - name: Checkout tango API repo (contract source)
         if: steps.gate.outputs.ready == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: makegov/tango
           path: tango-api
