@@ -281,6 +281,84 @@ describe("TangoClient — webhook test-delivery body shape", () => {
   });
 });
 
+describe("TangoClient — GSA eLibrary detail", () => {
+  it("getGsaElibraryContract hits the detail path with the default minimal shape", async () => {
+    const { client, calls } = makeClient({ uuid: "abc-123", contract_number: "GS-35F-0001", schedule: "MAS" });
+    const res = await client.getGsaElibraryContract("abc-123");
+    expect(calls[0].url).toContain("/api/gsa_elibrary_contracts/abc-123/");
+    expect(calls[0].url).toContain("shape=");
+    expect((res as Record<string, unknown>).contract_number).toBe("GS-35F-0001");
+  });
+
+  it("getGsaElibraryContract passes an explicit shape + flat params", async () => {
+    const { client, calls } = makeClient({ uuid: "abc-123" });
+    await client.getGsaElibraryContract("abc-123", { shape: "uuid,contract_number", flat: true });
+    expect(calls[0].url).toContain("shape=uuid%2Ccontract_number");
+    expect(calls[0].url).toContain("flat=true");
+    expect(calls[0].url).toContain("joiner=.");
+  });
+
+  it("getGsaElibraryContract requires uuid", async () => {
+    const { client } = makeClient();
+    await expect(client.getGsaElibraryContract("")).rejects.toThrow();
+  });
+});
+
+describe("TangoClient — filter-surface catch-up", () => {
+  it("listBudgetAccounts sends range triplets under their dunder wire names", async () => {
+    const { client, calls } = makeClient();
+    await client.listBudgetAccounts({
+      requested_ba: 1000000,
+      unobligated_balance__gte: 500000,
+      obligated_to_apportioned_pct_capped__lte: 0.85,
+    });
+    expect(calls[0].url).toContain("/api/budget/accounts/");
+    expect(calls[0].url).toContain("requested_ba=1000000");
+    expect(calls[0].url).toContain("unobligated_balance__gte=500000");
+    expect(calls[0].url).toContain("obligated_to_apportioned_pct_capped__lte=0.85");
+  });
+
+  it("listBudgetAccounts remaps the legacy aliases to the forms the API understands", async () => {
+    const { client, calls } = makeClient();
+    await client.listBudgetAccounts({ fiscal_year_gte: 2021, fiscal_year_lte: 2024, account_title: "procurement" });
+    expect(calls[0].url).toContain("fiscal_year__gte=2021");
+    expect(calls[0].url).toContain("fiscal_year__lte=2024");
+    expect(calls[0].url).toContain("account_title__icontains=procurement");
+    expect(calls[0].url).not.toContain("fiscal_year_gte=2021");
+    expect(calls[0].url).not.toContain("account_title=procurement");
+  });
+
+  it("listBudgetAccounts lets an explicit dunder param win over its legacy alias", async () => {
+    const { client, calls } = makeClient();
+    await client.listBudgetAccounts({ fiscal_year_gte: 2021, fiscal_year__gte: 2023 });
+    expect(calls[0].url).toContain("fiscal_year__gte=2023");
+    expect(calls[0].url).not.toContain("2021");
+  });
+
+  it("listNaics sends the employee_limit filters", async () => {
+    const { client, calls } = makeClient();
+    await client.listNaics({ employee_limit: 500, employee_limit_gte: 100 });
+    expect(calls[0].url).toContain("/api/naics/");
+    expect(calls[0].url).toContain("employee_limit=500");
+    expect(calls[0].url).toContain("employee_limit_gte=100");
+  });
+
+  it("listPsc sends has_awards", async () => {
+    const { client, calls } = makeClient();
+    await client.listPsc({ has_awards: true });
+    expect(calls[0].url).toContain("/api/psc/");
+    expect(calls[0].url).toContain("has_awards=true");
+  });
+
+  it("listProtests sends naics_code verbatim (not remapped to naics)", async () => {
+    const { client, calls } = makeClient();
+    await client.listProtests({ naics_code: "541511" });
+    expect(calls[0].url).toContain("/api/protests/");
+    expect(calls[0].url).toContain("naics_code=541511");
+    expect(calls[0].url).not.toContain("naics=541511");
+  });
+});
+
 describe("TangoClient — misc parity methods", () => {
   it("searchOpportunityAttachments", async () => {
     const { client, calls } = makeClient({ results: [] });
