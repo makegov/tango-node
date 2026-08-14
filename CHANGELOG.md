@@ -5,6 +5,12 @@ All notable changes to `@makegov/tango-node` will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- **Node.js 20 is now the minimum supported version** (`engines.node >= 20`); the CI matrix moves from 18/20/22 to 20/22/24. Node 18 has been end-of-life since April 2025, and the security-patched test toolchain below requires 20+. Nothing in the published code changed — existing installs on Node 18 keep working, but they are no longer tested or supported.
+- Dev-dependency security upgrade clearing all six open Dependabot alerts (vitest 2.1.9 → 4.x, @vitest/coverage-v8 to match, tsx to the esbuild-0.28 line — the published package is unaffected, its only runtime dependency remains `commander`). One test-only fix for vitest 4's stricter mocks: constructable mocks now use regular-function implementations.
+
 ## [1.2.0] - 2026-08-14
 
 ### Added
