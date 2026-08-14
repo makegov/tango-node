@@ -7,6 +7,17 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Vendored the canonical API filter/shape contract at `contracts/filter_shape_contract.json` (API 4.22.0), so conformance checking is fully offline — no token, no sibling checkout.
+- New reverse shape-coverage gate `scripts/check-shape-coverage.ts` (npm script `check-shape-coverage`): walks every resource's shape tree in the vendored contract against the SDK's explicit schema registry and fails on any field or expand the SDK does not capture, unless recorded in `contracts/shape_coverage_baseline.json` as tracked backlog.
+- Accepted-gaps baselines: `contracts/conformance_baseline.json` (missing filters + unimplemented resources) and `contracts/shape_coverage_baseline.json` (known shape-coverage gaps). Baselined gaps report as warnings; anything new is an error.
+
+### Changed
+- `scripts/check-filter-shape-conformance.ts` now defaults to the vendored contract instead of a sibling `../tango` checkout (`TANGO_CONTRACT_PATH` or `--manifest` still point it at a live checkout), covers every resource in the 4.22.0 contract in its resource map, and treats an unimplemented resource as an error unless baselined.
+
+### CI
+- The `conformance` job is now a hard gate that runs both conformance directions offline against the vendored contract on every PR — it no longer needs `TANGO_API_REPO_ACCESS_TOKEN` and no longer skips silently without it. A separate token-gated step diffs the vendored contract against makegov/tango HEAD and emits a staleness warning (never a failure).
+
 ## [1.1.0] - 2026-05-29
 
 ### Changed (breaking)

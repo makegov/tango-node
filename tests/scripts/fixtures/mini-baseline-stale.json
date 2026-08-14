@@ -1,0 +1,7 @@
+{
+  "_comment": "Fixture baseline: every entry is stale — foos exposes all filters and is mapped to a real method.",
+  "missing_filters": {
+    "foos": ["awarding_agency"]
+  },
+  "unimplemented_resources": ["foos"]
+}

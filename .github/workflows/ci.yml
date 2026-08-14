@@ -2,12 +2,14 @@ name: CI
 
 # Lint + typecheck + test gate runs on every PR and push to main.
 #
-# The SDK filter/shape conformance check needs the canonical manifest from the
-# private makegov/tango repo, which requires a TANGO_API_REPO_ACCESS_TOKEN secret
-# the public CI does not have. The conformance job SKIPS cleanly when the token
-# is absent (rather than failing on an empty token) and becomes a hard gate the
-# moment the secret is configured. The lint + test gate below is self-contained
-# and blocks the PR on failure.
+# The SDK filter/shape conformance check and the reverse shape-coverage check
+# are HARD gates that run offline against the vendored contract at
+# contracts/filter_shape_contract.json — no secrets needed, so forks and
+# tokenless runs get the full check instead of a silent skip. A second,
+# token-gated step compares the vendored contract against the tango repo's
+# HEAD and emits a staleness notice (never a failure — tango HEAD may carry
+# unreleased changes). Refresh the vendored contract by copying
+# contracts/filter_shape_contract.json from makegov/tango.
 on:
   push:
     branches: [ main ]
@@ -52,13 +54,33 @@ jobs:
         run: npx vitest run
 
   conformance:
-    # Requires the canonical filter_shape manifest from the private makegov/tango
-    # repo. When TANGO_API_REPO_ACCESS_TOKEN is not configured, every real step
-    # is skipped and the job passes (rather than failing on an empty token).
-    # Configure the secret to turn this into a hard gate automatically.
+    # Hard gate against the vendored contract (contracts/filter_shape_contract.json).
+    # Runs unconditionally — no secrets required, so forks and tokenless runs
+    # get the full check instead of a silent skip.
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Check SDK filter/shape conformance (vendored contract)
+        run: npx tsx scripts/check-filter-shape-conformance.ts
+
+      - name: Check reverse shape coverage (Tango exposes -> SDK captures)
+        # Complements the conformance check with the OTHER direction: fails when
+        # Tango's shape trees expose a field/expand the SDK schema doesn't capture
+        # and it isn't in contracts/shape_coverage_baseline.json. Also offline
+        # against the vendored contract — no secrets, works on forks.
+        run: npx tsx scripts/check-shape-coverage.ts
+
+      # --- Staleness notice (best-effort, never fails the job) ---------------
       - name: Determine token availability
         id: gate
         env:
@@ -68,13 +90,10 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping SDK conformance check — TANGO_API_REPO_ACCESS_TOKEN not configured."
+            echo "::notice::Contract staleness check skipped — TANGO_API_REPO_ACCESS_TOKEN not configured."
           fi
 
-      - uses: actions/checkout@v4
-        if: steps.gate.outputs.ready == 'true'
-
-      - name: Checkout tango API repo (manifest source)
+      - name: Checkout tango API repo (contract source)
         if: steps.gate.outputs.ready == 'true'
         uses: actions/checkout@v4
         with:
@@ -82,16 +101,11 @@ jobs:
           path: tango-api
           token: ${{ secrets.TANGO_API_REPO_ACCESS_TOKEN }}
 
-      - name: Set up Node.js
+      - name: Compare vendored contract against tango HEAD
         if: steps.gate.outputs.ready == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install dependencies
-        if: steps.gate.outputs.ready == 'true'
-        run: npm install --ignore-scripts --no-audit --no-fund
-
-      - name: Check SDK filter/shape conformance
-        if: steps.gate.outputs.ready == 'true'
-        run: npx tsx scripts/check-filter-shape-conformance.ts --manifest tango-api/contracts/filter_shape_contract.json
+        run: |
+          if ! diff -q contracts/filter_shape_contract.json tango-api/contracts/filter_shape_contract.json >/dev/null; then
+            echo "::warning::Vendored contract differs from makegov/tango HEAD. Refresh contracts/filter_shape_contract.json and re-run the conformance gates."
+          else
+            echo "Vendored contract matches makegov/tango HEAD."
+          fi

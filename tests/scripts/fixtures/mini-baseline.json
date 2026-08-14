@@ -1,0 +1,7 @@
+{
+  "_comment": "Fixture baseline: accepts bars' missing awarding_agency filter and the unimplemented foos resource.",
+  "missing_filters": {
+    "bars": ["awarding_agency"]
+  },
+  "unimplemented_resources": ["foos"]
+}
