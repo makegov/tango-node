@@ -5,7 +5,7 @@ All notable changes to `@makegov/tango-node` will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.0] - 2026-08-14
 
 ### Added
 - **DIBBS, exclusions, and SBIR/STTR endpoint support** (parity with tango-python v1.3.0). Six endpoint families had no SDK support at all — no models, no methods. Added `listDibbsRfqs`/`getDibbsRfq`, `listDibbsRfps`/`getDibbsRfp`, `listDibbsAwards`/`getDibbsAward`, `listExclusions`/`getExclusion`, `listSbirTopics`/`getSbirTopic`, and `listSbirSolicitations`/`getSbirSolicitation`, with every filter param in the API contract exposed as a typed option, explicit shape schemas (including the nested organization/awardee/topic/document expands), `ShapeConfig` defaults, and async iterators (`iterateDibbsRfqs`, `iterateDibbsRfps`, `iterateDibbsAwards`, `iterateExclusions`, `iterateSbirTopics`, `iterateSbirSolicitations`, plus the matching `IterableListMethod` entries for the generic `iterate()`). New model interfaces: `DibbsRfq`, `DibbsRfp`, `DibbsAward`, `Exclusion`, `SbirTopic`, `SbirSolicitation`.
