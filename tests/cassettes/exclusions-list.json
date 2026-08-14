@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/exclusions/?limit=3&page=1&shape=exclusion_key%2Cdisplay_name%2Centity_name%2Cuei%2Cclassification_type%2Cexclusion_type%2Cexcluding_agency_name%2Cactivate_date%2Ctermination_date%2Cis_currently_excluded"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "972",
+          "x-ratelimit-burst-reset": "36",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999895",
+          "x-ratelimit-daily-reset": "24276",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "972",
+          "x-ratelimit-reset": "36",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 163114,
+          "next": "https://tango.makegov.com/api/exclusions/?limit=3&page=2&shape=exclusion_key%2Cdisplay_name%2Centity_name%2Cuei%2Cclassification_type%2Cexclusion_type%2Cexcluding_agency_name%2Cactivate_date%2Ctermination_date%2Cis_currently_excluded",
+          "previous": null,
+          "results": [
+            {
+              "activate_date": "2026-02-17",
+              "classification_type": "Individual",
+              "display_name": "Davendra Rampersaud",
+              "entity_name": "Davendra Rampersaud",
+              "excluding_agency_name": "AGENCY FOR INTERNATIONAL DEVELOPMENT",
+              "exclusion_key": "cca3d55eb11b1a2110ab5610c280ebd7c33f0b5fa7c0a85e8dd2cf807b9c4749",
+              "exclusion_type": "Ineligible (Proceedings Complete)",
+              "is_currently_excluded": true,
+              "termination_date": "2029-02-16",
+              "uei": ""
+            },
+            {
+              "activate_date": "2026-07-17",
+              "classification_type": "Individual",
+              "display_name": "Esvin Fernando Marroquin Tupas",
+              "entity_name": "Esvin Fernando Marroquin Tupas",
+              "excluding_agency_name": "JUSTICE, DEPARTMENT OF",
+              "exclusion_key": "e9859ac007843befd8349e1d905ac10b1f003ff0aa8fd7dfa80c5ad3aa161938",
+              "exclusion_type": "Ineligible (Proceedings Complete)",
+              "is_currently_excluded": true,
+              "termination_date": "2031-07-16",
+              "uei": ""
+            },
+            {
+              "activate_date": "2026-07-15",
+              "classification_type": "Individual",
+              "display_name": "Daniel Castillo-Hurtado",
+              "entity_name": "Daniel Castillo-Hurtado",
+              "excluding_agency_name": "JUSTICE, DEPARTMENT OF",
+              "exclusion_key": "6c263f882801d558a5cc6497d64f4893ae8cba3fe38c108c305cffcb4be66a1d",
+              "exclusion_type": "Ineligible (Proceedings Complete)",
+              "is_currently_excluded": true,
+              "termination_date": "2031-07-14",
+              "uei": ""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

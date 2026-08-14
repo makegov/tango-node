@@ -51,7 +51,14 @@ jobs:
 
       - name: Test
         # `vitest run` forces a single non-watch pass in CI.
+        # Integration tests replay the committed cassettes offline; production smoke stays excluded (env-gated on TANGO_LIVE_TESTS, never set here).
         run: npx vitest run
+
+      - name: Coverage summary
+        # One matrix leg is enough; the text reporter prints the summary.
+        # No fail-under gate — parity with tango-python, which has none.
+        if: matrix.node-version == '20'
+        run: npx vitest run --coverage
 
   conformance:
     # Hard gate against the vendored contract (contracts/filter_shape_contract.json).

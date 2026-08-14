@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/subawards/?limit=3&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "958",
+          "x-ratelimit-burst-reset": "25",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999881",
+          "x-ratelimit-daily-reset": "24265",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "958",
+          "x-ratelimit-reset": "25",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 2736056,
+          "next": "https://tango.makegov.com/api/subawards/?limit=3&page=2",
+          "previous": null,
+          "results": [
+            {
+              "award_key": "CONT_AWD_HQ003415F0031_9700_GS35F0371N_4730",
+              "awarding_office": {
+                "office_code": "HQ0034",
+                "office_name": "WASHINGTON HEADQUARTERS SERVICES",
+                "agency_code": "97F5",
+                "agency_name": "Washington Headquarters Services",
+                "department_code": 97,
+                "department_name": "Department of Defense"
+              },
+              "fsrs_details": {
+                "last_modified_date": "2020-11-30T00:00:00",
+                "id": "192EA6D8-FCB9-11EF-8E2A-E7034F2D18CD",
+                "year": 2020,
+                "month": 11
+              },
+              "funding_office": {
+                "office_code": "HQ0002",
+                "office_name": "OFFICE OF THE SECRETARY OF DEFENSE",
+                "agency_code": "97AD",
+                "agency_name": "Immediate Office of the Secretary of Defense",
+                "department_code": 97,
+                "department_name": "Department of Defense"
+              },
+              "key": 34340794,
+              "piid": "HQ003415F0031",
+              "place_of_performance": {
+                "city": "ANNAPOLIS",
+                "state": "MARYLAND",
+                "zip": "21409",
+                "country_code": "USA"
+              },
+              "prime_recipient": {
+                "uei": "C47BNA8GM833",
+                "display_name": "ACCENTURE FEDERAL SERVICES LLC"
+              },
+              "subaward_details": {
+                "description": "PROCUREMENT IN SUPPORT OF CONTRACT SOW.",
+                "type": "sub-contract",
+                "number": "17652-16-001",
+                "amount": 526415,
+                "action_date": "2106-12-01T00:00:00",
+                "fiscal_year": 2107
+              },
+              "subaward_recipient": {
+                "uei": "Z9CJC8GFNZ87",
+                "display_name": "ARDALYST FEDERAL, LLC"
+              }
+            },
+            {
+              "award_key": "CONT_AWD_75P00123F37026_7570_HHSP233201500038I_7555",
+              "awarding_office": {
+                "office_code": "75P001",
+                "office_name": "PROGRAM SUPPORT CENTER ACQ MGMT SVC",
+                "agency_code": "7570",
+                "agency_name": "Office of the Assistant Secretary for Administration",
+                "department_code": 75,
+                "department_name": "Department of Health and Human Services"
+              },
+              "fsrs_details": {
+                "last_modified_date": "2024-10-23T00:00:00",
+                "id": "aa426fe8-fcb8-11ef-8e2a-e7034f2d18cd",
+                "year": 2024,
+                "month": 10
+              },
+              "funding_office": {
+                "office_code": "75P001",
+                "office_name": "PROGRAM SUPPORT CENTER ACQ MGMT SVC",
+                "agency_code": "7570",
+                "agency_name": "Office of the Assistant Secretary for Administration",
+                "department_code": 75,
+                "department_name": "Department of Health and Human Services"
+              },
+              "key": 35010022,
+              "piid": "75P00123F37026",
+              "place_of_performance": {
+                "city": "WASHINGTON",
+                "state": "DISTRICT OF COLUMBIA",
+                "zip": "200242131",
+                "country_code": "USA"
+              },
+              "prime_recipient": {
+                "uei": "YY46Q97AEZA8",
+                "display_name": "THE RAND CORPORATION"
+              },
+              "subaward_details": {
+                "description": "THE PURPOSE OF THIS CONTRACT IS FOR POLICY ANALYSIS AND TECHNICAL ASSISTANCE FOR EMERGING ISSUES IN HEALTH AND HUMAN SERVICES POLICY",
+                "type": "sub-contract",
+                "number": "SCON-00000669",
+                "amount": 74551,
+                "action_date": "2026-08-24T00:00:00",
+                "fiscal_year": 2026
+              },
+              "subaward_recipient": {
+                "uei": "VNAYDLRGSKU3",
+                "display_name": "THE URBAN INSTITUTE"
+              }
+            },
+            {
+              "award_key": "CONT_AWD_693JJ922F00003N_6940_693JJ319A000013_6925",
+              "awarding_office": {
+                "office_code": "693JJ9",
+                "office_name": "693JJ9 NHTSA OFFICE OF ACQUISTION",
+                "agency_code": "6940",
+                "agency_name": "National Highway Traffic Safety Administration",
+                "department_code": 69,
+                "department_name": "Department of Transportation"
+              },
+              "fsrs_details": {
+                "last_modified_date": "2026-08-13T00:00:00",
+                "id": "54f6ff6f-bc3b-47bc-adf5-6af9c78c3751",
+                "year": null,
+                "month": null
+              },
+              "funding_office": {
+                "office_code": "693JJ9",
+                "office_name": "693JJ9 NHTSA OFFICE OF ACQUISTION",
+                "agency_code": "6940",
+                "agency_name": "National Highway Traffic Safety Administration",
+                "department_code": 69,
+                "department_name": "Department of Transportation"
+              },
+              "key": 36430127,
+              "piid": "693JJ922F00003N",
+              "place_of_performance": {
+                "city": null,
+                "state": null,
+                "zip": null,
+                "country_code": null
+              },
+              "prime_recipient": {
+                "uei": "VMRTJLWMQRH7",
+                "display_name": "HALVIK, LLC"
+              },
+              "subaward_details": {
+                "description": "CEMS AND SPIN O&M AND DME SUPPORT SERVICES",
+                "type": "sub-contract",
+                "number": "DELANEYADVANTAGE-SWES-TO2 - M6",
+                "amount": 219337.73,
+                "action_date": "2026-08-13T00:00:00",
+                "fiscal_year": 2026
+              },
+              "subaward_recipient": {
+                "uei": "HACXTELBJCZ2",
+                "display_name": "DELANEY ADVANTAGE TECHNOLOGIES L.L.C."
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

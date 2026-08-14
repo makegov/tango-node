@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/vehicles/?limit=3&ordering=not_a_real_field&page=1&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "984",
+          "x-ratelimit-burst-reset": "46",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999907",
+          "x-ratelimit-daily-reset": "24286",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "984",
+          "x-ratelimit-reset": "46",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "error": "Invalid ordering value(s): not_a_real_field. Allowed values are: award_date, fiscal_year, idv_count, last_date_to_order, latest_award_date, order_count, total_obligated, vehicle_obligations."
+        }
+      }
+    }
+  ]
+}

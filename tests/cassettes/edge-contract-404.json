@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/contracts/tango-node-no-such-key/?shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "985",
+          "x-ratelimit-burst-reset": "46",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999908",
+          "x-ratelimit-daily-reset": "24287",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "985",
+          "x-ratelimit-reset": "46",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "detail": "No Contract matches the given query."
+        }
+      }
+    }
+  ]
+}

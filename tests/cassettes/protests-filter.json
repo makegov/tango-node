@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/protests/?filed_date_after=2025-01-01&limit=3&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "955",
+          "x-ratelimit-burst-reset": "23",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999878",
+          "x-ratelimit-daily-reset": "24263",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "955",
+          "x-ratelimit-reset": "23",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 1587,
+          "next": "https://tango.makegov.com/api/protests/?filed_date_after=2025-01-01&limit=3&page=2",
+          "previous": null,
+          "results": [
+            {
+              "agency": "Department of Homeland Security : Department of Homeland Security",
+              "case_id": "79b90eb7-24d4-56af-aec3-e94c8e84a302",
+              "case_number": "b-424490",
+              "case_type": "Bid Protest",
+              "decision_date": "2026-08-13",
+              "decision_url": null,
+              "docket_url": "https://www.gao.gov/docket/b-424490.1",
+              "due_date": "2026-08-17",
+              "filed_date": "2026-05-08",
+              "organization": {
+                "organization_id": "a8fa72a7-1423-526f-bdd4-40d8319b9f4f",
+                "office_code": "070",
+                "office_name": "HOMELAND SECURITY, DEPARTMENT OF",
+                "agency_code": "7000",
+                "agency_name": null,
+                "department_code": "070",
+                "department_name": "HOMELAND SECURITY, DEPARTMENT OF"
+              },
+              "outcome": "Denied",
+              "posted_date": "2026-08-13",
+              "protester": "Integrity Management Consulting, Inc.",
+              "solicitation_number": "70RTAC25Q00000042",
+              "source_system": "gao",
+              "title": "Integrity Management Consulting, Inc. (70RTAC25Q00000042)"
+            },
+            {
+              "agency": "Department of the Interior : Bureau of Indian Affairs",
+              "case_id": "47b02a76-79bd-5660-93b9-2f0ee5f476b2",
+              "case_number": "b-424540",
+              "case_type": "Bid Protest",
+              "decision_date": "2026-08-13",
+              "decision_url": null,
+              "docket_url": "https://www.gao.gov/docket/b-424540.1",
+              "due_date": "2026-09-08",
+              "filed_date": "2026-05-29",
+              "organization": {
+                "organization_id": "5439f74a-1c16-5d3d-9d10-1d23e418d6eb",
+                "office_code": "1450",
+                "office_name": "BUREAU OF INDIAN AFFAIRS",
+                "agency_code": "1450",
+                "agency_name": "BUREAU OF INDIAN AFFAIRS",
+                "department_code": "014",
+                "department_name": "INTERIOR, DEPARTMENT OF THE"
+              },
+              "outcome": "Denied",
+              "posted_date": "2026-08-13",
+              "protester": "Oready, LLC",
+              "solicitation_number": "140A2326Q0129",
+              "source_system": "gao",
+              "title": "Oready, LLC (140A2326Q0129)"
+            },
+            {
+              "agency": "Department of Health and Human Services : Centers for Disease Control and Prevention",
+              "case_id": "a105a37a-a6a6-5713-9d40-83b1d01a3547",
+              "case_number": "b-424675",
+              "case_type": "Bid Protest",
+              "decision_date": "2026-08-13",
+              "decision_url": null,
+              "docket_url": "https://www.gao.gov/docket/b-424675.1",
+              "due_date": "2026-11-02",
+              "filed_date": "2026-07-23",
+              "organization": {
+                "organization_id": "2a844073-ba16-53e3-ac40-22340749941e",
+                "office_code": "7523",
+                "office_name": "CENTERS FOR DISEASE CONTROL AND PREVENTION",
+                "agency_code": "7523",
+                "agency_name": "CENTERS FOR DISEASE CONTROL AND PREVENTION",
+                "department_code": "075",
+                "department_name": "HEALTH AND HUMAN SERVICES, DEPARTMENT OF"
+              },
+              "outcome": "Dismissed",
+              "posted_date": "2026-08-13",
+              "protester": "Alpha Genesis, Inc.",
+              "solicitation_number": "75D30126Q79062",
+              "source_system": "gao",
+              "title": "Alpha Genesis, Inc. (75D30126Q79062)"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

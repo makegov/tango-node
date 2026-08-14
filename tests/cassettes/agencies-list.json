@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/agencies/?limit=5&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "993",
+          "x-ratelimit-burst-reset": "55",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999916",
+          "x-ratelimit-daily-reset": "24296",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "993",
+          "x-ratelimit-reset": "55",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 1496,
+          "next": "https://tango.makegov.com/api/agencies/?limit=5&page=2",
+          "previous": null,
+          "results": [
+            {
+              "abbreviation": "",
+              "code": "21EB",
+              "department": {
+                "code": 97,
+                "name": "Department of Defense"
+              },
+              "name": "1st Personnel Command"
+            },
+            {
+              "abbreviation": "",
+              "code": "21E2",
+              "department": {
+                "code": 97,
+                "name": "Department of Defense"
+              },
+              "name": "21st Theater Army Area Command"
+            },
+            {
+              "abbreviation": "",
+              "code": "21EO",
+              "department": {
+                "code": 97,
+                "name": "Department of Defense"
+              },
+              "name": "59th Ordnance Brigade"
+            },
+            {
+              "abbreviation": "",
+              "code": "21EN",
+              "department": {
+                "code": 97,
+                "name": "Department of Defense"
+              },
+              "name": "7th Army Training Command"
+            },
+            {
+              "abbreviation": "",
+              "code": "21P8",
+              "department": {
+                "code": 97,
+                "name": "Department of Defense"
+              },
+              "name": "8th U.S. Army"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

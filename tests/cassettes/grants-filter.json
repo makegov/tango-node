@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/grants/?limit=3&page=1&posted_date_after=2025-01-01&shape=grant_id%2Ctitle"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "969",
+          "x-ratelimit-burst-reset": "0",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999876",
+          "x-ratelimit-daily-reset": "24226",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "969",
+          "x-ratelimit-reset": "0",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 3967,
+          "next": "https://tango.makegov.com/api/grants/?limit=3&page=2&posted_date_after=2025-01-01&shape=grant_id%2Ctitle",
+          "previous": null,
+          "results": [
+            {
+              "grant_id": 363555,
+              "title": "Strategies to Innovate EmeRgENcy Care Clinical Trials Network (SIREN) Infrastructure &ndash; Clinical Coordinating Center (CCC) and Data Coordinating Center (DCC)"
+            },
+            {
+              "grant_id": 363557,
+              "title": "Alzheimer's Drug-Development Program (U01 Clinical Trial Optional)"
+            },
+            {
+              "grant_id": 363556,
+              "title": "Strategies to Innovate EmeRgENcy Care Clinical Trials Network (SIREN) Infrastructure &ndash; Clinical Enrollment Hubs"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

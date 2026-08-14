@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/opportunities/?limit=3&page=1&shape=opportunity_id%2Ctitle%2Csolicitation_number%2Cresponse_deadline%2Cactive"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "968",
+          "x-ratelimit-burst-reset": "33",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999891",
+          "x-ratelimit-daily-reset": "24273",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "968",
+          "x-ratelimit-reset": "33",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 45677,
+          "next": "https://tango.makegov.com/api/opportunities/?limit=3&page=2&shape=opportunity_id%2Ctitle%2Csolicitation_number%2Cresponse_deadline%2Cactive",
+          "previous": null,
+          "results": [
+            {
+              "active": true,
+              "opportunity_id": "ba9961ee-0b29-4dbc-b9a7-2c6d2952c54b",
+              "response_deadline": "2026-08-24T14:00:00+00:00",
+              "solicitation_number": "N0018926QL330",
+              "title": "NCTAMS LANT HVAC Support Services"
+            },
+            {
+              "active": true,
+              "opportunity_id": "2a274420-1974-4c74-8cc2-77369f8769e4",
+              "response_deadline": "2026-08-31T18:00:00+00:00",
+              "solicitation_number": "140P1326Q0030",
+              "title": "324933E PUMPING OF VAULT TOILETS"
+            },
+            {
+              "active": true,
+              "opportunity_id": "0e333258-a75c-409a-92c9-c02001576722",
+              "response_deadline": "2026-08-19T19:00:00+00:00",
+              "solicitation_number": "W9127N26Q1CE6",
+              "title": "USACE Portland - Bow Thruster Propeller Purchase"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

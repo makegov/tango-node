@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/sbir/solicitations/?limit=3&page=1&shape=solicitation_id%2Csolicitation_number%2Ctitle%2Cprogram%2Cactivity%2Ccycle_name%2Csolicitation_status%2Cyear%2Cstart_date%2Cend_date"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "980",
+          "x-ratelimit-burst-reset": "43",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999903",
+          "x-ratelimit-daily-reset": "24284",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "980",
+          "x-ratelimit-reset": "43",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 240,
+          "next": "https://tango.makegov.com/api/sbir/solicitations/?limit=3&page=2&shape=solicitation_id%2Csolicitation_number%2Ctitle%2Cprogram%2Cactivity%2Ccycle_name%2Csolicitation_status%2Cyear%2Cstart_date%2Cend_date",
+          "previous": null,
+          "results": [
+            {
+              "activity": "open",
+              "cycle_name": "DOD_SBIR_2026_P1_CBZ",
+              "end_date": "2026-12-31",
+              "program": "SBIR",
+              "solicitation_id": "dsip-solicitation-7c6951570946982dd502",
+              "solicitation_number": "26.BZ",
+              "solicitation_status": "active",
+              "start_date": "2026-04-13",
+              "title": "DoW SBIR 2026 BAA",
+              "year": 2026
+            },
+            {
+              "activity": "open",
+              "cycle_name": "DOD_SBIR_2026_P1_CBX",
+              "end_date": "2026-12-31",
+              "program": "SBIR",
+              "solicitation_id": "dsip-solicitation-45ee28cc99c45b9fa1cf",
+              "solicitation_number": "26.BX",
+              "solicitation_status": "active",
+              "start_date": "2026-04-13",
+              "title": "DoW SBIR 2026 CSO",
+              "year": 2026
+            },
+            {
+              "activity": "open",
+              "cycle_name": "DOD_STTR_2026_P1_CTZ",
+              "end_date": "2026-12-31",
+              "program": "STTR",
+              "solicitation_id": "dsip-solicitation-bc8eb4742bc5b8f944d8",
+              "solicitation_number": "26.TZ",
+              "solicitation_status": "active",
+              "start_date": "2026-04-13",
+              "title": "DoW STTR 2026 BAA",
+              "year": 2026
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

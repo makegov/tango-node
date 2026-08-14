@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/organizations/?level=1&limit=3&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "990",
+          "x-ratelimit-burst-reset": "54",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999913",
+          "x-ratelimit-daily-reset": "24294",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "990",
+          "x-ratelimit-reset": "54",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 168,
+          "next": "https://tango.makegov.com/api/organizations/?level=1&limit=3&page=2",
+          "previous": null,
+          "results": [
+            {
+              "canonical_code": "L1:9700",
+              "cgac": "097",
+              "code": "097",
+              "fh_key": "100000000",
+              "fpds_code": "9700",
+              "full_parent_path_name": "DEPT OF DEFENSE",
+              "is_active": true,
+              "key": "2278181c-046b-5265-b4e6-74444829a573",
+              "level": 1,
+              "name": "DEPT OF DEFENSE",
+              "parent_fh_key": null,
+              "short_name": "DOD",
+              "type": "DEPARTMENT"
+            },
+            {
+              "canonical_code": "L1:6900",
+              "cgac": "069",
+              "code": "069",
+              "fh_key": "100000136",
+              "fpds_code": "6900",
+              "full_parent_path_name": "TRANSPORTATION, DEPARTMENT OF",
+              "is_active": true,
+              "key": "0ae2882f-df52-52f2-941f-98cd6aa9326c",
+              "level": 1,
+              "name": "TRANSPORTATION, DEPARTMENT OF",
+              "parent_fh_key": null,
+              "short_name": "DOT",
+              "type": "DEPARTMENT"
+            },
+            {
+              "canonical_code": "L1:8000",
+              "cgac": "080",
+              "code": "080",
+              "fh_key": "100000266",
+              "fpds_code": "8000",
+              "full_parent_path_name": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION",
+              "is_active": true,
+              "key": "aecc8c09-638c-5271-8915-8b499f920587",
+              "level": 1,
+              "name": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION",
+              "parent_fh_key": null,
+              "short_name": "NASA",
+              "type": "DEPARTMENT"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

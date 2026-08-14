@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/sbir/topics/?limit=3&page=1&shape=topic_id%2Ctopic_number%2Ctitle%2Cagency%2Cactivity%2Cyear%2Csolicitation_number%2Copen_date%2Cclose_date%2Clisted_open"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "982",
+          "x-ratelimit-burst-reset": "44",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999905",
+          "x-ratelimit-daily-reset": "24285",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "982",
+          "x-ratelimit-reset": "44",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 22739,
+          "next": "https://tango.makegov.com/api/sbir/topics/?limit=3&page=2&shape=topic_id%2Ctopic_number%2Ctitle%2Cagency%2Cactivity%2Cyear%2Csolicitation_number%2Copen_date%2Cclose_date%2Clisted_open",
+          "previous": null,
+          "results": [
+            {
+              "activity": "closed",
+              "agency": "NSF",
+              "close_date": "2027-07-07",
+              "listed_open": false,
+              "open_date": "2026-05-22",
+              "solicitation_number": "NSF 26-510",
+              "title": "Food Waste Mitigation",
+              "topic_id": "sbir-topic-0cce9192d84e1dd86be5",
+              "topic_number": "AG3",
+              "year": 2026
+            },
+            {
+              "activity": "closed",
+              "agency": "NSF",
+              "close_date": "2027-07-07",
+              "listed_open": false,
+              "open_date": "2026-05-22",
+              "solicitation_number": "NSF 26-510",
+              "title": "Polyculture Systems",
+              "topic_id": "sbir-topic-68e91df9569ccdba9cd4",
+              "topic_number": "AG7",
+              "year": 2026
+            },
+            {
+              "activity": "closed",
+              "agency": "NSF",
+              "close_date": "2027-07-07",
+              "listed_open": false,
+              "open_date": "2026-05-22",
+              "solicitation_number": "NSF 26-510",
+              "title": "Decision Support and Optimization",
+              "topic_id": "sbir-topic-894261af3b97a191e396",
+              "topic_number": "AA3",
+              "year": 2026
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

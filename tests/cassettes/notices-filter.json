@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/notices/?limit=3&page=1&posted_date_after=2025-01-01&shape=notice_id%2Ctitle%2Csolicitation_number%2Cposted_date"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "963",
+          "x-ratelimit-burst-reset": "29",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999886",
+          "x-ratelimit-daily-reset": "24269",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "963",
+          "x-ratelimit-reset": "29",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 650660,
+          "next": "https://tango.makegov.com/api/notices/?limit=3&page=2&posted_date_after=2025-01-01&shape=notice_id%2Ctitle%2Csolicitation_number%2Cposted_date",
+          "previous": null,
+          "results": [
+            {
+              "notice_id": "d45af4c8-a293-338c-8a11-5581354b7b21",
+              "posted_date": "2029-12-20T06:18:21+00:00",
+              "solicitation_number": "M6740010T0104",
+              "title": "G--Keyboardist- Catholic Services, 1200 SUN MCAS Futenma"
+            },
+            {
+              "notice_id": "ba9961ee-0b29-4dbc-b9a7-2c6d2952c54b",
+              "posted_date": "2026-08-14T16:29:55+00:00",
+              "solicitation_number": "N0018926QL330",
+              "title": "NCTAMS LANT HVAC Support Services"
+            },
+            {
+              "notice_id": "2a274420-1974-4c74-8cc2-77369f8769e4",
+              "posted_date": "2026-08-14T16:29:28+00:00",
+              "solicitation_number": "140P1326Q0030",
+              "title": "324933E PUMPING OF VAULT TOILETS"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

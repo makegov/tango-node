@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/contracts/?limit=3&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "999",
+          "x-ratelimit-burst-reset": "59",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999922",
+          "x-ratelimit-daily-reset": "24300",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "999",
+          "x-ratelimit-reset": "59",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 86157384,
+          "next": "https://tango.makegov.com/api/contracts/?limit=3&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value&cursor=WyIyMDI2LTA4LTEzIiwgImZmMWIwY2JmLWVmZTItNTI0MC1iZmVlLWFkMWI2MmNlMjVkYyJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTA4LTEzIiwgImZmMWIwY2JmLWVmZTItNTI0MC1iZmVlLWFkMWI2MmNlMjVkYyJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "award_date": "2026-08-13",
+              "description": "FY26 B1 MCKESSON PHARMACY STOCK MEDICATION JUL 26",
+              "key": "CONT_AWD_15B0AT26F41000011_1540_36W79720D0001_3600",
+              "piid": "15B0AT26F41000011",
+              "recipient": {
+                "display_name": "MCKESSON CORPORATION"
+              },
+              "total_contract_value": 65000
+            },
+            {
+              "award_date": "2026-08-13",
+              "description": "FY26 Q4 COPIER REQUIREMENT",
+              "key": "CONT_AWD_15B31026F00000090_1540_GS03F045DA_4732",
+              "piid": "15B31026F00000090",
+              "recipient": {
+                "display_name": "KYOCERA DOCUMENT SOLUTIONS AMERICA INC"
+              },
+              "total_contract_value": 5306.85
+            },
+            {
+              "award_date": "2026-08-13",
+              "description": "FY-2026 A1 - TILT SKILLET - CULINARY DEPOT\nRP#: 0393-26\n\n* WOMEN-OWNED BUSINESS *\n\nORDERING FROM AND ADHERING TO THE TERMS AND CONDITIONS SET FORTH IN FEDERAL SUPPLY SCHEDULE GS-07F-0211V.",
+              "key": "CONT_AWD_15B30226F00000191_1540_GS07F0211V_4730",
+              "piid": "15B30226F00000191",
+              "recipient": {
+                "display_name": "CULINARY DEPOT INC."
+              },
+              "total_contract_value": 19392.37
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

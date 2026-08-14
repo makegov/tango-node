@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/contracts/?award_date_gte=2024-01-01&fiscal_year=2024&limit=3&shape=key%2Cpiid%2Caward_date%2Cfiscal_year"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "995",
+          "x-ratelimit-burst-reset": "57",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999918",
+          "x-ratelimit-daily-reset": "24297",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "995",
+          "x-ratelimit-reset": "57",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 134955,
+          "next": "https://tango.makegov.com/api/contracts/?limit=3&shape=key%2Cpiid%2Caward_date%2Cfiscal_year&fiscal_year=2024&award_date_gte=2024-01-01&cursor=WyIyMDI0LTA5LTMwIiwgImZmZWU2NDI2LTZlYWEtNWU0OS05MjkwLTFkNzQ2OWFhZDFiZCJd",
+          "previous": null,
+          "cursor": "WyIyMDI0LTA5LTMwIiwgImZmZWU2NDI2LTZlYWEtNWU0OS05MjkwLTFkNzQ2OWFhZDFiZCJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "award_date": "2024-09-30",
+              "fiscal_year": 2024,
+              "key": "CONT_AWD_SPE3SU24FJJFB_9700_SPE30020DS351_9700",
+              "piid": "SPE3SU24FJJFB"
+            },
+            {
+              "award_date": "2024-09-30",
+              "fiscal_year": 2024,
+              "key": "CONT_AWD_47QSSC24FFYM4_4732_GS02FW0003_4730",
+              "piid": "47QSSC24FFYM4"
+            },
+            {
+              "award_date": "2024-09-30",
+              "fiscal_year": 2024,
+              "key": "CONT_AWD_FA667024C0005_9700_-NONE-_-NONE-",
+              "piid": "FA667024C0005"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

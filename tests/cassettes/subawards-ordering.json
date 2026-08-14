@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/subawards/?limit=3&ordering=-last_modified_date&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "957",
+          "x-ratelimit-burst-reset": "24",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999880",
+          "x-ratelimit-daily-reset": "24265",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "957",
+          "x-ratelimit-reset": "24",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 2736056,
+          "next": "https://tango.makegov.com/api/subawards/?limit=3&ordering=-last_modified_date&page=2",
+          "previous": null,
+          "results": [
+            {
+              "award_key": "CONT_AWD_GS00Q17AHC1003_4732_-NONE-_-NONE-",
+              "awarding_office": {
+                "office_code": "47QTCB",
+                "office_name": "GSA/FAS ITC OFFICE OF ACQUISITION OPERATIONS, INTERAGENCY CONTRACTS",
+                "agency_code": "4732",
+                "agency_name": "Federal Acquisition Service",
+                "department_code": 47,
+                "department_name": "General Services Administration"
+              },
+              "fsrs_details": {
+                "last_modified_date": "2026-08-13T00:00:00",
+                "id": "012d7430-ccf1-479d-a268-36f4164c3941",
+                "year": 2026,
+                "month": 7
+              },
+              "funding_office": {
+                "office_code": "47QTCB",
+                "office_name": "GSA/FAS ITC OFFICE OF ACQUISITION OPERATIONS, INTERAGENCY CONTRACTS",
+                "agency_code": "4732",
+                "agency_name": "Federal Acquisition Service",
+                "department_code": 47,
+                "department_name": "General Services Administration"
+              },
+              "key": 36421828,
+              "piid": "GS00Q17AHC1003",
+              "place_of_performance": {
+                "city": null,
+                "state": null,
+                "zip": null,
+                "country_code": "USA"
+              },
+              "prime_recipient": {
+                "uei": "MBSRAWAQ9559",
+                "display_name": "PERATON ENTERPRISE SOLUTIONS LLC"
+              },
+              "subaward_details": {
+                "description": "\"IGF::CT,CL::IGF\" THE OBJECTIVE OF THIS PROCUREMENT IS TO ACQUIRE A SOLUTION THAT WILL PROVIDE THE U.S. GENERAL SERVICES ADMINISTRATION (GSA) HSPD-12 MSO USACCESS PROGRAM UNINTERRUPTED, GOVERNMENT-WIDE CONTRACTOR MANAGED SERVICES FOR IDENTITY AND CREDENTIAL MANAGEMENT SERVICES INCLUDING: 1) APPLICANT SPONSORSHIP, ENROLLMENT , BIOMETRIC SUBMISSION (FOR BACKGROUND INVESTIGATION PURPOSES); 2) CREDENTIAL ISSUANCE, MAINTENANCE (CERTIFICATE REKEY) AND MANAGEMENT AND 3) BIOGRAPHIC&AGENCY SPECIFIC SPONSORSHIP RECORD MAINTENANCE. THE CONTRACTOR SHALL PROVIDE SERVICES THAT MINIMIZE DISRUPTION TO USACCESS CUSTOMER AGENCIES AND SHALL MAINTAIN THE FULL LIFE AND FUNCTIONALITY OF CURRENTLY EXISTING, ISSUED ACTIVE PIV CARDS AND CREDENTIALS.",
+                "type": "sub-contract",
+                "number": "PO-0081094",
+                "amount": 42227.06,
+                "action_date": "2026-07-08T00:00:00",
+                "fiscal_year": 2026
+              },
+              "subaward_recipient": {
+                "uei": "FYLAKMN93AK5",
+                "display_name": "HEWLETT PACKARD ENTERPRISE CO"
+              }
+            },
+            {
+              "award_key": "CONT_AWD_W912DQ19F3041_9700_W912DQ16D3001_9700",
+              "awarding_office": {
+                "office_code": "W912DQ",
+                "office_name": "W071 ENDIST KANSAS CITY",
+                "agency_code": "2100",
+                "agency_name": "Department of the Army",
+                "department_code": 97,
+                "department_name": "Department of Defense"
+              },
+              "fsrs_details": {
+                "last_modified_date": "2026-08-13T00:00:00",
+                "id": "022d08b4-fcbc-11ef-8e2a-e7034f2d18cd",
+                "year": 2021,
+                "month": 5
+              },
+              "funding_office": {
+                "office_code": "68R000",
+                "office_name": "REGION 2 (FUNDING OFFICE)",
+                "agency_code": "6800",
+                "agency_name": "Environmental Protection Agency",
+                "department_code": 68,
+                "department_name": "Environmental Protection Agency"
+              },
+              "key": 36421829,
+              "piid": "W912DQ19F3041",
+              "place_of_performance": {
+                "city": "CAMDEN",
+                "state": "NEW JERSEY",
+                "zip": "08110",
+                "country_code": "USA"
+              },
+              "prime_recipient": {
+                "uei": "LEEMJD9WKDC9",
+                "display_name": "EA ENGINEERING, SCIENCE, AND TECHNOLOGY, INC., PBC"
+              },
+              "subaward_details": {
+                "description": "PUCHACK PHASE II REMEDIAL ACTION",
+                "type": "sub-contract",
+                "number": "19466",
+                "amount": 5801731.74,
+                "action_date": "2021-03-26T00:00:00",
+                "fiscal_year": 2021
+              },
+              "subaward_recipient": {
+                "uei": "H715X4VVWRZ4",
+                "display_name": "CASCADE DRILLING, L.P."
+              }
+            },
+            {
+              "award_key": "CONT_AWD_H9240325F0043_9700_H9240324D0002_9700",
+              "awarding_office": {
+                "office_code": "H92403",
+                "office_name": "HQ USSOCOM",
+                "agency_code": "97ZS",
+                "agency_name": "U.S. Special Operations Command",
+                "department_code": 97,
+                "department_name": "Department of Defense"
+              },
+              "fsrs_details": {
+                "last_modified_date": "2026-08-13T00:00:00",
+                "id": "03da2c18-3b8f-4db6-914d-412a6ee0d1fe",
+                "year": null,
+                "month": null
+              },
+              "funding_office": {
+                "office_code": "H92403",
+                "office_name": "HQ USSOCOM",
+                "agency_code": "97ZS",
+                "agency_name": "U.S. Special Operations Command",
+                "department_code": 97,
+                "department_name": "Department of Defense"
+              },
+              "key": 36421830,
+              "piid": "H9240325F0043",
+              "place_of_performance": {
+                "city": null,
+                "state": null,
+                "zip": null,
+                "country_code": null
+              },
+              "prime_recipient": {
+                "uei": "F125YU6SWK59",
+                "display_name": "BATTELLE MEMORIAL INSTITUTE"
+              },
+              "subaward_details": {
+                "description": "OEM HILUX - VEHICLE A CONVERSIONS",
+                "type": "sub-contract",
+                "number": "0000919127",
+                "amount": 44529.15,
+                "action_date": "2025-08-07T00:00:00",
+                "fiscal_year": 2025
+              },
+              "subaward_recipient": {
+                "uei": "KX98Z47QDWK9",
+                "display_name": "SAFARI 4X4 LLC"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

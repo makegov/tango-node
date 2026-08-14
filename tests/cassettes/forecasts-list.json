@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/forecasts/?limit=3&page=1&shape=id%2Ctitle%2Canticipated_award_date%2Cfiscal_year%2Cnaics_code%2Cstatus"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "970",
+          "x-ratelimit-burst-reset": "34",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999893",
+          "x-ratelimit-daily-reset": "24274",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "970",
+          "x-ratelimit-reset": "34",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 24812,
+          "next": "https://tango.makegov.com/api/forecasts/?limit=3&page=2&shape=id%2Ctitle%2Canticipated_award_date%2Cfiscal_year%2Cnaics_code%2Cstatus",
+          "previous": null,
+          "results": [
+            {
+              "anticipated_award_date": null,
+              "fiscal_year": 2026,
+              "id": 19690,
+              "naics_code": "561720",
+              "status": "Awarded",
+              "title": "RNC Janitorial Services"
+            },
+            {
+              "anticipated_award_date": null,
+              "fiscal_year": 2026,
+              "id": 19691,
+              "naics_code": "811310",
+              "status": "Awarded",
+              "title": "Equipment Maintenance Services at Riverside National Cemetery"
+            },
+            {
+              "anticipated_award_date": null,
+              "fiscal_year": 2026,
+              "id": 19692,
+              "naics_code": "561720",
+              "status": "Awarded",
+              "title": "Riverside National Cemetery Janitorial Services"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

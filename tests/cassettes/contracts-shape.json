@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/contracts/?limit=3&shape=key%2Cpiid%2Ctotal_contract_value"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "998",
+          "x-ratelimit-burst-reset": "59",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999921",
+          "x-ratelimit-daily-reset": "24299",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "998",
+          "x-ratelimit-reset": "59",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 86157384,
+          "next": "https://tango.makegov.com/api/contracts/?limit=3&shape=key%2Cpiid%2Ctotal_contract_value&cursor=WyIyMDI2LTA4LTEzIiwgImZmMWIwY2JmLWVmZTItNTI0MC1iZmVlLWFkMWI2MmNlMjVkYyJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTA4LTEzIiwgImZmMWIwY2JmLWVmZTItNTI0MC1iZmVlLWFkMWI2MmNlMjVkYyJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "key": "CONT_AWD_15B0AT26F41000011_1540_36W79720D0001_3600",
+              "piid": "15B0AT26F41000011",
+              "total_contract_value": 65000
+            },
+            {
+              "key": "CONT_AWD_15B31026F00000090_1540_GS03F045DA_4732",
+              "piid": "15B31026F00000090",
+              "total_contract_value": 5306.85
+            },
+            {
+              "key": "CONT_AWD_15B30226F00000191_1540_GS07F0211V_4730",
+              "piid": "15B30226F00000191",
+              "total_contract_value": 19392.37
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

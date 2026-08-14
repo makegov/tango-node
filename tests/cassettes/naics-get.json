@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/naics/541511/"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "988",
+          "x-ratelimit-burst-reset": "52",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999911",
+          "x-ratelimit-daily-reset": "24293",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "988",
+          "x-ratelimit-reset": "52",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "code": 541511,
+          "description": "Custom Computer Programming Services",
+          "federal_obligations": {
+            "total": {
+              "awards_obligated": 224981597975.28,
+              "awards_count": 99562
+            },
+            "active": {
+              "awards_obligated": 22822122349.79,
+              "awards_count": 3780
+            }
+          },
+          "size_standards": {
+            "employee_limit": null,
+            "revenue_limit": 34000000
+          }
+        }
+      }
+    }
+  ]
+}
