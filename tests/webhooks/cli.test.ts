@@ -20,7 +20,7 @@ const mockClient = {
 };
 
 vi.mock("../../src/client.js", () => ({
-  TangoClient: vi.fn().mockImplementation(() => mockClient),
+  TangoClient: vi.fn(function () { return mockClient; }),
 }));
 
 // Mock simulate so we can assert on its args without doing real HTTP.
@@ -38,7 +38,7 @@ const mockReceiverInstance = {
   url: "http://127.0.0.1:8011/tango/webhooks",
 };
 vi.mock("../../src/webhooks/receiver.js", () => ({
-  WebhookReceiver: vi.fn().mockImplementation(() => mockReceiverInstance),
+  WebhookReceiver: vi.fn(function () { return mockReceiverInstance; }),
 }));
 
 // Import after the mocks are set up.
