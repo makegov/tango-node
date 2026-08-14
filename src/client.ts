@@ -381,6 +381,148 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
 }
 
 /**
+ * DIBBS RFQ list options — matches `tango_python.TangoClient.list_dibbs_rfqs`.
+ */
+export interface ListDibbsRfqsOptions extends ListOptionsBase {
+  nsn?: string;
+  part_number?: string;
+  solicitation?: string;
+  purchase_request?: string;
+  organization?: string;
+  status_code?: string;
+  set_aside?: string;
+  /** True returns only RFQs whose return_by_date has not passed. `is_open` is derived at query time, so filter with this rather than shaping on `is_open`. */
+  open?: boolean;
+  quantity_min?: number;
+  quantity_max?: number;
+  issue_date_after?: string;
+  issue_date_before?: string;
+  return_by_date_after?: string;
+  return_by_date_before?: string;
+  search?: string;
+  /** Sort field (issue_date, return_by_date, quantity, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * DIBBS RFP list options — matches `tango_python.TangoClient.list_dibbs_rfps`.
+ */
+export interface ListDibbsRfpsOptions extends ListOptionsBase {
+  nsn?: string;
+  part_number?: string;
+  solicitation?: string;
+  organization?: string;
+  buyer_code?: string;
+  /** True returns only RFPs whose closes_date has not passed. `is_open` is derived at query time, so filter with this rather than shaping on `is_open`. */
+  open?: boolean;
+  issued_date_after?: string;
+  issued_date_before?: string;
+  closes_date_after?: string;
+  closes_date_before?: string;
+  search?: string;
+  /** Sort field (issued_date, closes_date, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * DIBBS award list options — matches `tango_python.TangoClient.list_dibbs_awards`.
+ */
+export interface ListDibbsAwardsOptions extends ListOptionsBase {
+  award_number?: string;
+  delivery_order_number?: string;
+  solicitation?: string;
+  purchase_request?: string;
+  nsn?: string;
+  part_number?: string;
+  awardee_cage?: string;
+  entity?: string;
+  organization?: string;
+  total_contract_price_min?: number;
+  total_contract_price_max?: number;
+  award_date_after?: string;
+  award_date_before?: string;
+  posted_date_after?: string;
+  posted_date_before?: string;
+  search?: string;
+  /** Sort field (award_date, posted_date, total_contract_price, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Exclusions list options — matches `tango_python.TangoClient.list_exclusions`.
+ */
+export interface ListExclusionsOptions extends ListOptionsBase {
+  uei?: string;
+  entity_uei?: string;
+  cage_code?: string;
+  npi?: string;
+  classification_type?: string;
+  exclusion_type?: string;
+  exclusion_program?: string;
+  excluding_agency_code?: string;
+  excluding_agency_name?: string;
+  /** True returns only records currently in effect. `is_currently_excluded` is derived at query time, so filter with this rather than shaping on it. */
+  active?: boolean;
+  delisted?: boolean;
+  activate_date_after?: string;
+  activate_date_before?: string;
+  termination_date_after?: string;
+  termination_date_before?: string;
+  update_date_after?: string;
+  update_date_before?: string;
+  search?: string;
+  /** Sort field (activate_date, termination_date, create_date, update_date, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * SBIR topic list options — matches `tango_python.TangoClient.list_sbir_topics`.
+ */
+export interface ListSbirTopicsOptions extends ListOptionsBase {
+  topic_number?: string;
+  solicitation_number?: string;
+  agency?: string;
+  activity?: string;
+  year?: number;
+  doc_source?: string;
+  open_date_after?: string;
+  open_date_before?: string;
+  close_date_after?: string;
+  close_date_before?: string;
+  release_date_after?: string;
+  release_date_before?: string;
+  search?: string;
+  /** Sort field (open_date, close_date, release_date, year, activity, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * SBIR solicitation list options — matches `tango_python.TangoClient.list_sbir_solicitations`.
+ */
+export interface ListSbirSolicitationsOptions extends ListOptionsBase {
+  solicitation_number?: string;
+  solicitation_status?: string;
+  program?: string;
+  activity?: string;
+  cycle_name?: string;
+  out_of_cycle?: boolean;
+  year?: number;
+  start_date_after?: string;
+  start_date_before?: string;
+  end_date_after?: string;
+  end_date_before?: string;
+  search?: string;
+  /** Sort field (start_date, end_date, year, activity, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
  * List methods on `TangoClient` that `iterate()` knows how to drive. Every
  * entry must accept an options object and return a `PaginatedResponse<T>`
  * with a `next` URL containing either `?page=` or `?cursor=`.
@@ -393,7 +535,13 @@ export type IterableListMethod =
   | "listGrants"
   | "listForecasts"
   | "listIdvs"
-  | "listVehicles";
+  | "listVehicles"
+  | "listDibbsRfqs"
+  | "listDibbsRfps"
+  | "listDibbsAwards"
+  | "listExclusions"
+  | "listSbirTopics"
+  | "listSbirSolicitations";
 
 // ---------------------------------------------------------------------------
 // Read-method option interfaces (lookups + awards completeness + other)
@@ -1675,6 +1823,30 @@ export class TangoClient {
     return this.iterate<Record<string, unknown>>("listVehicles", options);
   }
 
+  iterateDibbsRfqs(options: ListDibbsRfqsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listDibbsRfqs", options);
+  }
+
+  iterateDibbsRfps(options: ListDibbsRfpsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listDibbsRfps", options);
+  }
+
+  iterateDibbsAwards(options: ListDibbsAwardsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listDibbsAwards", options);
+  }
+
+  iterateExclusions(options: ListExclusionsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listExclusions", options);
+  }
+
+  iterateSbirTopics(options: ListSbirTopicsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listSbirTopics", options);
+  }
+
+  iterateSbirSolicitations(options: ListSbirSolicitationsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listSbirSolicitations", options);
+  }
+
   // ---------------------------------------------------------------------------
   // Lookups
   // ---------------------------------------------------------------------------
@@ -1903,6 +2075,353 @@ export class TangoClient {
     if (funding_organization_id) params.funding_organization_id = funding_organization_id;
     const data = await this.http.get<AnyRecord>(`/api/budget/accounts/${encodeURIComponent(String(id))}/recipients/`, params);
     return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  // ---------------------------------------------------------------------------
+  // DLA DIBBS (RFQs, RFPs, awards)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * List DLA DIBBS request-for-quote solicitations (`/api/dibbs/rfqs/`).
+   *
+   * `is_open` is derived at query time from `return_by_date`, so filter with
+   * the `open` option rather than shaping on `is_open`.
+   */
+  async listDibbsRfqs(options: ListDibbsRfqsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFQS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/dibbs/rfqs/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("DibbsRfq", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Get a single DIBBS RFQ by uuid (`/api/dibbs/rfqs/{uuid}/`). */
+  async getDibbsRfq(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("DIBBS RFQ uuid is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFQS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/dibbs/rfqs/${encodeURIComponent(uuid)}/`, params);
+    return this.materializeOne("DibbsRfq", shapeSpec, data, flat, joiner);
+  }
+
+  /**
+   * List DLA DIBBS request-for-proposal solicitations (`/api/dibbs/rfps/`).
+   *
+   * `is_open` is derived at query time from `closes_date`, so filter with the
+   * `open` option rather than shaping on `is_open`.
+   */
+  async listDibbsRfps(options: ListDibbsRfpsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFPS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/dibbs/rfps/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("DibbsRfp", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Get a single DIBBS RFP by uuid (`/api/dibbs/rfps/{uuid}/`). */
+  async getDibbsRfp(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("DIBBS RFP uuid is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFPS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/dibbs/rfps/${encodeURIComponent(uuid)}/`, params);
+    return this.materializeOne("DibbsRfp", shapeSpec, data, flat, joiner);
+  }
+
+  /**
+   * List DLA DIBBS awards (`/api/dibbs/awards/`).
+   *
+   * WARNING: `total_contract_price` is the *order* total repeated on every
+   * line item of the award. Never sum it across rows — doing so multiplies
+   * the value by the line-item count. Deduplicate on `award_number` +
+   * `delivery_order_number` first.
+   */
+  async listDibbsAwards(options: ListDibbsAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.DIBBS_AWARDS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/dibbs/awards/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("DibbsAward", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Get a single DIBBS award by uuid (`/api/dibbs/awards/{uuid}/`). */
+  async getDibbsAward(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("DIBBS award uuid is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.DIBBS_AWARDS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/dibbs/awards/${encodeURIComponent(uuid)}/`, params);
+    return this.materializeOne("DibbsAward", shapeSpec, data, flat, joiner);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Exclusions (SAM.gov debarments)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * List SAM.gov exclusion (debarment) records (`/api/exclusions/`).
+   *
+   * `is_currently_excluded` is derived at query time from the
+   * activate/termination dates, so filter with the `active` option rather
+   * than shaping on `is_currently_excluded`.
+   */
+  async listExclusions(options: ListExclusionsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.EXCLUSIONS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/exclusions/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("Exclusion", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Get a single exclusion by its deterministic exclusion_key (`/api/exclusions/{exclusion_key}/`). */
+  async getExclusion(
+    exclusionKey: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!exclusionKey) throw new TangoValidationError("exclusion_key is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.EXCLUSIONS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/exclusions/${encodeURIComponent(exclusionKey)}/`, params);
+    return this.materializeOne("Exclusion", shapeSpec, data, flat, joiner);
+  }
+
+  // ---------------------------------------------------------------------------
+  // SBIR/STTR (topics, DoD DSIP solicitations)
+  // ---------------------------------------------------------------------------
+
+  /** List SBIR/STTR topics (`/api/sbir/topics/`). */
+  async listSbirTopics(options: ListSbirTopicsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.SBIR_TOPICS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/sbir/topics/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("SbirTopic", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Get a single SBIR/STTR topic by topic_id (`/api/sbir/topics/{topic_id}/`). */
+  async getSbirTopic(
+    topicId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!topicId) throw new TangoValidationError("topic_id is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.SBIR_TOPICS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/sbir/topics/${encodeURIComponent(topicId)}/`, params);
+    return this.materializeOne("SbirTopic", shapeSpec, data, flat, joiner);
+  }
+
+  /** List DoD DSIP SBIR/STTR solicitations (`/api/sbir/solicitations/`). */
+  async listSbirSolicitations(options: ListSbirSolicitationsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? ShapeConfig.SBIR_SOLICITATIONS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) params.flat = "true";
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>("/api/sbir/solicitations/", params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList("SbirSolicitation", shapeSpec, rawResults, flat);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Get a single DoD DSIP SBIR/STTR solicitation by solicitation_id (`/api/sbir/solicitations/{solicitation_id}/`). */
+  async getSbirSolicitation(
+    solicitationId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!solicitationId) throw new TangoValidationError("solicitation_id is required");
+
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? ShapeConfig.SBIR_SOLICITATIONS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/sbir/solicitations/${encodeURIComponent(solicitationId)}/`, params);
+    return this.materializeOne("SbirSolicitation", shapeSpec, data, flat, joiner);
   }
 
   // ---------------------------------------------------------------------------

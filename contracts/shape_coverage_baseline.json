@@ -1,6 +1,6 @@
 {
   "description": "Known reverse shape-coverage gaps (Tango exposes, SDK schema lacks), accepted as a tracked backlog. check-shape-coverage.ts fails only on gaps NOT listed here. Burn down and regenerate with --update-baseline.",
-  "count": 422,
+  "count": 416,
   "known_gaps": [
     "expand_flat|agencies|(root)|department",
     "expand_flat|contracts|(root)|commercial_item_acquisition_procedures",
@@ -415,14 +415,8 @@
     "unmapped_resource|assistance_listings|(root)|AssistanceListing",
     "unmapped_resource|budget/accounts|(root)|BudgetAccount",
     "unmapped_resource|business_types|(root)|BusinessType",
-    "unmapped_resource|dibbs/awards|(root)|DibbsAward",
-    "unmapped_resource|dibbs/rfps|(root)|DibbsRfp",
-    "unmapped_resource|dibbs/rfqs|(root)|DibbsRfq",
-    "unmapped_resource|exclusions|(root)|Exclusion",
     "unmapped_resource|mas_sins|(root)|MasSin",
     "unmapped_resource|naics|(root)|Naics",
-    "unmapped_resource|psc|(root)|PSC",
-    "unmapped_resource|sbir/solicitations|(root)|SbirSolicitation",
-    "unmapped_resource|sbir/topics|(root)|SbirTopic"
+    "unmapped_resource|psc|(root)|PSC"
   ]
 }

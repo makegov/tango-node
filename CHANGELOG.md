@@ -8,11 +8,16 @@ This project follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **DIBBS, exclusions, and SBIR/STTR endpoint support** (parity with tango-python v1.3.0). Six endpoint families had no SDK support at all — no models, no methods. Added `listDibbsRfqs`/`getDibbsRfq`, `listDibbsRfps`/`getDibbsRfp`, `listDibbsAwards`/`getDibbsAward`, `listExclusions`/`getExclusion`, `listSbirTopics`/`getSbirTopic`, and `listSbirSolicitations`/`getSbirSolicitation`, with every filter param in the API contract exposed as a typed option, explicit shape schemas (including the nested organization/awardee/topic/document expands), and `ShapeConfig` defaults. New model interfaces: `DibbsRfq`, `DibbsRfp`, `DibbsAward`, `Exclusion`, `SbirTopic`, `SbirSolicitation`.
+
+  Two API behaviors are worth knowing. `is_open` (DIBBS) and `is_currently_excluded` (exclusions) are derived at query time, so filter with the `open` / `active` options rather than shaping on those fields. And DIBBS `total_contract_price` is the *order* total repeated on every line item — never sum it across rows; deduplicate on award + delivery-order number first.
+- Async iteration for the six new resources: `iterateDibbsRfqs`, `iterateDibbsRfps`, `iterateDibbsAwards`, `iterateExclusions`, `iterateSbirTopics`, and `iterateSbirSolicitations` (plus the matching `IterableListMethod` entries for the generic `iterate()`).
 - Vendored the canonical API filter/shape contract at `contracts/filter_shape_contract.json` (API 4.22.0), so conformance checking is fully offline — no token, no sibling checkout.
 - New reverse shape-coverage gate `scripts/check-shape-coverage.ts` (npm script `check-shape-coverage`): walks every resource's shape tree in the vendored contract against the SDK's explicit schema registry and fails on any field or expand the SDK does not capture, unless recorded in `contracts/shape_coverage_baseline.json` as tracked backlog.
 - Accepted-gaps baselines: `contracts/conformance_baseline.json` (missing filters + unimplemented resources) and `contracts/shape_coverage_baseline.json` (known shape-coverage gaps). Baselined gaps report as warnings; anything new is an error.
 
 ### Changed
+- Both conformance baselines shrank with the new resources: `dibbs/*`, `exclusions`, and `sbir/*` left `unimplemented_resources` in `contracts/conformance_baseline.json`, and their `unmapped_resource` entries left `contracts/shape_coverage_baseline.json` (422 → 416 known gaps).
 - `scripts/check-filter-shape-conformance.ts` now defaults to the vendored contract instead of a sibling `../tango` checkout (`TANGO_CONTRACT_PATH` or `--manifest` still point it at a live checkout), covers every resource in the 4.22.0 contract in its resource map, and treats an unimplemented resource as an error unless baselined.
 
 ### CI

@@ -73,13 +73,12 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   departments: "listDepartments",
   business_types: "listBusinessTypes",
   assistance_listings: "listAssistanceListings",
-  // Pending: not implemented in the SDK yet — baselined in contracts/conformance_baseline.json until the methods land.
-  "dibbs/rfqs": null,
-  "dibbs/rfps": null,
-  "dibbs/awards": null,
-  exclusions: null,
-  "sbir/topics": null,
-  "sbir/solicitations": null,
+  "dibbs/rfqs": "listDibbsRfqs",
+  "dibbs/rfps": "listDibbsRfps",
+  "dibbs/awards": "listDibbsAwards",
+  exclusions: "listExclusions",
+  "sbir/topics": "listSbirTopics",
+  "sbir/solicitations": "listSbirSolicitations",
   // Genuinely absent from the SDK: content endpoints with no shaping and no list method — permanently baselined.
   events: null,
   news: null,
@@ -118,6 +117,12 @@ const SHAPE_CONFIG_ENTRIES: ShapeEntry[] = [
   { shapeName: "ITDASHBOARD_INVESTMENTS_COMPREHENSIVE", modelName: "ITDashboardInvestment" },
   { shapeName: "VEHICLE_ORDERS_MINIMAL", modelName: "Contract" },
   { shapeName: "PROTESTS_MINIMAL", modelName: "Protest" },
+  { shapeName: "DIBBS_RFQS_MINIMAL", modelName: "DibbsRfq" },
+  { shapeName: "DIBBS_RFPS_MINIMAL", modelName: "DibbsRfp" },
+  { shapeName: "DIBBS_AWARDS_MINIMAL", modelName: "DibbsAward" },
+  { shapeName: "EXCLUSIONS_MINIMAL", modelName: "Exclusion" },
+  { shapeName: "SBIR_TOPICS_MINIMAL", modelName: "SbirTopic" },
+  { shapeName: "SBIR_SOLICITATIONS_MINIMAL", modelName: "SbirSolicitation" },
 ];
 
 // ---------------------------------------------------------------------------

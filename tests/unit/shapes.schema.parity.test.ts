@@ -11,6 +11,12 @@ import {
   ITDASHBOARD_INVESTMENT_SCHEMA,
   VEHICLE_METRICS_SCHEMA,
   ORGANIZATION_OFFICE_SCHEMA,
+  DIBBS_RFQ_SCHEMA,
+  DIBBS_RFP_SCHEMA,
+  DIBBS_AWARD_SCHEMA,
+  EXCLUSION_SCHEMA,
+  SBIR_TOPIC_SCHEMA,
+  SBIR_SOLICITATION_SCHEMA,
   EXPLICIT_SCHEMAS,
 } from "../../src/shapes/explicitSchemas.js";
 
@@ -166,5 +172,77 @@ describe("Ported explicit schemas — parity with Python SDK", () => {
     expect(EXPLICIT_SCHEMAS.ITDashboardInvestment).toBe(ITDASHBOARD_INVESTMENT_SCHEMA);
     expect(EXPLICIT_SCHEMAS.VehicleMetrics).toBe(VEHICLE_METRICS_SCHEMA);
     expect(EXPLICIT_SCHEMAS.OrganizationOffice).toBe(ORGANIZATION_OFFICE_SCHEMA);
+  });
+});
+
+describe("DIBBS / exclusions / SBIR explicit schemas — parity with Python SDK", () => {
+  it("DIBBS_RFQ_SCHEMA covers the contract's 16 shape nodes with a nested organization", () => {
+    expect(Object.keys(DIBBS_RFQ_SCHEMA)).toHaveLength(16);
+    expect(DIBBS_RFQ_SCHEMA.uuid).toBeDefined();
+    expect(DIBBS_RFQ_SCHEMA.quantity.type).toBe("int");
+    expect(DIBBS_RFQ_SCHEMA.return_by_date.type).toBe("date");
+    expect(DIBBS_RFQ_SCHEMA.is_open.type).toBe("bool");
+    expect(DIBBS_RFQ_SCHEMA.organization.nestedModel).toBe("DibbsOrganization");
+  });
+
+  it("DIBBS_RFP_SCHEMA covers the contract's 12 shape nodes", () => {
+    expect(Object.keys(DIBBS_RFP_SCHEMA)).toHaveLength(12);
+    expect(DIBBS_RFP_SCHEMA.buyer_code).toBeDefined();
+    expect(DIBBS_RFP_SCHEMA.closes_date.type).toBe("date");
+    expect(DIBBS_RFP_SCHEMA.tech_docs_url).toBeDefined();
+    expect(DIBBS_RFP_SCHEMA.organization.nestedModel).toBe("DibbsOrganization");
+  });
+
+  it("DIBBS_AWARD_SCHEMA covers the contract's 17 shape nodes with awardee + organization", () => {
+    expect(Object.keys(DIBBS_AWARD_SCHEMA)).toHaveLength(17);
+    expect(DIBBS_AWARD_SCHEMA.total_contract_price.type).toBe("Decimal");
+    expect(DIBBS_AWARD_SCHEMA.delivery_order_counter.type).toBe("int");
+    expect(DIBBS_AWARD_SCHEMA.awardee.nestedModel).toBe("DibbsAwardee");
+    expect(DIBBS_AWARD_SCHEMA.organization.nestedModel).toBe("DibbsOrganization");
+  });
+
+  it("EXCLUSION_SCHEMA covers the contract's 39 shape fields", () => {
+    expect(Object.keys(EXCLUSION_SCHEMA)).toHaveLength(39);
+    expect(EXCLUSION_SCHEMA.exclusion_key).toBeDefined();
+    expect(EXCLUSION_SCHEMA.is_currently_excluded.type).toBe("bool");
+    expect(EXCLUSION_SCHEMA.is_fascsa_order.type).toBe("bool");
+    expect(EXCLUSION_SCHEMA.activate_date.type).toBe("date");
+    expect(EXCLUSION_SCHEMA.primary_address.type).toBe("dict");
+    expect(EXCLUSION_SCHEMA.vessel_call_sign).toBeDefined();
+  });
+
+  it("SBIR_TOPIC_SCHEMA covers the contract's 22 shape nodes with 3 nested expands", () => {
+    expect(Object.keys(SBIR_TOPIC_SCHEMA)).toHaveLength(22);
+    expect(SBIR_TOPIC_SCHEMA.topic_id).toBeDefined();
+    expect(SBIR_TOPIC_SCHEMA.listed_open.type).toBe("bool");
+    expect(SBIR_TOPIC_SCHEMA.solicitation.nestedModel).toBe("SbirTopicSolicitationRef");
+    expect(SBIR_TOPIC_SCHEMA.opportunity.nestedModel).toBe("SbirTopicOpportunityRef");
+    expect(SBIR_TOPIC_SCHEMA.grant.nestedModel).toBe("SbirTopicGrantRef");
+  });
+
+  it("SBIR_SOLICITATION_SCHEMA covers the contract's 17 shape nodes with list expands", () => {
+    expect(Object.keys(SBIR_SOLICITATION_SCHEMA)).toHaveLength(17);
+    expect(SBIR_SOLICITATION_SCHEMA.solicitation_id).toBeDefined();
+    expect(SBIR_SOLICITATION_SCHEMA.out_of_cycle.type).toBe("bool");
+    expect(SBIR_SOLICITATION_SCHEMA.topics.isList).toBe(true);
+    expect(SBIR_SOLICITATION_SCHEMA.topics.nestedModel).toBe("SbirSolicitationTopicRef");
+    expect(SBIR_SOLICITATION_SCHEMA.documents.isList).toBe(true);
+    expect(SBIR_SOLICITATION_SCHEMA.documents.nestedModel).toBe("SbirSolicitationDocument");
+  });
+
+  it("EXPLICIT_SCHEMAS registers the six resources and their nested refs", () => {
+    expect(EXPLICIT_SCHEMAS.DibbsRfq).toBe(DIBBS_RFQ_SCHEMA);
+    expect(EXPLICIT_SCHEMAS.DibbsRfp).toBe(DIBBS_RFP_SCHEMA);
+    expect(EXPLICIT_SCHEMAS.DibbsAward).toBe(DIBBS_AWARD_SCHEMA);
+    expect(EXPLICIT_SCHEMAS.Exclusion).toBe(EXCLUSION_SCHEMA);
+    expect(EXPLICIT_SCHEMAS.SbirTopic).toBe(SBIR_TOPIC_SCHEMA);
+    expect(EXPLICIT_SCHEMAS.SbirSolicitation).toBe(SBIR_SOLICITATION_SCHEMA);
+    expect(EXPLICIT_SCHEMAS.DibbsOrganization).toBeDefined();
+    expect(EXPLICIT_SCHEMAS.DibbsAwardee).toBeDefined();
+    expect(EXPLICIT_SCHEMAS.SbirTopicGrantRef).toBeDefined();
+    expect(EXPLICIT_SCHEMAS.SbirTopicOpportunityRef).toBeDefined();
+    expect(EXPLICIT_SCHEMAS.SbirTopicSolicitationRef).toBeDefined();
+    expect(EXPLICIT_SCHEMAS.SbirSolicitationDocument).toBeDefined();
+    expect(EXPLICIT_SCHEMAS.SbirSolicitationTopicRef).toBeDefined();
   });
 });

@@ -1,14 +1,8 @@
 {
-  "_comment": "Accepted SDK coverage gaps vs the API contract. Gaps listed here downgrade from error to warning in scripts/check-filter-shape-conformance.ts. Each entry is tracked backlog: remove it in the same PR that closes the gap in the SDK. `missing_filters` maps a resource to filter params the mapped method does not expose; `unimplemented_resources` lists contract resources with no SDK method at all. dibbs/*, exclusions, and sbir/* are pending implementation; events and news are content endpoints with no list method and stay baselined permanently (tango-python does the same).",
+  "_comment": "Accepted SDK coverage gaps vs the API contract. Gaps listed here downgrade from error to warning in scripts/check-filter-shape-conformance.ts. Each entry is tracked backlog: remove it in the same PR that closes the gap in the SDK. `missing_filters` maps a resource to filter params the mapped method does not expose; `unimplemented_resources` lists contract resources with no SDK method at all. events and news are content endpoints with no list method and stay baselined permanently (tango-python does the same).",
   "missing_filters": {},
   "unimplemented_resources": [
-    "dibbs/awards",
-    "dibbs/rfps",
-    "dibbs/rfqs",
     "events",
-    "exclusions",
-    "news",
-    "sbir/solicitations",
-    "sbir/topics"
+    "news"
   ]
 }

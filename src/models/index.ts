@@ -9,13 +9,22 @@ export type {
   ParentAwardReference,
 } from "./Contract.js";
 export type { Department } from "./Department.js";
+export type {
+  DibbsRfq,
+  DibbsRfp,
+  DibbsAward,
+  DibbsOrganizationPayload,
+  DibbsAwardeePayload,
+} from "./Dibbs.js";
 export type { Entity, EntityBasic } from "./Entity.js";
+export type { Exclusion } from "./Exclusion.js";
 export type { Forecast } from "./Forecast.js";
 export type { Grant } from "./Grant.js";
 export type { Location } from "./Location.js";
 export type { Notice } from "./Notice.js";
 export type { Opportunity } from "./Opportunity.js";
 export type { RecipientProfile } from "./RecipientProfile.js";
+export type { SbirTopic, SbirSolicitation } from "./Sbir.js";
 export type { Vehicle } from "./Vehicle.js";
 export type { IDV } from "./IDV.js";
 export type {
