@@ -14,12 +14,12 @@ A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring d
 - **Type-Safe by Design** – Shape strings are validated against Tango schemas and mapped to generated TypeScript types.
 - **Full Tango API surface** – Awards (contracts, IDVs, OTAs, OTIDVs, subawards, vehicles, GSA eLibrary), opportunities + notices, forecasts, grants, protests, IT Dashboard, budget accounts, exclusions, SBIR/STTR, DIBBS, entities (with sub-resources), agencies/organizations/offices/departments, lookups (NAICS, PSC, MAS SINs, assistance listings, business types), metrics, resolve/validate, webhooks. See `## API Methods` below for the full list.
 - **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing, materialized via the dynamic model pipeline.
-- **Modern Node.js** – Built for Node.js 18+ with native `fetch` and ESM-first design.
+- **Modern Node.js** – Built for Node.js 20+ with native `fetch` and ESM-first design.
 - **Tested Against the Real API** – Integration tests (mirroring the Python SDK) keep behavior aligned.
 
 ## Installation
 
-**Requirements:** Node.js 18 or higher.
+**Requirements:** Node.js 20 or higher.
 
 ```bash
 npm install @makegov/tango-node
@@ -398,7 +398,7 @@ See [docs/DEVELOPERS.md](docs/DEVELOPERS.md) for the conformance architecture an
 
 ## Requirements
 
-- Node.js 18 or higher.
+- Node.js 20 or higher.
 - A valid [Tango API key](https://tango.makegov.com/).
 
 ## Documentation

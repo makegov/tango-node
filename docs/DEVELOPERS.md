@@ -118,7 +118,7 @@ const second = await client.listContracts({ shape: "key,piid" });
 npm install @makegov/tango-node
 ```
 
-Requires Node 18 or higher (uses native `fetch`).
+Requires Node 20 or higher (uses native `fetch`).
 
 ### Basic Usage
 
