@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/entities/?limit=3&page=1&shape=uei%2Clegal_business_name%2Ccage_code%2Cbusiness_types"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "974",
+          "x-ratelimit-burst-reset": "38",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999897",
+          "x-ratelimit-daily-reset": "24279",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "974",
+          "x-ratelimit-reset": "38",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 1830156,
+          "next": "https://tango.makegov.com/api/entities/?limit=3&page=2&shape=uei%2Clegal_business_name%2Ccage_code%2Cbusiness_types",
+          "previous": null,
+          "results": [
+            {
+              "business_types": [
+                {
+                  "code": "A2"
+                },
+                {
+                  "code": "23"
+                },
+                {
+                  "code": "OY"
+                },
+                {
+                  "code": "2X"
+                }
+              ],
+              "cage_code": null,
+              "legal_business_name": "!SCITAMEHTAM",
+              "uei": "JNSXDDCLHRM8"
+            },
+            {
+              "business_types": [
+                {
+                  "code": "A8"
+                }
+              ],
+              "cage_code": "393W6",
+              "legal_business_name": "!YOUTHWORKS!",
+              "uei": "NLQ3EMTUVAT4"
+            },
+            {
+              "business_types": [
+                {
+                  "code": "2X"
+                },
+                {
+                  "code": "XS"
+                }
+              ],
+              "cage_code": "4WBT9",
+              "legal_business_name": "\" HALL'S PUMP & WELL, INC.\"",
+              "uei": "XKJXMX585A76"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import { TangoNotFoundError, TangoValidationError } from "./errors.js";
 import { ModelFactory } from "./shapes/factory.js";
 import { ShapeParser } from "./shapes/parser.js";
 import type { ShapeSpec } from "./shapes/types.js";
+import { isRecord } from "./utils/guards.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
 import {
@@ -26,10 +27,6 @@ import type {
 } from "./models/Webhooks.js";
 
 type AnyRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
 
 /**
  * Normalize a webhook-endpoint create/update input into the wire body.
@@ -64,6 +61,38 @@ function extractCursorFromUrl(url: string | null): string | null {
   }
 }
 
+// `meta` is server-controlled, so every parser below tolerates a shape change rather than crashing a caller's pagination loop.
+function parseAgencyWarnings(meta: AnyRecord | null): string[] {
+  const warnings = meta?.warnings;
+  return Array.isArray(warnings) ? warnings.map(String) : [];
+}
+
+function parseUnresolvedAgencyTokens(meta: AnyRecord | null): Record<string, string[]> {
+  const resolved = meta?.resolved_filters;
+  if (!isRecord(resolved)) return {};
+  const dropped: Record<string, string[]> = {};
+  for (const [filterName, entries] of Object.entries(resolved)) {
+    if (!Array.isArray(entries)) continue;
+    const tokens = entries
+      .filter((e): e is AnyRecord => isRecord(e) && e.resolved === null && e.token !== null && e.token !== undefined)
+      .map((e) => String(e.token));
+    if (tokens.length) dropped[filterName] = tokens;
+  }
+  return dropped;
+}
+
+function parseResolvedAgencies(meta: AnyRecord | null): Record<string, Array<Record<string, unknown>>> {
+  const resolved = meta?.resolved_filters;
+  if (!isRecord(resolved)) return {};
+  const matched: Record<string, Array<Record<string, unknown>>> = {};
+  for (const [filterName, entries] of Object.entries(resolved)) {
+    if (!Array.isArray(entries)) continue;
+    const orgs = entries.filter((e): e is AnyRecord => isRecord(e) && isRecord(e.resolved)).map((e) => e.resolved as AnyRecord);
+    if (orgs.length) matched[filterName] = orgs;
+  }
+  return matched;
+}
+
 function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedResponse<T> {
   const results = Array.isArray(raw?.results) ? (raw.results as T[]) : [];
   const rawCount = raw?.count;
@@ -72,10 +101,12 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
   const nextVal = raw?.next;
   const previousVal = raw?.previous;
   const pageMetadataVal = raw?.page_metadata;
+  const metaVal = raw?.meta;
 
   const next = typeof nextVal === "string" ? nextVal : null;
   const previous = typeof previousVal === "string" ? previousVal : null;
   const pageMetadata = isRecord(pageMetadataVal) ? pageMetadataVal : null;
+  const meta = isRecord(metaVal) ? metaVal : null;
   const cursor = extractCursorFromUrl(next);
 
   return {
@@ -83,6 +114,10 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
     next,
     previous,
     pageMetadata,
+    meta,
+    agencyWarnings: parseAgencyWarnings(meta),
+    unresolvedAgencyTokens: parseUnresolvedAgencyTokens(meta),
+    resolvedAgencies: parseResolvedAgencies(meta),
     cursor,
     results,
   };
@@ -170,6 +205,8 @@ export interface ListContractsOptions extends ListOptionsBase {
   // Agencies / identifiers
   awarding_agency?: string;
   funding_agency?: string;
+  /** Exact award key (the detail-endpoint identifier). */
+  key?: string;
   piid?: string;
   solicitation_identifier?: string;
   naics?: string;
@@ -195,6 +232,8 @@ export interface ListContractsOptions extends ListOptionsBase {
 
 export interface ListEntitiesOptions extends ListOptionsBase {
   search?: string;
+  /** CAGE code (API alias of `cage_code`). */
+  cage?: string;
   cage_code?: string;
   naics?: string;
   name?: string;
@@ -257,6 +296,8 @@ export interface ListIdvsOptions {
   fiscal_year_gte?: number | string;
   fiscal_year_lte?: number | string;
   idv_type?: string;
+  /** Exact award key (the detail-endpoint identifier). */
+  key?: string;
   last_date_to_order_gte?: string;
   last_date_to_order_lte?: string;
   naics?: string;
@@ -284,6 +325,8 @@ export interface ListForecastsOptions extends ListOptionsBase {
   fiscal_year?: number | string;
   fiscal_year_gte?: number | string;
   fiscal_year_lte?: number | string;
+  /** Filter by forecast id (the detail-endpoint identifier). */
+  id?: string | number;
   modified_after?: string;
   modified_before?: string;
   naics_code?: string;
@@ -307,6 +350,8 @@ export interface ListOpportunitiesOptions extends ListOptionsBase {
   last_notice_date_before?: string;
   naics?: string;
   notice_type?: string;
+  /** Filter by opportunity id (the detail-endpoint identifier). */
+  opportunity_id?: string;
   ordering?: string;
   place_of_performance?: string;
   psc?: string;
@@ -364,18 +409,281 @@ export interface ListGrantsOptions extends ListOptionsBase {
   [key: string]: unknown;
 }
 
+/**
+ * Budget account list options — matches `tango_python.TangoClient.list_budget_accounts`.
+ *
+ * Every numeric lifecycle/ratio field exposes an exact / `__gte` / `__lte` triplet, and any of them is a valid `ordering` target (e.g. `ordering: "-unobligated_balance"` ranks by largest headroom first).
+ */
 export interface ListBudgetAccountsOptions extends ListOptionsBase {
+  // Identity / categorical filters (`__in` variants take a comma-separated list)
   federal_account_symbol?: string;
+  federal_account_symbol__in?: string;
   fiscal_year?: number | string;
+  fiscal_year__gte?: number | string;
+  fiscal_year__lte?: number | string;
+  fiscal_year__in?: string;
+  /** Legacy alias remapped to `fiscal_year__gte`. */
   fiscal_year_gte?: number | string;
+  /** Legacy alias remapped to `fiscal_year__lte`. */
   fiscal_year_lte?: number | string;
   agency_code?: string;
+  agency_code__in?: string;
   bureau_name?: string;
+  bureau_name__icontains?: string;
+  bureau_name__in?: string;
+  /** Legacy alias remapped to `account_title__icontains`. */
   account_title?: string;
+  account_title__icontains?: string;
   bea_category?: string;
+  bea_category__in?: string;
   on_off_budget?: string;
   subfunction_code?: string;
+  subfunction_code__in?: string;
+
+  // President's-budget requested BA
+  requested_ba?: number | string;
+  requested_ba__gte?: number | string;
+  requested_ba__lte?: number | string;
+  // Enacted budget authority
+  enacted_ba?: number | string;
+  enacted_ba__gte?: number | string;
+  enacted_ba__lte?: number | string;
+  // Apportioned amount
+  apportioned?: number | string;
+  apportioned__gte?: number | string;
+  apportioned__lte?: number | string;
+  // Total obligated / outlayed
+  obligated_total?: number | string;
+  obligated_total__gte?: number | string;
+  obligated_total__lte?: number | string;
+  outlayed_total?: number | string;
+  outlayed_total__gte?: number | string;
+  outlayed_total__lte?: number | string;
+  /** Apportioned minus obligated, in dollars. `__gte` surfaces accounts with appropriated headroom that hasn't yet hit contract. */
+  unobligated_balance?: number | string;
+  unobligated_balance__gte?: number | string;
+  unobligated_balance__lte?: number | string;
+  // Contract-only / assistance-only obligated + outlayed breakdowns
+  contract_obligated?: number | string;
+  contract_obligated__gte?: number | string;
+  contract_obligated__lte?: number | string;
+  contract_outlayed?: number | string;
+  contract_outlayed__gte?: number | string;
+  contract_outlayed__lte?: number | string;
+  assistance_obligated?: number | string;
+  assistance_obligated__gte?: number | string;
+  assistance_obligated__lte?: number | string;
+  assistance_outlayed?: number | string;
+  assistance_outlayed__gte?: number | string;
+  assistance_outlayed__lte?: number | string;
+  /** Contracts as share of obligated, capped at 1.0. `__gte` filters to contract-heavy accounts. */
+  contract_share_of_obligated_capped?: number | string;
+  contract_share_of_obligated_capped__gte?: number | string;
+  contract_share_of_obligated_capped__lte?: number | string;
+  // Burn ratio (obligated / apportioned), plus the capped-at-1.0 variant
+  obligated_to_apportioned_pct?: number | string;
+  obligated_to_apportioned_pct__gte?: number | string;
+  obligated_to_apportioned_pct__lte?: number | string;
+  obligated_to_apportioned_pct_capped?: number | string;
+  obligated_to_apportioned_pct_capped__gte?: number | string;
+  obligated_to_apportioned_pct_capped__lte?: number | string;
+  // Apportionment ratio (apportioned / enacted), plus capped variant
+  apportioned_to_enacted_pct?: number | string;
+  apportioned_to_enacted_pct__gte?: number | string;
+  apportioned_to_enacted_pct__lte?: number | string;
+  apportioned_to_enacted_pct_capped?: number | string;
+  apportioned_to_enacted_pct_capped__gte?: number | string;
+  apportioned_to_enacted_pct_capped__lte?: number | string;
+  // Obligated-to-enacted ratio, plus capped variant
+  obligated_to_enacted_pct?: number | string;
+  obligated_to_enacted_pct__gte?: number | string;
+  obligated_to_enacted_pct__lte?: number | string;
+  obligated_to_enacted_pct_capped?: number | string;
+  obligated_to_enacted_pct_capped__gte?: number | string;
+  obligated_to_enacted_pct_capped__lte?: number | string;
+  // Spendout ratio (outlayed / obligated), plus capped variant
+  outlayed_to_obligated_pct?: number | string;
+  outlayed_to_obligated_pct__gte?: number | string;
+  outlayed_to_obligated_pct__lte?: number | string;
+  outlayed_to_obligated_pct_capped?: number | string;
+  outlayed_to_obligated_pct_capped__gte?: number | string;
+  outlayed_to_obligated_pct_capped__lte?: number | string;
+  // Unobligated share of apportioned
+  unobligated_pct?: number | string;
+  unobligated_pct__gte?: number | string;
+  unobligated_pct__lte?: number | string;
+  // Year-over-year growth + 5-year CAGR trends
+  enacted_ba_yoy_pct?: number | string;
+  enacted_ba_yoy_pct__gte?: number | string;
+  enacted_ba_yoy_pct__lte?: number | string;
+  obligated_yoy_pct?: number | string;
+  obligated_yoy_pct__gte?: number | string;
+  obligated_yoy_pct__lte?: number | string;
+  enacted_ba_5yr_cagr?: number | string;
+  enacted_ba_5yr_cagr__gte?: number | string;
+  enacted_ba_5yr_cagr__lte?: number | string;
+  /** Next-year requested BA growth. `__gte` supports forward-looking pipeline discovery. */
+  ba_growth_next_year_pct?: number | string;
+  ba_growth_next_year_pct__gte?: number | string;
+  ba_growth_next_year_pct__lte?: number | string;
+  // Realization ratio of contract obligated against the prior-year request, plus capped variant
+  actual_vs_requested_contract?: number | string;
+  actual_vs_requested_contract__gte?: number | string;
+  actual_vs_requested_contract__lte?: number | string;
+  actual_vs_requested_contract_capped?: number | string;
+  actual_vs_requested_contract_capped__gte?: number | string;
+  actual_vs_requested_contract_capped__lte?: number | string;
+
+  /** Full-text search over account_title / agency_name / bureau_name. */
   search?: string;
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * DIBBS RFQ list options — matches `tango_python.TangoClient.list_dibbs_rfqs`.
+ */
+export interface ListDibbsRfqsOptions extends ListOptionsBase {
+  joiner?: string;
+  nsn?: string;
+  part_number?: string;
+  solicitation?: string;
+  purchase_request?: string;
+  organization?: string;
+  status_code?: string;
+  set_aside?: string;
+  /** True returns only RFQs whose return_by_date has not passed. `is_open` is derived at query time, so filter with this rather than shaping on `is_open`. */
+  open?: boolean;
+  quantity_min?: number;
+  quantity_max?: number;
+  issue_date_after?: string;
+  issue_date_before?: string;
+  return_by_date_after?: string;
+  return_by_date_before?: string;
+  search?: string;
+  /** Sort field (issue_date, return_by_date, quantity, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * DIBBS RFP list options — matches `tango_python.TangoClient.list_dibbs_rfps`.
+ */
+export interface ListDibbsRfpsOptions extends ListOptionsBase {
+  joiner?: string;
+  nsn?: string;
+  part_number?: string;
+  solicitation?: string;
+  organization?: string;
+  buyer_code?: string;
+  /** True returns only RFPs whose closes_date has not passed. `is_open` is derived at query time, so filter with this rather than shaping on `is_open`. */
+  open?: boolean;
+  issued_date_after?: string;
+  issued_date_before?: string;
+  closes_date_after?: string;
+  closes_date_before?: string;
+  search?: string;
+  /** Sort field (issued_date, closes_date, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * DIBBS award list options — matches `tango_python.TangoClient.list_dibbs_awards`.
+ */
+export interface ListDibbsAwardsOptions extends ListOptionsBase {
+  joiner?: string;
+  award_number?: string;
+  delivery_order_number?: string;
+  solicitation?: string;
+  purchase_request?: string;
+  nsn?: string;
+  part_number?: string;
+  awardee_cage?: string;
+  entity?: string;
+  organization?: string;
+  total_contract_price_min?: number;
+  total_contract_price_max?: number;
+  award_date_after?: string;
+  award_date_before?: string;
+  posted_date_after?: string;
+  posted_date_before?: string;
+  search?: string;
+  /** Sort field (award_date, posted_date, total_contract_price, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Exclusions list options — matches `tango_python.TangoClient.list_exclusions`.
+ */
+export interface ListExclusionsOptions extends ListOptionsBase {
+  joiner?: string;
+  uei?: string;
+  entity_uei?: string;
+  cage_code?: string;
+  npi?: string;
+  classification_type?: string;
+  exclusion_type?: string;
+  exclusion_program?: string;
+  excluding_agency_code?: string;
+  excluding_agency_name?: string;
+  /** True returns only records currently in effect. `is_currently_excluded` is derived at query time, so filter with this rather than shaping on it. */
+  active?: boolean;
+  delisted?: boolean;
+  activate_date_after?: string;
+  activate_date_before?: string;
+  termination_date_after?: string;
+  termination_date_before?: string;
+  update_date_after?: string;
+  update_date_before?: string;
+  search?: string;
+  /** Sort field (activate_date, termination_date, create_date, update_date, rank, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * SBIR topic list options — matches `tango_python.TangoClient.list_sbir_topics`.
+ */
+export interface ListSbirTopicsOptions extends ListOptionsBase {
+  joiner?: string;
+  topic_number?: string;
+  solicitation_number?: string;
+  agency?: string;
+  activity?: string;
+  year?: number;
+  doc_source?: string;
+  open_date_after?: string;
+  open_date_before?: string;
+  close_date_after?: string;
+  close_date_before?: string;
+  release_date_after?: string;
+  release_date_before?: string;
+  search?: string;
+  /** Sort field (open_date, close_date, release_date, year, activity, modified). */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * SBIR solicitation list options — matches `tango_python.TangoClient.list_sbir_solicitations`.
+ */
+export interface ListSbirSolicitationsOptions extends ListOptionsBase {
+  joiner?: string;
+  solicitation_number?: string;
+  solicitation_status?: string;
+  program?: string;
+  activity?: string;
+  cycle_name?: string;
+  out_of_cycle?: boolean;
+  year?: number;
+  start_date_after?: string;
+  start_date_before?: string;
+  end_date_after?: string;
+  end_date_before?: string;
+  search?: string;
+  /** Sort field (start_date, end_date, year, activity, modified). */
   ordering?: string;
   [key: string]: unknown;
 }
@@ -393,7 +701,13 @@ export type IterableListMethod =
   | "listGrants"
   | "listForecasts"
   | "listIdvs"
-  | "listVehicles";
+  | "listVehicles"
+  | "listDibbsRfqs"
+  | "listDibbsRfps"
+  | "listDibbsAwards"
+  | "listExclusions"
+  | "listSbirTopics"
+  | "listSbirSolicitations";
 
 // ---------------------------------------------------------------------------
 // Read-method option interfaces (lookups + awards completeness + other)
@@ -411,6 +725,8 @@ export interface ListNaicsOptions extends ListOptionsBase {
 }
 
 export interface ListPscOptions extends ListOptionsBase {
+  /** When true, return only codes with contract award history. */
+  has_awards?: boolean;
   [key: string]: unknown;
 }
 
@@ -446,6 +762,8 @@ export interface ListOtasOptions extends ListOptionsBase {
   cursor?: string | null;
   joiner?: string;
   uei?: string;
+  /** Exact award key (the detail-endpoint identifier). */
+  key?: string;
   piid?: string;
   search?: string;
   awarding_agency?: string;
@@ -526,6 +844,8 @@ export interface ListProtestsOptions {
   agency?: string;
   case_number?: string;
   solicitation_number?: string;
+  /** NAICS code of the protested procurement (sent verbatim as `naics_code`). */
+  naics_code?: string;
   protester?: string;
   search?: string;
   filed_date_after?: string;
@@ -547,6 +867,8 @@ export interface ListItDashboardOptions {
   cio_rating?: string | number;
   cio_rating_max?: string | number;
   performance_risk?: string | number;
+  /** Filter by an investment's prior-year UII. */
+  previous_uii?: string;
   [key: string]: unknown;
 }
 
@@ -1425,7 +1747,7 @@ export class TangoClient {
 
     // Endpoints are commonly paginated like other Tango resources, but keep this resilient.
     if (Array.isArray(data)) {
-      return { count: data.length, next: null, previous: null, pageMetadata: null, cursor: null, results: data as WebhookEndpoint[] };
+      return buildPaginatedResponse<WebhookEndpoint>({ results: data });
     }
     return buildPaginatedResponse<WebhookEndpoint>(data);
   }
@@ -1675,6 +1997,30 @@ export class TangoClient {
     return this.iterate<Record<string, unknown>>("listVehicles", options);
   }
 
+  iterateDibbsRfqs(options: ListDibbsRfqsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listDibbsRfqs", options);
+  }
+
+  iterateDibbsRfps(options: ListDibbsRfpsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listDibbsRfps", options);
+  }
+
+  iterateDibbsAwards(options: ListDibbsAwardsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listDibbsAwards", options);
+  }
+
+  iterateExclusions(options: ListExclusionsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listExclusions", options);
+  }
+
+  iterateSbirTopics(options: ListSbirTopicsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listSbirTopics", options);
+  }
+
+  iterateSbirSolicitations(options: ListSbirSolicitationsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listSbirSolicitations", options);
+  }
+
   // ---------------------------------------------------------------------------
   // Lookups
   // ---------------------------------------------------------------------------
@@ -1690,6 +2036,68 @@ export class TangoClient {
     }
     const data = await this.http.get<AnyRecord>(path, params);
     return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  /**
+   * Shared page-based list flow for shape-materialized resources: default shape, `flat`/`flatLists`/`joiner` threading (joiner is sent only with `flat` and always drives unflattening), passthrough filters, and model materialization.
+   */
+  private async _shapedPaginatedList(
+    path: string,
+    baseModel: string,
+    defaultShape: string | null,
+    options: ListOptionsBase & { joiner?: string; [key: string]: unknown } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, joiner = ".", ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? defaultShape;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>(path, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList(baseModel, shapeSpec, rawResults, flat, joiner);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Shared detail-GET flow for shape-materialized resources — the single-object counterpart of `_shapedPaginatedList`. */
+  private async _shapedGet(
+    path: string,
+    baseModel: string,
+    defaultShape: string | null,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? defaultShape;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(path, params);
+    return this.materializeOne(baseModel, shapeSpec, data, flat, joiner);
   }
 
   /** List NAICS codes. */
@@ -1820,6 +2228,20 @@ export class TangoClient {
     return this._genericPaginatedList("/api/gsa_elibrary_contracts/", options);
   }
 
+  /** Get a single GSA eLibrary contract by uuid (`/api/gsa_elibrary_contracts/{uuid}/`). */
+  async getGsaElibraryContract(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("GSA eLibrary contract uuid is required");
+    return this._shapedGet(
+      `/api/gsa_elibrary_contracts/${encodeURIComponent(uuid)}/`,
+      "GsaElibraryContract",
+      ShapeConfig.GSA_ELIBRARY_CONTRACTS_MINIMAL,
+      options,
+    );
+  }
+
   /**
    * List Labor Categories (LCATs) for an entity or IDV.
    *
@@ -1846,7 +2268,13 @@ export class TangoClient {
 
   /** List budget accounts (`/api/budget/accounts/`). One row per federal account x fiscal year. */
   async listBudgetAccounts(options: ListBudgetAccountsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
-    return this._genericPaginatedList("/api/budget/accounts/", options);
+    const { fiscal_year_gte, fiscal_year_lte, account_title, ...rest } = options;
+    const params: AnyRecord = { ...rest };
+    // Legacy aliases predate the explicit dunder surface; the API only understands the dunder forms.
+    if (fiscal_year_gte !== undefined && params.fiscal_year__gte === undefined) params.fiscal_year__gte = fiscal_year_gte;
+    if (fiscal_year_lte !== undefined && params.fiscal_year__lte === undefined) params.fiscal_year__lte = fiscal_year_lte;
+    if (account_title !== undefined && params.account_title__icontains === undefined) params.account_title__icontains = account_title;
+    return this._genericPaginatedList("/api/budget/accounts/", params);
   }
 
   /** Get a single budget account by id (`/api/budget/accounts/{id}/`). */
@@ -1903,6 +2331,125 @@ export class TangoClient {
     if (funding_organization_id) params.funding_organization_id = funding_organization_id;
     const data = await this.http.get<AnyRecord>(`/api/budget/accounts/${encodeURIComponent(String(id))}/recipients/`, params);
     return buildPaginatedResponse<AnyRecord>(data);
+  }
+
+  // ---------------------------------------------------------------------------
+  // DLA DIBBS (RFQs, RFPs, awards)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * List DLA DIBBS request-for-quote solicitations (`/api/dibbs/rfqs/`).
+   *
+   * `is_open` is derived at query time from `return_by_date`, so filter with the `open` option rather than shaping on `is_open`.
+   */
+  async listDibbsRfqs(options: ListDibbsRfqsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/dibbs/rfqs/", "DibbsRfq", ShapeConfig.DIBBS_RFQS_MINIMAL, options);
+  }
+
+  /** Get a single DIBBS RFQ by uuid (`/api/dibbs/rfqs/{uuid}/`). */
+  async getDibbsRfq(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("DIBBS RFQ uuid is required");
+    return this._shapedGet(`/api/dibbs/rfqs/${encodeURIComponent(uuid)}/`, "DibbsRfq", ShapeConfig.DIBBS_RFQS_MINIMAL, options);
+  }
+
+  /**
+   * List DLA DIBBS request-for-proposal solicitations (`/api/dibbs/rfps/`).
+   *
+   * `is_open` is derived at query time from `closes_date`, so filter with the `open` option rather than shaping on `is_open`.
+   */
+  async listDibbsRfps(options: ListDibbsRfpsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/dibbs/rfps/", "DibbsRfp", ShapeConfig.DIBBS_RFPS_MINIMAL, options);
+  }
+
+  /** Get a single DIBBS RFP by uuid (`/api/dibbs/rfps/{uuid}/`). */
+  async getDibbsRfp(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("DIBBS RFP uuid is required");
+    return this._shapedGet(`/api/dibbs/rfps/${encodeURIComponent(uuid)}/`, "DibbsRfp", ShapeConfig.DIBBS_RFPS_MINIMAL, options);
+  }
+
+  /**
+   * List DLA DIBBS awards (`/api/dibbs/awards/`).
+   *
+   * WARNING: `total_contract_price` is the *order* total repeated on every line item of the award.
+   * Never sum it across rows — doing so multiplies the value by the line-item count.
+   * Deduplicate on `award_number` + `delivery_order_number` first.
+   */
+  async listDibbsAwards(options: ListDibbsAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/dibbs/awards/", "DibbsAward", ShapeConfig.DIBBS_AWARDS_MINIMAL, options);
+  }
+
+  /** Get a single DIBBS award by uuid (`/api/dibbs/awards/{uuid}/`). */
+  async getDibbsAward(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("DIBBS award uuid is required");
+    return this._shapedGet(`/api/dibbs/awards/${encodeURIComponent(uuid)}/`, "DibbsAward", ShapeConfig.DIBBS_AWARDS_MINIMAL, options);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Exclusions (SAM.gov debarments)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * List SAM.gov exclusion (debarment) records (`/api/exclusions/`).
+   *
+   * `is_currently_excluded` is derived at query time from the activate/termination dates, so filter with the `active` option rather than shaping on `is_currently_excluded`.
+   */
+  async listExclusions(options: ListExclusionsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/exclusions/", "Exclusion", ShapeConfig.EXCLUSIONS_MINIMAL, options);
+  }
+
+  /** Get a single exclusion by its deterministic exclusion_key (`/api/exclusions/{exclusion_key}/`). */
+  async getExclusion(
+    exclusionKey: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!exclusionKey) throw new TangoValidationError("exclusion_key is required");
+    return this._shapedGet(`/api/exclusions/${encodeURIComponent(exclusionKey)}/`, "Exclusion", ShapeConfig.EXCLUSIONS_MINIMAL, options);
+  }
+
+  // ---------------------------------------------------------------------------
+  // SBIR/STTR (topics, DoD DSIP solicitations)
+  // ---------------------------------------------------------------------------
+
+  /** List SBIR/STTR topics (`/api/sbir/topics/`). */
+  async listSbirTopics(options: ListSbirTopicsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/sbir/topics/", "SbirTopic", ShapeConfig.SBIR_TOPICS_MINIMAL, options);
+  }
+
+  /** Get a single SBIR/STTR topic by topic_id (`/api/sbir/topics/{topic_id}/`). */
+  async getSbirTopic(
+    topicId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!topicId) throw new TangoValidationError("topic_id is required");
+    return this._shapedGet(`/api/sbir/topics/${encodeURIComponent(topicId)}/`, "SbirTopic", ShapeConfig.SBIR_TOPICS_MINIMAL, options);
+  }
+
+  /** List DoD DSIP SBIR/STTR solicitations (`/api/sbir/solicitations/`). */
+  async listSbirSolicitations(options: ListSbirSolicitationsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/sbir/solicitations/", "SbirSolicitation", ShapeConfig.SBIR_SOLICITATIONS_MINIMAL, options);
+  }
+
+  /** Get a single DoD DSIP SBIR/STTR solicitation by solicitation_id (`/api/sbir/solicitations/{solicitation_id}/`). */
+  async getSbirSolicitation(
+    solicitationId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!solicitationId) throw new TangoValidationError("solicitation_id is required");
+    return this._shapedGet(
+      `/api/sbir/solicitations/${encodeURIComponent(solicitationId)}/`,
+      "SbirSolicitation",
+      ShapeConfig.SBIR_SOLICITATIONS_MINIMAL,
+      options,
+    );
   }
 
   // ---------------------------------------------------------------------------

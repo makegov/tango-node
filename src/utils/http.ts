@@ -1,6 +1,7 @@
 import { TangoAPIError, TangoAuthError, TangoNotFoundError, TangoRateLimitError, TangoTimeoutError, TangoValidationError } from "../errors.js";
 import { DEFAULT_BASE_URL } from "../config.js";
 import type { RateLimitInfo } from "../types.js";
+import { isRecord } from "./guards.js";
 
 export interface HttpClientOptions {
   baseUrl?: string;
@@ -18,10 +19,6 @@ export interface RequestOptions {
   path: string;
   query?: Record<string, unknown>;
   body?: unknown;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function isSafePrimitive(value: unknown): value is string | number | boolean | symbol | bigint {

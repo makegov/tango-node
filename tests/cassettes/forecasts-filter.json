@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/forecasts/?limit=3&naics_starts_with=54&page=1&shape=id%2Ctitle%2Cnaics_code"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "969",
+          "x-ratelimit-burst-reset": "33",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999892",
+          "x-ratelimit-daily-reset": "24274",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "969",
+          "x-ratelimit-reset": "33",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 7906,
+          "next": "https://tango.makegov.com/api/forecasts/?limit=3&naics_starts_with=54&page=2&shape=id%2Ctitle%2Cnaics_code",
+          "previous": null,
+          "results": [
+            {
+              "id": 20210,
+              "naics_code": "541620",
+              "title": "Barker Mill CERCLA Response"
+            },
+            {
+              "id": 19552,
+              "naics_code": "541519",
+              "title": "Checkpoint Enterprise Software Licenses and Support"
+            },
+            {
+              "id": 18445,
+              "naics_code": "541519",
+              "title": "PrimeNG Support"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

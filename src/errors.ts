@@ -1,3 +1,5 @@
+import { isRecord } from "./utils/guards.js";
+
 export class TangoAPIError extends Error {
   readonly statusCode?: number;
   readonly responseData?: unknown;
@@ -32,6 +34,29 @@ export class TangoValidationError extends TangoAPIError {
   constructor(message = "Invalid request parameters", statusCode?: number, responseData?: unknown) {
     super(message, statusCode, responseData);
     this.name = "TangoValidationError";
+  }
+
+  /**
+   * Structured validation issues from the API response.
+   * For shape errors the API returns entries like `{"path": "tradeoff_process", "reason": "unknown_field"}`.
+   * Empty array when the response carried no structured issues.
+   */
+  get issues(): Array<Record<string, unknown>> {
+    const data = this.responseData;
+    if (!isRecord(data)) return [];
+    const val = data.issues;
+    if (!Array.isArray(val)) return [];
+    return val.filter(isRecord);
+  }
+
+  /**
+   * The endpoint's valid field set, when the API includes one.
+   */
+  get availableFields(): Record<string, unknown> | null {
+    const data = this.responseData;
+    if (!isRecord(data)) return null;
+    const val = data.available_fields;
+    return isRecord(val) ? val : null;
   }
 }
 

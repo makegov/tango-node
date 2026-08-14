@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/contracts/?limit=2&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "997",
+          "x-ratelimit-burst-reset": "58",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999920",
+          "x-ratelimit-daily-reset": "24299",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "997",
+          "x-ratelimit-reset": "58",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 86157384,
+          "next": "https://tango.makegov.com/api/contracts/?limit=2&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value&cursor=WyIyMDI2LTA4LTEzIiwgImZmMmIzNzA1LTA5NzktNWRkMC04YTE4LWFmOTgyNmEzODZmNiJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTA4LTEzIiwgImZmMmIzNzA1LTA5NzktNWRkMC04YTE4LWFmOTgyNmEzODZmNiJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "award_date": "2026-08-13",
+              "description": "FY26 B1 MCKESSON PHARMACY STOCK MEDICATION JUL 26",
+              "key": "CONT_AWD_15B0AT26F41000011_1540_36W79720D0001_3600",
+              "piid": "15B0AT26F41000011",
+              "recipient": {
+                "display_name": "MCKESSON CORPORATION"
+              },
+              "total_contract_value": 65000
+            },
+            {
+              "award_date": "2026-08-13",
+              "description": "FY26 Q4 COPIER REQUIREMENT",
+              "key": "CONT_AWD_15B31026F00000090_1540_GS03F045DA_4732",
+              "piid": "15B31026F00000090",
+              "recipient": {
+                "display_name": "KYOCERA DOCUMENT SOLUTIONS AMERICA INC"
+              },
+              "total_contract_value": 5306.85
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/contracts/?cursor=WyIyMDI2LTA4LTEzIiwgImZmMmIzNzA1LTA5NzktNWRkMC04YTE4LWFmOTgyNmEzODZmNiJd&limit=2&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "996",
+          "x-ratelimit-burst-reset": "58",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999919",
+          "x-ratelimit-daily-reset": "24298",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "996",
+          "x-ratelimit-reset": "58",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 86157384,
+          "next": "https://tango.makegov.com/api/contracts/?limit=2&cursor=WyIyMDI2LTA4LTEzIiwgImZkZDU0ODUwLWE0OWUtNTQ2MC04YTdmLTE5YmI4YWNjYWY3MyJd&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value",
+          "previous": "https://tango.makegov.com/api/contracts/?limit=2&cursor=eyJ2IjogWyIyMDI2LTA4LTEzIiwgImZmMWIwY2JmLWVmZTItNTI0MC1iZmVlLWFkMWI2MmNlMjVkYyJdLCAiZCI6ICJwcmV2In0%3D&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%29%2Cdescription%2Ctotal_contract_value",
+          "cursor": "WyIyMDI2LTA4LTEzIiwgImZkZDU0ODUwLWE0OWUtNTQ2MC04YTdmLTE5YmI4YWNjYWY3MyJd",
+          "previous_cursor": "eyJ2IjogWyIyMDI2LTA4LTEzIiwgImZmMWIwY2JmLWVmZTItNTI0MC1iZmVlLWFkMWI2MmNlMjVkYyJdLCAiZCI6ICJwcmV2In0=",
+          "results": [
+            {
+              "award_date": "2026-08-13",
+              "description": "FY-2026 A1 - TILT SKILLET - CULINARY DEPOT\nRP#: 0393-26\n\n* WOMEN-OWNED BUSINESS *\n\nORDERING FROM AND ADHERING TO THE TERMS AND CONDITIONS SET FORTH IN FEDERAL SUPPLY SCHEDULE GS-07F-0211V.",
+              "key": "CONT_AWD_15B30226F00000191_1540_GS07F0211V_4730",
+              "piid": "15B30226F00000191",
+              "recipient": {
+                "display_name": "CULINARY DEPOT INC."
+              },
+              "total_contract_value": 19392.37
+            },
+            {
+              "award_date": "2026-08-13",
+              "description": "THIS CONTRACT PROVIDES MISSION-CRITICAL ADMINISTRATIVE, CLERICAL, AND LOGISTICAL SUPPORT TO SUPPORT FACT WITNESSES, INCLUDING WITNESS TRAVEL, LODGING.",
+              "key": "CONT_AWD_15JA3426F00000011_1501_GS07F0412V_4730",
+              "piid": "15JA3426F00000011",
+              "recipient": {
+                "display_name": "FORFEITURE SUPPORT ASSOCIATES LLC"
+              },
+              "total_contract_value": 361574.4
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

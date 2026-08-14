@@ -1,4 +1,3 @@
-import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it, expect } from "vitest";
@@ -10,12 +9,10 @@ const __dirname = path.dirname(__filename);
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures");
 const MINI_CLIENT = path.join(FIXTURES_DIR, "mini-client.ts");
-const REAL_MANIFEST = path.resolve(
+const VENDORED_CONTRACT = path.resolve(
   __dirname,
   "..",
   "..",
-  "..",
-  "tango",
   "contracts",
   "filter_shape_contract.json",
 );
@@ -27,6 +24,7 @@ describe("check-filter-shape-conformance script", () => {
       clientPath: MINI_CLIENT,
       skipShapes: true,
       resourceMap: { foos: "listFoos" },
+      baselinePath: null,
     });
     expect(result.errors).toEqual([]);
     // The fixture's interface has no index signature → no kwargs-style warning.
@@ -39,6 +37,7 @@ describe("check-filter-shape-conformance script", () => {
       clientPath: MINI_CLIENT,
       skipShapes: true,
       resourceMap: { bars: "listBars" },
+      baselinePath: null,
     });
     expect(result.errors.length).toBe(1);
     expect(result.errors[0]).toMatch(/bars/);
@@ -47,12 +46,66 @@ describe("check-filter-shape-conformance script", () => {
     expect(result.errors[0]).not.toMatch(/fiscal_year/);
   });
 
+  it("downgrades a baselined missing filter to a warning", () => {
+    const result = runConformance({
+      manifestPath: path.join(FIXTURES_DIR, "mini-manifest-missing.json"),
+      clientPath: MINI_CLIENT,
+      skipShapes: true,
+      resourceMap: { bars: "listBars" },
+      baselinePath: path.join(FIXTURES_DIR, "mini-baseline.json"),
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.warnings.length).toBe(1);
+    expect(result.warnings[0]).toMatch(/known gaps \(baselined\)/);
+    expect(result.warnings[0]).toMatch(/awarding_agency/);
+  });
+
+  it("treats a null-mapped resource as an error unless baselined", () => {
+    const hard = runConformance({
+      manifestPath: path.join(FIXTURES_DIR, "mini-manifest-ok.json"),
+      clientPath: MINI_CLIENT,
+      skipShapes: true,
+      resourceMap: { foos: null },
+      baselinePath: null,
+    });
+    expect(hard.errors.length).toBe(1);
+    expect(hard.errors[0]).toMatch(/foos: no SDK method implemented/);
+
+    const accepted = runConformance({
+      manifestPath: path.join(FIXTURES_DIR, "mini-manifest-ok.json"),
+      clientPath: MINI_CLIENT,
+      skipShapes: true,
+      resourceMap: { foos: null },
+      baselinePath: path.join(FIXTURES_DIR, "mini-baseline.json"),
+    });
+    expect(accepted.errors).toEqual([]);
+    expect(accepted.warnings.some((w) => /foos.*baselined as accepted gap/.test(w))).toBe(true);
+  });
+
+  it("warns about baseline entries no longer needed", () => {
+    const result = runConformance({
+      manifestPath: path.join(FIXTURES_DIR, "mini-manifest-ok.json"),
+      clientPath: MINI_CLIENT,
+      skipShapes: true,
+      resourceMap: { foos: "listFoos" },
+      baselinePath: path.join(FIXTURES_DIR, "mini-baseline-stale.json"),
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.warnings.some((w) => /foos: baseline entries no longer needed/.test(w))).toBe(
+      true,
+    );
+    expect(
+      result.warnings.some((w) => /unimplemented_resources baseline entry no longer needed/.test(w)),
+    ).toBe(true);
+  });
+
   it("downgrades missing filters to warnings when the Options interface has an index signature", () => {
     const result = runConformance({
       manifestPath: path.join(FIXTURES_DIR, "mini-manifest-indexsig.json"),
       clientPath: MINI_CLIENT,
       skipShapes: true,
       resourceMap: { baz: "listBaz" },
+      baselinePath: null,
     });
     expect(result.errors).toEqual([]);
     expect(result.warnings.length).toBe(1);
@@ -67,35 +120,28 @@ describe("check-filter-shape-conformance script", () => {
       clientPath: MINI_CLIENT,
       skipShapes: true,
       resourceMap: { foos: "listNonExistent" },
+      baselinePath: null,
     });
     expect(result.errors.length).toBe(1);
     expect(result.errors[0]).toMatch(/listNonExistent/);
     expect(result.errors[0]).toMatch(/not found/);
   });
 
-  it("runs against the real manifest and produces well-formed JSON", () => {
-    // The real manifest path is optional — skip if a sibling tango checkout
-    // doesn't exist on this machine.
-    if (!fs.existsSync(REAL_MANIFEST)) {
-      console.warn(`Skipping: real manifest not found at ${REAL_MANIFEST}`);
-      return;
-    }
+  it("passes against the vendored contract with the committed baseline (the CI gate)", () => {
+    const result = runConformance({ manifestPath: VENDORED_CONTRACT });
 
-    const result = runConformance({ manifestPath: REAL_MANIFEST });
-
-    expect(typeof result).toBe("object");
-    expect(result.manifest).toBe(path.resolve(REAL_MANIFEST));
-    expect(Array.isArray(result.errors)).toBe(true);
-    expect(Array.isArray(result.warnings)).toBe(true);
-
-    // Every entry should be a string.
-    for (const e of result.errors) expect(typeof e).toBe("string");
+    expect(result.manifest).toBe(VENDORED_CONTRACT);
+    expect(result.errors).toEqual([]);
     for (const w of result.warnings) expect(typeof w).toBe("string");
+  });
 
-    // Surface the current state for transparency.
-    // eslint-disable-next-line no-console
-    console.log(
-      `[conformance] real manifest: errors=${result.errors.length}, warnings=${result.warnings.length}`,
-    );
+  it("fails against the vendored contract when the baseline is withheld", () => {
+    // Proves the gate has teeth: the permanently-baselined content endpoints
+    // (events, news) error without their baseline entries.
+    const result = runConformance({ manifestPath: VENDORED_CONTRACT, baselinePath: null });
+
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors.some((e) => /events/.test(e))).toBe(true);
+    expect(result.errors.some((e) => /news/.test(e))).toBe(true);
   });
 });

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/naics/?limit=3&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "989",
+          "x-ratelimit-burst-reset": "53",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999912",
+          "x-ratelimit-daily-reset": "24293",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "989",
+          "x-ratelimit-reset": "53",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 1012,
+          "next": "https://tango.makegov.com/api/naics/?limit=3&page=2",
+          "previous": null,
+          "results": [
+            {
+              "code": 111110,
+              "description": "Soybean Farming"
+            },
+            {
+              "code": 111120,
+              "description": "Oilseed (except Soybean) Farming"
+            },
+            {
+              "code": 111130,
+              "description": "Dry Pea and Bean Farming"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -98,4 +98,33 @@ export const ShapeConfig = {
     "uii,agency_code,agency_name,bureau_code,bureau_name," +
     "investment_title,type_of_investment,part_of_it_portfolio," +
     "updated_time,url",
+
+  // Default for listDibbsRfqs()
+  DIBBS_RFQS_MINIMAL:
+    "uuid,solicitation,nsn,part_number,nomenclature,quantity,issue_date,return_by_date,is_open",
+
+  // Default for listDibbsRfps()
+  DIBBS_RFPS_MINIMAL:
+    "uuid,solicitation,nsn,part_number,nomenclature,issued_date,closes_date,is_open",
+
+  // Default for listDibbsAwards(). total_contract_price is the ORDER total
+  // repeated per line item — never sum it across rows.
+  DIBBS_AWARDS_MINIMAL:
+    "uuid,award_number,solicitation,nsn,part_number,nomenclature," +
+    "awardee_cage,award_date,total_contract_price",
+
+  // Default for listExclusions()
+  EXCLUSIONS_MINIMAL:
+    "exclusion_key,display_name,entity_name,uei,classification_type,exclusion_type," +
+    "excluding_agency_name,activate_date,termination_date,is_currently_excluded",
+
+  // Default for listSbirTopics()
+  SBIR_TOPICS_MINIMAL:
+    "topic_id,topic_number,title,agency,activity,year," +
+    "solicitation_number,open_date,close_date,listed_open",
+
+  // Default for listSbirSolicitations()
+  SBIR_SOLICITATIONS_MINIMAL:
+    "solicitation_id,solicitation_number,title,program,activity," +
+    "cycle_name,solicitation_status,year,start_date,end_date",
 } as const;

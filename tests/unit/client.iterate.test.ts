@@ -169,6 +169,42 @@ describe("TangoClient.iterate (early termination)", () => {
   });
 });
 
+describe("TangoClient.iterate (new resources)", () => {
+  it("iterateExclusions walks /api/exclusions/ pages and forwards filters", async () => {
+    const base = "https://example.test";
+    const { fetchImpl, calls } = makeFetch([
+      {
+        count: 3,
+        next: `${base}/api/exclusions/?page=2`,
+        results: [{ exclusion_key: "E1" }, { exclusion_key: "E2" }],
+      },
+      {
+        count: 3,
+        next: null,
+        results: [{ exclusion_key: "E3" }],
+      },
+    ]);
+
+    const client = new TangoClient({ apiKey: "k", baseUrl: base, fetchImpl, retries: 0 });
+
+    const seen: string[] = [];
+    for await (const e of client.iterateExclusions({ active: true })) {
+      seen.push(String((e as Record<string, unknown>).exclusion_key ?? ""));
+    }
+
+    expect(seen).toEqual(["E1", "E2", "E3"]);
+    expect(calls.length).toBe(2);
+
+    const u1 = new URL(calls[0]);
+    expect(u1.pathname).toBe("/api/exclusions/");
+    expect(u1.searchParams.get("active")).toBe("true");
+
+    const u2 = new URL(calls[1]);
+    expect(u2.searchParams.get("page")).toBe("2");
+    expect(u2.searchParams.get("active")).toBe("true");
+  });
+});
+
 describe("TangoClient.iterate (generic)", () => {
   it("rejects unknown method names", async () => {
     const client = new TangoClient({ apiKey: "k", baseUrl: "https://example.test", retries: 0 });

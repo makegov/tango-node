@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/dibbs/rfqs/?limit=3&page=1&shape=uuid%2Csolicitation%2Cnsn%2Cpart_number%2Cnomenclature%2Cquantity%2Cissue_date%2Creturn_by_date%2Cis_open"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "979",
+          "x-ratelimit-burst-reset": "42",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999902",
+          "x-ratelimit-daily-reset": "24283",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "979",
+          "x-ratelimit-reset": "42",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 84451,
+          "next": "https://tango.makegov.com/api/dibbs/rfqs/?limit=3&page=2&shape=uuid%2Csolicitation%2Cnsn%2Cpart_number%2Cnomenclature%2Cquantity%2Cissue_date%2Creturn_by_date%2Cis_open",
+          "previous": null,
+          "results": [
+            {
+              "is_open": true,
+              "issue_date": "2026-08-13",
+              "nomenclature": "STUD,SHOULDERED",
+              "nsn": "5307017062197",
+              "part_number": null,
+              "quantity": 15,
+              "return_by_date": "2026-08-18",
+              "solicitation": "SPE7L126T798H",
+              "uuid": "2160f63f-5f6d-40dd-9ba2-2d93c35ded0b"
+            },
+            {
+              "is_open": true,
+              "issue_date": "2026-08-13",
+              "nomenclature": "TANK,HOT DIP,DIRECT",
+              "nsn": "3426014375654",
+              "part_number": null,
+              "quantity": 1,
+              "return_by_date": "2026-08-18",
+              "solicitation": "SPE8E626T3537",
+              "uuid": "ac5eb1e8-64da-4188-bb22-7aa63a8c8484"
+            },
+            {
+              "is_open": false,
+              "issue_date": "2026-08-13",
+              "nomenclature": "SPLICE,CONDUCTOR",
+              "nsn": "5940013825664",
+              "part_number": null,
+              "quantity": 24,
+              "return_by_date": "2026-07-17",
+              "solicitation": "SPE7M126U4079",
+              "uuid": "ef9e2075-8c4b-49bf-aef6-875ae38e42b3"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

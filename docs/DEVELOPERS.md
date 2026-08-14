@@ -155,7 +155,7 @@ const client = new TangoClient({
 
 ## Using Predefined Shapes
 
-`ShapeConfig` ships 10+ predefined shape strings optimized for common use cases.
+`ShapeConfig` ships 25+ predefined shape strings optimized for common use cases — see [SHAPES.md](SHAPES.md#shapeconfig-presets) for the full table.
 
 ### Contracts
 
@@ -469,30 +469,20 @@ The same `fetchImpl` option is used in unit tests to inject mock responses witho
 
 ## SDK conformance (maintainers)
 
-The Node SDK tracks the Python SDK's method surface via a parity test suite. All 111 unit tests run in CI on every push and PR (see [publish workflow](../.github/workflows/publish.yml)) and can be run locally.
+The Node SDK tracks both the Tango API contract and the Python SDK's method surface.
+The full suite (unit + cassette-replayed integration) plus both conformance gates run in CI on every push and PR (see [CI workflow](../.github/workflows/ci.yml)) and can be run locally.
 
 ### Test organization
 
-All tests live in `tests/unit/`. There is one test category: unit tests with injected mock responses via the `fetchImpl` constructor option. There are no VCR cassettes or recorded HTTP fixtures — the Node SDK uses in-process `fetchImpl` mocks instead.
+Tests live under `tests/` in five groups:
 
-| Test file | What it covers |
-| --------- | -------------- |
-| `client.test.ts` | Core filter/param mapping, response shaping, error handling |
-| `client.parity.test.ts` | Every method present in the Python SDK has a Node counterpart |
-| `client.iterate.test.ts` | Iterator methods (`iterateContracts`, etc.) |
-| `client.baseurl.test.ts` | `TANGO_BASE_URL` env var and `baseUrl` constructor option |
-| `shapes.parser.test.ts` | `ShapeParser` — tokenizing and parsing shape strings |
-| `shapes.generator.test.ts` | `TypeGenerator` — descriptor generation |
-| `shapes.factory.test.ts` | `ModelFactory` — materialization and type coercion |
-| `shapes.schema.test.ts` | `SchemaRegistry` — field lookup and validation |
-| `config.shapes.test.ts` | `ShapeConfig` constants are parseable and schema-valid |
-| `models.dynamic.test.ts` | Dynamic model materialization end-to-end |
-| `webhooks.signing.test.ts` | HMAC signing and signature verification |
-| `utils.http.test.ts` | HTTP utility helpers (pagination, query params) |
-| `utils.dates.test.ts` | Date parsing utilities |
-| `utils.number.test.ts` | Decimal normalization |
-| `utils.unflatten.test.ts` | Dot-notation key unflattening |
-| `errors.test.ts` | Error class hierarchy |
+| Directory | What it covers | Network |
+| --------- | -------------- | ------- |
+| `tests/unit/` | Client param mapping, shaping pipeline, iterators, meta diagnostics, error classes, utils — mock responses injected via the `fetchImpl` constructor option | None |
+| `tests/integration/` | Per-resource round-trips against **recorded cassettes** (`tests/cassettes/*.json`) — contracts, entities, IDVs, vehicles, opportunities, notices, grants, forecasts, agencies, protests, budget, DIBBS, exclusions, SBIR, reference data, subawards, edge cases | None by default (replay) |
+| `tests/production/` | Env-gated live smoke suite — light invariants against the real API | Live, only with `TANGO_LIVE_TESTS=true` |
+| `tests/scripts/` | The conformance and shape-coverage gate scripts themselves | None |
+| `tests/webhooks/` | `WebhookReceiver`, simulator, and CLI (real local HTTP round-trips) | Loopback only |
 
 ### Running tests locally
 
@@ -502,6 +492,51 @@ npm test               # watch mode (default vitest behavior)
 npm test -- --run      # single-pass, no watch
 npm run coverage       # single-pass with v8 coverage report
 ```
+
+### Integration cassettes (record/replay)
+
+The integration suite is the node equivalent of tango-python's VCR setup: `tests/integration/harness.ts` wraps the SDK's injectable `fetchImpl` and records each interaction as JSON in `tests/cassettes/`.
+
+- **Default runs replay offline.** A missing cassette is a hard failure so drift is loud; an absent cassettes directory (a fork without the corpus) skips the suite with a warning.
+- **`TANGO_REFRESH_CASSETTES=true`** re-records serially against the live API (requires `TANGO_API_KEY`). Refresh cassettes and commit them in the same PR as the API change that invalidated them.
+- **`TANGO_USE_LIVE_API=true`** bypasses cassettes entirely and hits the live API without writing anything.
+
+```bash
+npx vitest run tests/integration                            # replay from committed cassettes
+TANGO_REFRESH_CASSETTES=true TANGO_API_KEY=... npx vitest run tests/integration   # re-record
+TANGO_USE_LIVE_API=true TANGO_API_KEY=... npx vitest run tests/integration        # live, no recording
+```
+
+Cassettes never store request headers (so an API key cannot be serialized), keep only an allowlisted response-header subset, and match on method + path + sorted query, host-insensitive.
+
+### Production smoke suite
+
+`tests/production/smoke.test.ts` asserts light live-API invariants (pagination shape, shaping, rate-limit header parsing).
+It only joins the run when `TANGO_LIVE_TESTS=true` **and** `TANGO_API_KEY` are set; `vitest.config.ts` excludes it otherwise, so it never runs in CI.
+
+```bash
+TANGO_LIVE_TESTS=true TANGO_API_KEY=... npx vitest run tests/production
+```
+
+### Conformance gates
+
+Conformance checking is fully offline: the canonical API filter/shape contract is **vendored** at `contracts/filter_shape_contract.json`, so no token or sibling checkout is needed and forks get the full check.
+Two gates run in CI and locally, in opposite directions:
+
+- **`npm run check-conformance`** (`scripts/check-filter-shape-conformance.ts`) — walks each `list*` method's `Options` interface with the TypeScript compiler AST and validates the SDK's filters and shapes against the contract. `TANGO_CONTRACT_PATH` or `--manifest` can point it at a live tango checkout instead.
+- **`npm run check-shape-coverage`** (`scripts/check-shape-coverage.ts`) — the reverse gate: fails when Tango's shape trees expose a field or expand the SDK schema doesn't capture and it isn't recorded in `contracts/shape_coverage_baseline.json`.
+
+Accepted gaps live in `contracts/conformance_baseline.json` (missing filters, unimplemented resources) and `contracts/shape_coverage_baseline.json` (shape-coverage backlog).
+Baselined gaps report as warnings; anything new is an error.
+Shrink the baselines as gaps close — never grow them to silence a legitimate failure.
+
+**`npm run generate-shape-overlay`** (`scripts/generate-shape-overlay.ts`) regenerates `src/shapes/generatedOverlay.ts` — the machine-generated schema additions that close the coverage gaps — from the vendored contract plus `contracts/observed_shape_types.json` (live-API type observations vendored from tango-python).
+`SchemaRegistry` merges the overlay over the curated explicit schemas; never edit `generatedOverlay.ts` by hand.
+It honors the same `TANGO_CONTRACT_PATH` env var / `--contract` flag as the two check scripts.
+CI regenerates the overlay and fails on any diff against the committed file, so a contract refresh or curated-schema change that alters generator output must land alongside a rerun of `npm run generate-shape-overlay`.
+
+To refresh the vendored contract, copy `contracts/filter_shape_contract.json` from the tango API repo, regenerate the overlay, and re-run both gates.
+When the `TANGO_API_REPO_ACCESS_TOKEN` secret is configured, CI additionally runs both gates as hard checks against the fresh contract at tango HEAD, and emits a re-vendor warning when the vendored copy has drifted.
 
 ### Lint and type-check
 
@@ -521,7 +556,7 @@ npm run clean          # rm -rf dist
 
 Releases are triggered by creating a GitHub Release (tag + notes). The [publish workflow](../.github/workflows/publish.yml) then:
 
-1. Installs dependencies (`npm install --ignore-scripts`)
+1. Installs dependencies from the committed lockfile (`npm ci --ignore-scripts`)
 2. Lints (`npm run lint`)
 3. Tests (`npm test`)
 4. Builds (`npm run build`)
@@ -536,9 +571,9 @@ npm run build
 npm pack --dry-run  # inspect what would be published
 ```
 
-### Smoke tests (integration)
+### Smoke scripts (ad hoc, live)
 
-The `scripts/` directory contains smoke test scripts that run against a live Tango API instance. These are **not** part of the regular `npm test` suite — they require a valid `TANGO_API_KEY` and (optionally) `TANGO_BASE_URL`.
+The `scripts/smoke-*.ts` scripts run against a live Tango API instance. These are **not** part of the regular `npm test` suite — they require a valid `TANGO_API_KEY` and (optionally) `TANGO_BASE_URL`.
 
 ```bash
 # Run with tsx (install globally or via npx)
@@ -549,8 +584,7 @@ TANGO_API_KEY=your-key node --import tsx/esm scripts/smoke-extras.ts
 ```
 
 These scripts hit every client method and report PASS/FAIL per call. Useful when you've changed the client and want to sanity-check against production or a local API instance.
-
-> **Note:** There is no VCR/cassette mechanism in the Node SDK. The Python SDK records and replays HTTP fixtures via `pytest-recording`; the Node equivalent is the `fetchImpl` mock pattern used in unit tests. Integration coverage against real API responses is provided by the smoke scripts.
+For repeatable coverage of real API responses, prefer the cassette-based integration suite above.
 
 ### Repo layout
 
@@ -574,24 +608,34 @@ tango-node/
 │   │   ├── schema.ts       # SchemaRegistry
 │   │   ├── generator.ts    # TypeGenerator
 │   │   ├── factory.ts      # ModelFactory
-│   │   ├── explicitSchemas.ts  # Field schema definitions for all models
+│   │   ├── explicitSchemas.ts  # Curated field schema definitions
+│   │   ├── generatedOverlay.ts # Machine-generated schema overlay (do not edit)
 │   │   └── types.ts        # Internal shape types
 │   ├── utils/
 │   │   ├── http.ts         # Pagination, query-param helpers
 │   │   ├── dates.ts        # Date/datetime parsing
 │   │   ├── number.ts       # Decimal normalization
 │   │   └── unflatten.ts    # Dot-notation key unflattening
-│   └── webhooks/
-│       └── signing.ts      # HMAC-SHA256 signing + verification
-├── tests/unit/             # All tests (vitest, fetchImpl mocks)
-├── scripts/                # Smoke tests (require live API key)
+│   └── webhooks/           # Signing, receiver, simulator, CLI
+├── contracts/              # Vendored API contract + conformance baselines
+├── tests/
+│   ├── unit/               # Offline unit tests (fetchImpl mocks)
+│   ├── integration/        # Cassette-replayed integration tests + harness.ts
+│   ├── cassettes/          # Recorded API interactions (JSON, committed)
+│   ├── production/         # Env-gated live smoke suite
+│   ├── scripts/            # Tests for the conformance gates
+│   └── webhooks/           # Receiver / simulator / CLI tests
+├── scripts/                # Conformance gates, overlay generator, live smoke scripts
 ├── docs/                   # Developer documentation
 │   ├── API_REFERENCE.md
+│   ├── CLIENT.md           # Client constructor, retries, errors
 │   ├── DEVELOPERS.md       # ← this file
 │   ├── DYNAMIC_MODELS.md   # Internal pipeline deep-dive
-│   └── SHAPES.md           # Shape grammar + examples
+│   ├── SHAPES.md           # Shape grammar + examples
+│   └── WEBHOOKS.md         # Receiving + verifying webhook deliveries
 ├── dist/                   # Compiled output (gitignored)
 ├── package.json
+├── package-lock.json       # Committed — CI installs with `npm ci`
 ├── tsconfig.json
 ├── vitest.config.ts
 └── eslint.config.js

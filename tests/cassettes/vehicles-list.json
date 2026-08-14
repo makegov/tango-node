@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/vehicles/?limit=3&page=1&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "960",
+          "x-ratelimit-burst-reset": "26",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999883",
+          "x-ratelimit-daily-reset": "24267",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "960",
+          "x-ratelimit-reset": "26",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 20749,
+          "next": "https://tango.makegov.com/api/vehicles/?limit=3&page=2&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date",
+          "previous": null,
+          "results": [
+            {
+              "awardee_count": 2,
+              "description": [
+                "CATTLE AND SWINE BACKTAG CEMENT",
+                "CATTLE AND SWINE BACKTAG CEMENT TO BE DELIVERED ON AN IDIQ BASIS TO KS, MO."
+              ],
+              "idv_count": 2,
+              "is_synthetic_solicitation": false,
+              "latest_award_date": "2006-06-01",
+              "order_count": 25,
+              "organization": {
+                "organization_id": "767bb2b0-239a-5bb4-8f3c-16d0a418fb71",
+                "office_code": "126395",
+                "office_name": "MRPBS MINNEAPOLIS MN",
+                "agency_code": "12K3",
+                "agency_name": "ANIMAL AND PLANT HEALTH INSPECTION SERVICE",
+                "department_code": "012",
+                "department_name": "AGRICULTURE, DEPARTMENT OF"
+              },
+              "organization_id": "767bb2b0-239a-5bb4-8f3c-16d0a418fb71",
+              "program_acronym": "APHIS VS",
+              "solicitation_date": null,
+              "solicitation_identifier": "002-M-APHIS-06",
+              "solicitation_title": null,
+              "total_obligated": 5388564.69,
+              "uuid": "8597845d-2a4c-5acd-99ff-1f5fe348501e",
+              "vehicle_contracts_value": 5116733.97,
+              "vehicle_obligations": 5388564.6899999995,
+              "vehicle_type": {
+                "code": "B",
+                "description": "IDC"
+              }
+            },
+            {
+              "awardee_count": 1,
+              "description": [
+                "WIRED TELEPHONY SERVICES"
+              ],
+              "idv_count": 2,
+              "is_synthetic_solicitation": false,
+              "latest_award_date": "2011-06-28",
+              "order_count": 14,
+              "organization": {
+                "organization_id": "de7791b0-2552-5303-9c41-e87e8e19ec42",
+                "office_code": "CL000",
+                "office_name": "GSA/FAS EXPANDED NETWORK SERVICES (2QTC)",
+                "agency_code": "4732",
+                "agency_name": "FEDERAL ACQUISITION SERVICE",
+                "department_code": "047",
+                "department_name": "GENERAL SERVICES ADMINISTRATION"
+              },
+              "organization_id": "de7791b0-2552-5303-9c41-e87e8e19ec42",
+              "program_acronym": null,
+              "solicitation_date": null,
+              "solicitation_identifier": "02LSA090013",
+              "solicitation_title": "Region Local Telephony Contract - for Upstate New York, Rochester New York, New Jersey, and Puerto Rico",
+              "total_obligated": 1875884.39,
+              "uuid": "62090454-1126-5f27-8aef-c39e6df5ee7f",
+              "vehicle_contracts_value": 900808.74,
+              "vehicle_obligations": 1875884.3900000001,
+              "vehicle_type": {
+                "code": "B",
+                "description": "IDC"
+              }
+            },
+            {
+              "awardee_count": 3,
+              "description": [
+                "INDEFINITE QUANTITY ARCHITECTURAL ENGINEERING CONTRACT FOR THE MID WEST AREA.",
+                "INDEFINITE QUANTITY ARCHITECTURAL ENGINEERING CONTRACT FOR THE\nMID WEST AREA",
+                "INDEFINITE QUANTITY ARCHITECTURAL-ENGINEERING CONTRACT FOR THE MID-WEST AREA."
+              ],
+              "idv_count": 3,
+              "is_synthetic_solicitation": false,
+              "latest_award_date": "2005-02-11",
+              "order_count": 131,
+              "organization": {
+                "organization_id": "df10725d-8988-5bec-975c-3a2a8c60a758",
+                "office_code": "123K15",
+                "office_name": "USDA ARS AFM FD",
+                "agency_code": "12H2",
+                "agency_name": "AGRICULTURAL RESEARCH SERVICE",
+                "department_code": "012",
+                "department_name": "AGRICULTURE, DEPARTMENT OF"
+              },
+              "organization_id": "df10725d-8988-5bec-975c-3a2a8c60a758",
+              "program_acronym": "IDC-BED",
+              "solicitation_date": null,
+              "solicitation_identifier": "03-3K15-04",
+              "solicitation_title": "C -- Indefinite Quantity Contract for A-E Services - Repair/Maintenance, Alteration, and New Construction",
+              "total_obligated": 6822963.21,
+              "uuid": "88f6c85b-b398-5396-808c-316f3f4394e3",
+              "vehicle_contracts_value": 3765655.47,
+              "vehicle_obligations": 6822963.209999999,
+              "vehicle_type": {
+                "code": "B",
+                "description": "IDC"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

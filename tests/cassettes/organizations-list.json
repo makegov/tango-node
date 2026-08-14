@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/organizations/?limit=3&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "991",
+          "x-ratelimit-burst-reset": "54",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999914",
+          "x-ratelimit-daily-reset": "24295",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "991",
+          "x-ratelimit-reset": "54",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 177142,
+          "next": "https://tango.makegov.com/api/organizations/?limit=3&page=2",
+          "previous": null,
+          "results": [
+            {
+              "canonical_code": "L1:9700",
+              "cgac": "097",
+              "code": "097",
+              "fh_key": "100000000",
+              "fpds_code": "9700",
+              "full_parent_path_name": "DEPT OF DEFENSE",
+              "is_active": true,
+              "key": "2278181c-046b-5265-b4e6-74444829a573",
+              "level": 1,
+              "name": "DEPT OF DEFENSE",
+              "parent_fh_key": null,
+              "short_name": "DOD",
+              "type": "DEPARTMENT"
+            },
+            {
+              "canonical_code": "L3:9700:5700:F8B6ES",
+              "cgac": "057",
+              "code": "F8B6ES",
+              "fh_key": "100000002",
+              "fpds_code": "5700",
+              "full_parent_path_name": "DEPT OF DEFENSE.DEPT OF THE AIR FORCE.ESSO",
+              "is_active": true,
+              "key": "1cbfdd1d-9fcf-5ef2-b162-d93caa89d354",
+              "level": 3,
+              "name": "ESSO",
+              "parent_fh_key": "300000251",
+              "short_name": null,
+              "type": "OFFICE"
+            },
+            {
+              "canonical_code": "L3:9700:5700:F8B6FS",
+              "cgac": "057",
+              "code": "F8B6FS",
+              "fh_key": "100000003",
+              "fpds_code": "5700",
+              "full_parent_path_name": "DEPT OF DEFENSE.DEPT OF THE AIR FORCE.FAMILY SUPPORT",
+              "is_active": true,
+              "key": "7b84c7cc-cbbd-5ed4-848a-3e0ebce3d57e",
+              "level": 3,
+              "name": "FAMILY SUPPORT",
+              "parent_fh_key": "300000251",
+              "short_name": null,
+              "type": "OFFICE"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

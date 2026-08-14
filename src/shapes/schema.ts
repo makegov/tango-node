@@ -1,6 +1,7 @@
 import { ShapeValidationError } from "../errors.js";
 import type { FieldSchema, FieldSchemaMap } from "./schemaTypes.js";
 import { EXPLICIT_SCHEMAS } from "./explicitSchemas.js";
+import { GENERATED_NESTED, GENERATED_OVERLAY } from "./generatedOverlay.js";
 
 export interface ModelSchema {
   modelName: string;
@@ -27,6 +28,18 @@ export class SchemaRegistry {
     const entries: [string, FieldSchemaMap][] = Object.entries(EXPLICIT_SCHEMAS);
     for (const [modelName, fields] of entries) {
       this.schemas.set(modelName, { modelName, fields });
+    }
+
+    // Merge the generated reverse-coverage overlay (scripts/generate-shape-overlay.ts):
+    // the fields and expands Tango's shape trees expose that the curated schemas above
+    // missed. Spread into a fresh object so the module-level schema maps stay unmutated.
+    for (const [refName, fields] of Object.entries(GENERATED_NESTED)) {
+      const existing = this.schemas.get(refName)?.fields ?? {};
+      this.schemas.set(refName, { modelName: refName, fields: { ...existing, ...fields } });
+    }
+    for (const [modelName, additions] of Object.entries(GENERATED_OVERLAY)) {
+      const existing = this.schemas.get(modelName)?.fields ?? {};
+      this.schemas.set(modelName, { modelName, fields: { ...existing, ...additions } });
     }
 
     this.explicitRegistered = true;

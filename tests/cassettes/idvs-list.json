@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/idvs/?limit=3&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%2Cuei%29%2Cdescription%2Ctotal_contract_value%2Cobligated%2Cidv_type"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "962",
+          "x-ratelimit-burst-reset": "28",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999885",
+          "x-ratelimit-daily-reset": "24268",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "962",
+          "x-ratelimit-reset": "28",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 1200293,
+          "next": "https://tango.makegov.com/api/idvs/?limit=3&shape=key%2Cpiid%2Caward_date%2Crecipient%28display_name%2Cuei%29%2Cdescription%2Ctotal_contract_value%2Cobligated%2Cidv_type&cursor=WyIyMDI2LTA4LTEzIiwgImZiODczMTg3LWU4YTMtNWMzNi05ZGEzLWFjM2I5ZDQ2MTBhYyJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTA4LTEzIiwgImZiODczMTg3LWU4YTMtNWMzNi05ZGEzLWFjM2I5ZDQ2MTBhYyJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "award_date": "2026-08-13",
+              "description": "TEMPORARY SURVEY TECHNICIAN SERVICES SUPPORTING USDA NRCS FIELD OFFICES THROUGHOUT NEBRASKA",
+              "idv_type": "E",
+              "key": "CONT_IDV_12FPC126A0001_12D0",
+              "obligated": 0,
+              "piid": "12FPC126A0001",
+              "recipient": {
+                "uei": "UX6XA5HES291",
+                "display_name": "TMPC INC"
+              },
+              "total_contract_value": 6000000
+            },
+            {
+              "award_date": "2026-08-13",
+              "description": "WEST ZONE POTABLE & GRAY WATER TRUCK/HANDWASHING STATION (TRAILER MOUNTED) FOR REGION 6 - PACIFIC NORTHWEST REGION ONLY",
+              "idv_type": "B",
+              "key": "CONT_IDV_1204H126T8107_12C2",
+              "obligated": 0,
+              "piid": "1204H126T8107",
+              "recipient": {
+                "uei": "LFZ8HTQ77UA5",
+                "display_name": "SAUL'S MOBILE PRESSURE WASHING LLC"
+              },
+              "total_contract_value": 250000
+            },
+            {
+              "award_date": "2026-08-13",
+              "description": "ONE ACQUISITION SOLUTION FOR INTEGRATED SERVICES PLUS (OASIS+) UNRESTRICTED MULTIPLE AGENCY CONTRACT (MAC)",
+              "idv_type": "B",
+              "key": "CONT_IDV_47QRCA26DU022_4732",
+              "obligated": 2500,
+              "piid": "47QRCA26DU022",
+              "recipient": {
+                "uei": "MLCEWFN6PHL3",
+                "display_name": "CLARITY INNOVATIONS LLC"
+              },
+              "total_contract_value": 999999999999
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

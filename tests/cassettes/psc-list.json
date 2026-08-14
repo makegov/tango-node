@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/psc/?limit=3&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "987",
+          "x-ratelimit-burst-reset": "52",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999910",
+          "x-ratelimit-daily-reset": "24292",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "987",
+          "x-ratelimit-reset": "52",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 2526,
+          "next": "https://tango.makegov.com/api/psc/?limit=3&page=2",
+          "previous": null,
+          "results": [
+            {
+              "category": "",
+              "code": "10",
+              "current": {
+                "name": "WEAPONS",
+                "active": true,
+                "start_date": "1979-10-01",
+                "end_date": null,
+                "description": "",
+                "includes": "",
+                "excludes": ""
+              },
+              "level_1_category": "",
+              "level_1_category_code": null,
+              "level_2_category": "",
+              "level_2_category_code": null,
+              "parent": ""
+            },
+            {
+              "category": "",
+              "code": "1005",
+              "current": {
+                "name": "GUNS, THROUGH 30MM",
+                "active": true,
+                "start_date": "2011-10-01",
+                "end_date": null,
+                "description": "Guns, through 30 mm",
+                "includes": "Machine guns; Brushes, Machine Gun and Pistol.",
+                "excludes": "Turrets, Aircraft."
+              },
+              "level_1_category": "",
+              "level_1_category_code": null,
+              "level_2_category": "",
+              "level_2_category_code": null,
+              "parent": ""
+            },
+            {
+              "category": "",
+              "code": "1010",
+              "current": {
+                "name": "GUNS, OVER 30MM UP TO 75MM",
+                "active": true,
+                "start_date": "2011-10-01",
+                "end_date": null,
+                "description": "Guns, over 30 mm up to 75 mm",
+                "includes": "Breech Mechanisms; Mounts Grenade Launchers for Integral-Cartridge Grenades, Single-Shot or Auto-Loading or Automatic-Firing.",
+                "excludes": ""
+              },
+              "level_1_category": "",
+              "level_1_category_code": null,
+              "level_2_category": "",
+              "level_2_category_code": null,
+              "parent": ""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

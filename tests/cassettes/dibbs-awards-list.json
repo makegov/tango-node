@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/dibbs/awards/?limit=3&page=1&shape=uuid%2Caward_number%2Csolicitation%2Cnsn%2Cpart_number%2Cnomenclature%2Cawardee_cage%2Caward_date%2Ctotal_contract_price"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "977",
+          "x-ratelimit-burst-reset": "41",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999900",
+          "x-ratelimit-daily-reset": "24281",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "977",
+          "x-ratelimit-reset": "41",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 207313,
+          "next": "https://tango.makegov.com/api/dibbs/awards/?limit=3&page=2&shape=uuid%2Caward_number%2Csolicitation%2Cnsn%2Cpart_number%2Cnomenclature%2Cawardee_cage%2Caward_date%2Ctotal_contract_price",
+          "previous": null,
+          "results": [
+            {
+              "award_date": "2026-08-12",
+              "award_number": "SPE8E625D0003",
+              "awardee_cage": "55722",
+              "nomenclature": "BARBED WIRE, CONCERTINA",
+              "nsn": "5660014959566",
+              "part_number": null,
+              "solicitation": null,
+              "total_contract_price": 268500,
+              "uuid": "f998a1bf-d5fe-4595-86ae-97b384855723"
+            },
+            {
+              "award_date": "2026-08-12",
+              "award_number": "SPE60526D1014",
+              "awardee_cage": "07ZM0",
+              "nomenclature": "DIESEL FUEL",
+              "nsn": "9140015240139",
+              "part_number": null,
+              "solicitation": null,
+              "total_contract_price": 20857.04,
+              "uuid": "294932af-d4a9-40c1-acdc-04880e5f9f49"
+            },
+            {
+              "award_date": "2026-08-12",
+              "award_number": "SPE60525D1252",
+              "awardee_cage": "U11D1",
+              "nomenclature": "DIESEL FUEL",
+              "nsn": "9140015569156",
+              "part_number": null,
+              "solicitation": null,
+              "total_contract_price": 34420.15,
+              "uuid": "978b2a9e-66e1-4812-8e3b-8f505c98ba8d"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -57,3 +57,22 @@ describe("Error classes", () => {
     expect(instErr.actualValue).toBe(123);
   });
 });
+
+describe("TangoValidationError structured shape errors", () => {
+  it("exposes issues and availableFields from the response body", () => {
+    const err = new TangoValidationError("bad shape", 400, {
+      issues: [{ path: "tradeoff_process", reason: "unknown_field" }, "not-a-record", null],
+      available_fields: { fields: ["key", "piid"], expands: { recipient: ["uei"] } },
+    });
+    expect(err.issues).toEqual([{ path: "tradeoff_process", reason: "unknown_field" }]);
+    expect(err.availableFields).toEqual({ fields: ["key", "piid"], expands: { recipient: ["uei"] } });
+  });
+
+  it("stays total when the body carries no structured payload", () => {
+    expect(new TangoValidationError("bad", 400).issues).toEqual([]);
+    expect(new TangoValidationError("bad", 400).availableFields).toBeNull();
+    const malformed = new TangoValidationError("bad", 400, { issues: "nope", available_fields: ["nope"] });
+    expect(malformed.issues).toEqual([]);
+    expect(malformed.availableFields).toBeNull();
+  });
+});

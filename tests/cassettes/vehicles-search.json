@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/vehicles/?limit=3&page=1&search=SEWP&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "959",
+          "x-ratelimit-burst-reset": "26",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999882",
+          "x-ratelimit-daily-reset": "24266",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "959",
+          "x-ratelimit-reset": "26",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 8,
+          "next": "https://tango.makegov.com/api/vehicles/?limit=3&page=2&search=SEWP&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date",
+          "previous": null,
+          "results": [
+            {
+              "awardee_count": 0,
+              "description": [
+                "NASA ITPO SEWP VI GWAC SOLICITATION. THE PRINCIPAL PURPOSE OF THIS REQUIREMENT IS TO PROVIDE THE FEDERAL GOVERNMENT WITH AN ALL-ENCOMPASSING ONE-STOP ACQUISITION VEHICLE FOR INFORMATION TECHNOLOGY PRODUCT AND SERVICE SOLUTIONS.",
+                "SEWP VI IS A MULTIPLE AWARD GWAC THAT PROVIDES NASA AND ALL FEDERAL AGENCIES WITH A FULL SUITE OF INFORMATION TECHNOLOGY (IT) SOLUTIONS FOR COMMUNICATION AND AUDIO-VISUAL SOLUTIONS, INCLUSIVE OF PRODUCTS AND SERVICES."
+              ],
+              "idv_count": 31,
+              "is_synthetic_solicitation": false,
+              "latest_award_date": "2026-07-09",
+              "order_count": 0,
+              "organization": {
+                "organization_id": "b6f7bf6f-1f84-5de7-9482-def6c8c330e1",
+                "office_code": "80TECH",
+                "office_name": "NASA IT PROCUREMENT OFFICE",
+                "agency_code": "8000",
+                "agency_name": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION",
+                "department_code": "080",
+                "department_name": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION"
+              },
+              "organization_id": "b6f7bf6f-1f84-5de7-9482-def6c8c330e1",
+              "program_acronym": "SEWP VI",
+              "solicitation_date": null,
+              "solicitation_identifier": "80TECH24R0001",
+              "solicitation_title": null,
+              "total_obligated": 0,
+              "uuid": "9ea43c97-809c-5fec-aad2-6457a0a3e49d",
+              "vehicle_contracts_value": 0,
+              "vehicle_obligations": 0,
+              "vehicle_type": {
+                "code": "A",
+                "description": "GWAC"
+              }
+            },
+            {
+              "awardee_count": 0,
+              "description": [
+                "IGF::CT::IGF:: REQUEST FOR DESKTOPS TO BE USED WITHIN BY EPIC DEVELOPERS TO ACCESS APPLICATIONS IN DEVELOPMENT ENVIRONMENTS.",
+                "IGF::CT::IGF:: SERVERS TO SUPPORT THE EPIC MOBILE APPLICATION PLATFORM.",
+                "IGF::CT::IGF:: APPLE IMAC'S W/RETINA 5K DISPLAY.",
+                "IGF::CT::IGF:: VIDEO TELECONFERENCING (VTC) EQUIPMENT AND ACCESSORIES.",
+                "IGF::CT::IGF CISCO EQUIPMENT FOR THE ESS NETWORK.",
+                "IGF::CT::IGF:: RENEWAL OF SQL NAVIGATOR FOR PERIOD 8/16/2017 TO 8/15/2018.",
+                "IGF::CT::IGF RENEWAL OF VERITAS ESSENTIAL SUPPORT FOR POP 8/08/2017 TO 8/07/2018.",
+                "IGF::CT::IGF MAINTENANCE RENEWAL FOR THE VNX5300 EMC STORAGE AREA NETWORK (SAN).",
+                "IGF::CT::IGF RENEWAL OF SYMENTEC PROTECCTION ENTERPRISE FOR PERIOD 5/01/2017 TO 4/30/2018",
+                "IGF::CT::IGF  VMWARE VSPHERE ENTERPRISE LICENSE AND SUPPORT",
+                "IGF::CT::IGF:: RED HAT LICENSE RENEWAL",
+                "IGF::CT::IGF:: ANNUAL RENEWAL SW SUPPORT",
+                "IGF::CT::IGF:: VERITAS RENEWAL",
+                "IGF::CT::IGF:: RED HAT ANNUAL SUBSCRIPTION RENEWAL",
+                "IGF::CT::IGF:: ANNUAL LICENSE RENEWAL TIBCO",
+                "IGF::CT::IGF:: ANNUAL MAINTENANCE RENEWAL ON F5 BIG TERM IN MONTHLY INSTALLMENTS"
+              ],
+              "idv_count": 24,
+              "is_synthetic_solicitation": true,
+              "latest_award_date": "2017-09-25",
+              "order_count": 0,
+              "organization": {
+                "organization_id": "41f38b64-774b-5acd-8576-b8c6b4db6f88",
+                "office_code": "15DDNE",
+                "office_name": "EL PASO INTELLIGENCE CENTER",
+                "agency_code": "1524",
+                "agency_name": "DRUG ENFORCEMENT ADMINISTRATION",
+                "department_code": "015",
+                "department_name": "JUSTICE, DEPARTMENT OF"
+              },
+              "organization_id": "41f38b64-774b-5acd-8576-b8c6b4db6f88",
+              "program_acronym": "SEWP",
+              "solicitation_date": null,
+              "solicitation_identifier": "SEWP",
+              "solicitation_title": null,
+              "total_obligated": 0,
+              "uuid": "fb9d313a-9ad2-5764-876a-cb52ffea59c5",
+              "vehicle_contracts_value": 0,
+              "vehicle_obligations": 0,
+              "vehicle_type": {
+                "code": "A",
+                "description": "GWAC"
+              }
+            },
+            {
+              "awardee_count": 43,
+              "description": [
+                "LAN NETWORKING SYSTEMS ENGINEERING AND COMPUTER SYSTEMS DESIGN",
+                "GEOGRAPHIC INFORMATION SYSTEMS AND REMOTE SENSING SERVICE",
+                "COMMERCIAL IT SEWP III CLASS 12 - SECURITY TOOLS&EQUIPMENT",
+                "COMMERCIAL IT PRODUCTS",
+                "COMMERCIAL IT SEWP III CLASS 12 SECURITY TOOLS & EQUIPMENT"
+              ],
+              "idv_count": 6,
+              "is_synthetic_solicitation": true,
+              "latest_award_date": "2004-05-11",
+              "order_count": 6101,
+              "organization": {
+                "organization_id": "62da08c0-8d2a-53a9-8de9-b14cadb9e49d",
+                "office_code": "80GSFC",
+                "office_name": "NASA GODDARD SPACE FLIGHT CENTER",
+                "agency_code": "8000",
+                "agency_name": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION",
+                "department_code": "080",
+                "department_name": "NATIONAL AERONAUTICS AND SPACE ADMINISTRATION"
+              },
+              "organization_id": "62da08c0-8d2a-53a9-8de9-b14cadb9e49d",
+              "program_acronym": "SEWP",
+              "solicitation_date": null,
+              "solicitation_identifier": "SEWP",
+              "solicitation_title": null,
+              "total_obligated": 782112232.62,
+              "uuid": "67097b84-cc39-523a-aff7-2f39814639e6",
+              "vehicle_contracts_value": 451489615.57000005,
+              "vehicle_obligations": 782112232.62,
+              "vehicle_type": {
+                "code": "A",
+                "description": "GWAC"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

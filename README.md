@@ -12,7 +12,7 @@ A modern Node.js SDK for the [Tango API](https://tango.makegov.com), featuring d
 
 - **Dynamic Response Shaping** – Ask Tango for exactly the fields you want using a simple shape syntax.
 - **Type-Safe by Design** – Shape strings are validated against Tango schemas and mapped to generated TypeScript types.
-- **Full Tango API surface** – Awards (contracts, IDVs, OTAs, OTIDVs, subawards, vehicles, GSA eLibrary), opportunities + notices, forecasts, grants, protests, IT Dashboard, entities (with sub-resources), agencies/organizations/offices/departments, lookups (NAICS, PSC, MAS SINs, assistance listings, business types), metrics, resolve/validate, webhooks. See `## API Methods` below for the full list.
+- **Full Tango API surface** – Awards (contracts, IDVs, OTAs, OTIDVs, subawards, vehicles, GSA eLibrary), opportunities + notices, forecasts, grants, protests, IT Dashboard, budget accounts, exclusions, SBIR/STTR, DIBBS, entities (with sub-resources), agencies/organizations/offices/departments, lookups (NAICS, PSC, MAS SINs, assistance listings, business types), metrics, resolve/validate, webhooks. See `## API Methods` below for the full list.
 - **Flexible Data Access** – Plain JavaScript objects backed by runtime validation and parsing, materialized via the dynamic model pipeline.
 - **Modern Node.js** – Built for Node.js 18+ with native `fetch` and ESM-first design.
 - **Tested Against the Real API** – Integration tests (mirroring the Python SDK) keep behavior aligned.
@@ -180,33 +180,49 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 
 **Contracts / IDVs / OTAs / OTIDVs / Subawards**
 
-- `listContracts(options)` / `listIdvs(options)` / `getIdv(key, options)`
+- `listContracts(options)` / `getContract(key, options)` / `getContractSubawards(key, options)` / `getContractTransactions(key, options)`
+- `listIdvs(options)` / `getIdv(key, options)`
 - `listIdvAwards(key, options)` / `listIdvChildIdvs({key, ...options})` / `listIdvTransactions(key, options)`
-- `getIdvSummary(identifier)` / `listIdvSummaryAwards(identifier, options)`
 - `listOtas(options)` / `getOta(key)` / `listOtidvs(options)` / `getOtidv(key)` / `listOtidvAwards(key, options)`
-- `listSubawards(options)`
+- `listSubawards(options)` / `getSubaward(key)`
 
 **Vehicles**
 
-- `listVehicles(options)` / `getVehicle(uuid, options)` / `listVehicleAwardees(uuid, options)`
+- `listVehicles(options)` / `getVehicle(uuid, options)` / `listVehicleAwardees(uuid, options)` / `listVehicleOrders(uuid, options)`
 
 **Entities**
 
 - `listEntities(options)` / `getEntity(ueiOrCage, options)`
 - `listEntityContracts(uei, options)` / `listEntityIdvs(uei, options)` / `listEntityOtas(uei, options)`
 - `listEntityOtidvs(uei, options)` / `listEntitySubawards(uei, options)` / `listEntityLcats(uei, options)`
-- `getEntityMetrics(uei, months, periodGrouping)`
+- `getEntityMetrics(uei, months, periodGrouping)` / `getEntityBudgetFlows(uei)`
 
 **Forecasts / Opportunities / Notices / Grants**
 
 - `listForecasts(options)` / `listOpportunities(options)` / `listNotices(options)` / `listGrants(options)`
+- `getForecast(id, options)` / `getOpportunity(opportunityId, options)` / `getNotice(noticeId, options)` / `getGrant(grantId, options)`
 - `searchOpportunityAttachments(options)`
 
-**GSA eLibrary / Protests / IT Dashboard / Subawards / LCATs**
+**GSA eLibrary / Protests / IT Dashboard / LCATs**
 
-- `listGsaElibraryContracts(options)` / `listProtests(options)` / `getProtest(caseNumber)`
+- `listGsaElibraryContracts(options)` / `getGsaElibraryContract(uuid, options)`
+- `listProtests(options)` / `getProtest(caseNumber)`
 - `listItDashboard(options)` / `getItDashboard(uii)`
 - `listLcats(options)` / `listIdvLcats(key, options)`
+
+**Budget Accounts**
+
+- `listBudgetAccounts(options)` / `getBudgetAccount(id, options)`
+- `getBudgetAccountQuarters(id, options)` / `getBudgetAccountRecipients(id, options)`
+
+**Exclusions / SBIR / DIBBS**
+
+- `listExclusions(options)` / `getExclusion(exclusionKey, options)`
+- `listSbirTopics(options)` / `getSbirTopic(topicId, options)`
+- `listSbirSolicitations(options)` / `getSbirSolicitation(solicitationId, options)`
+- `listDibbsRfqs(options)` / `getDibbsRfq(uuid, options)`
+- `listDibbsRfps(options)` / `getDibbsRfp(uuid, options)`
+- `listDibbsAwards(options)` / `getDibbsAward(uuid, options)`
 
 **Reference / Lookups**
 
@@ -237,6 +253,8 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 - `iterate(method, options)` — generic async iterator over any supported list method
 - `iterateContracts` / `iterateEntities` / `iterateOpportunities` / `iterateNotices`
 - `iterateGrants` / `iterateForecasts` / `iterateIdvs` / `iterateVehicles`
+- `iterateDibbsRfqs` / `iterateDibbsRfps` / `iterateDibbsAwards`
+- `iterateExclusions` / `iterateSbirTopics` / `iterateSbirSolicitations`
 
 **Utility**
 
@@ -252,9 +270,17 @@ interface PaginatedResponse<T> {
   next: string | null;
   previous: string | null;
   pageMetadata: Record<string, unknown> | null;
+  meta: Record<string, unknown> | null;
+  agencyWarnings: string[];
+  unresolvedAgencyTokens: Record<string, string[]>;
+  resolvedAgencies: Record<string, Array<Record<string, unknown>>>;
+  cursor: string | null;
   results: T[];
 }
 ```
+
+`meta` surfaces response-level metadata from the API, and the three `agency*` fields are parsed views of its agency-filter diagnostics — see [API Reference § Pagination](docs/API_REFERENCE.md#pagination) for how to use them to catch silently-narrowed agency filters.
+`cursor` is extracted from `next` on keyset-paginated endpoints so you can pass it straight back as the next request's `cursor` option.
 
 ## Error Handling
 
@@ -263,7 +289,7 @@ Errors are surfaced as typed exceptions, aligned with the Python SDK:
 - `TangoAPIError` – Base error for unexpected issues.
 - `TangoAuthError` – Authentication problems (e.g., invalid API key, 401).
 - `TangoNotFoundError` – Resource not found (404).
-- `TangoValidationError` – Invalid request parameters (400).
+- `TangoValidationError` – Invalid request parameters (400). Exposes the API's structured 400 payload via `issues` and `availableFields` (see the [API Reference](docs/API_REFERENCE.md#error-types)).
 - `TangoRateLimitError` – Rate limit exceeded (429).
 - `TangoTimeoutError` – Request exceeded the configured `timeoutMs`.
 
@@ -306,6 +332,7 @@ tango-node/
 │   ├── models/                  # Lightweight model interfaces (Contract, Entity, etc.)
 │   ├── shapes/                  # Shape system (parser, generator, factory)
 │   │   ├── explicitSchemas.ts   # Predefined schemas for resources
+│   │   ├── generatedOverlay.ts  # Machine-generated schema overlay (see scripts/)
 │   │   ├── factory.ts           # Instantiate typed models from data
 │   │   ├── generator.ts         # Type generation from shape specs
 │   │   ├── index.ts             # Shapes exports
@@ -313,27 +340,28 @@ tango-node/
 │   │   ├── schema.ts            # Schema registry + validation
 │   │   ├── schemaTypes.ts       # Schema data structures
 │   │   └── types.ts             # Shape spec types
-│   └── utils/                   # Helpers
-│       ├── dates.ts             # Date/time parsing utilities
-│       ├── http.ts              # HTTP client wrapper
-│       ├── number.ts            # Numeric parsing/formatting
-│       └── unflatten.ts         # Unflatten dotted-key responses
+│   ├── utils/                   # Helpers
+│   │   ├── dates.ts             # Date/time parsing utilities
+│   │   ├── http.ts              # HTTP client wrapper
+│   │   ├── number.ts            # Numeric parsing/formatting
+│   │   └── unflatten.ts         # Unflatten dotted-key responses
+│   └── webhooks/                # Signing, receiver, simulator, CLI
+├── contracts/                   # Vendored API contract + conformance baselines
+├── scripts/                     # Conformance gates, overlay generator, live smoke scripts
 ├── docs/                        # Documentation
 │   ├── API_REFERENCE.md
+│   ├── CLIENT.md
+│   ├── DEVELOPERS.md
 │   ├── DYNAMIC_MODELS.md
-│   └── SHAPES.md
+│   ├── SHAPES.md
+│   └── WEBHOOKS.md
 ├── tests/                       # Test suite (Vitest)
-│   └── unit/
-│       ├── client.test.ts
-│       ├── errors.test.ts
-│       ├── shapes.factory.test.ts
-│       ├── shapes.generator.test.ts
-│       ├── shapes.parser.test.ts
-│       ├── shapes.schema.test.ts
-│       ├── utils.dates.test.ts
-│       ├── utils.http.test.ts
-│       ├── utils.number.test.ts
-│       └── utils.unflatten.test.ts
+│   ├── unit/                    # Offline unit tests (fetchImpl mocks)
+│   ├── integration/             # Cassette-replayed integration tests
+│   ├── cassettes/               # Recorded API interactions (JSON)
+│   ├── production/              # Env-gated live smoke suite (TANGO_LIVE_TESTS)
+│   ├── scripts/                 # Tests for the conformance gates
+│   └── webhooks/                # Receiver / simulator / CLI tests
 ├── dist/                        # Build output (compiled JS + d.ts) from `npm run build`
 ├── eslint.config.js             # ESLint flat config
 ├── .prettierrc                  # Prettier config
@@ -357,11 +385,16 @@ npm test
 Useful scripts:
 
 - `npm run build` – Compile TypeScript to `dist/`.
-- `npm test` – Run unit and integration tests.
+- `npm test` – Run unit and integration tests (integration replays committed cassettes offline).
 - `npm run coverage` – Get test coverage report.
 - `npm run lint` – Run ESLint.
 - `npm run format` – Run Prettier.
 - `npm run typecheck` – TS type checking without emit.
+- `npm run check-conformance` – SDK filters/shapes vs the vendored API contract.
+- `npm run check-shape-coverage` – Reverse gate: every contract shape field is captured by the SDK.
+- `npm run generate-shape-overlay` – Regenerate `src/shapes/generatedOverlay.ts` from the vendored contract.
+
+See [docs/DEVELOPERS.md](docs/DEVELOPERS.md) for the conformance architecture and the cassette record/replay workflow.
 
 ## Requirements
 

@@ -72,20 +72,35 @@ The SDK ships with a `ShapeConfig` object of ready-made shape strings for common
 import { TangoClient, ShapeConfig } from "@makegov/tango-node";
 ```
 
-| Constant                       | Intended use                    |
-| ------------------------------ | ------------------------------- |
-| `ShapeConfig.CONTRACTS_MINIMAL`        | `listContracts()`        |
-| `ShapeConfig.ENTITIES_MINIMAL`         | `listEntities()`         |
-| `ShapeConfig.ENTITIES_COMPREHENSIVE`   | `getEntity()`            |
-| `ShapeConfig.FORECASTS_MINIMAL`        | `listForecasts()`        |
-| `ShapeConfig.OPPORTUNITIES_MINIMAL`    | `listOpportunities()`    |
-| `ShapeConfig.NOTICES_MINIMAL`          | `listNotices()`          |
-| `ShapeConfig.GRANTS_MINIMAL`           | `listGrants()`           |
-| `ShapeConfig.IDVS_MINIMAL`             | `listIdvs()`             |
-| `ShapeConfig.IDVS_COMPREHENSIVE`       | `getIdv()`               |
-| `ShapeConfig.VEHICLES_MINIMAL`         | `listVehicles()`         |
-| `ShapeConfig.VEHICLES_COMPREHENSIVE`   | `getVehicle()`           |
-| `ShapeConfig.VEHICLE_AWARDEES_MINIMAL` | `listVehicleAwardees()`  |
+| Constant                                            | Intended use                |
+| --------------------------------------------------- | --------------------------- |
+| `ShapeConfig.CONTRACTS_MINIMAL`                     | `listContracts()`           |
+| `ShapeConfig.ENTITIES_MINIMAL`                      | `listEntities()`            |
+| `ShapeConfig.ENTITIES_COMPREHENSIVE`                | `getEntity()`               |
+| `ShapeConfig.FORECASTS_MINIMAL`                     | `listForecasts()`           |
+| `ShapeConfig.OPPORTUNITIES_MINIMAL`                 | `listOpportunities()`       |
+| `ShapeConfig.NOTICES_MINIMAL`                       | `listNotices()`             |
+| `ShapeConfig.PROTESTS_MINIMAL`                      | `listProtests()`            |
+| `ShapeConfig.GRANTS_MINIMAL`                        | `listGrants()`              |
+| `ShapeConfig.IDVS_MINIMAL`                          | `listIdvs()`                |
+| `ShapeConfig.IDVS_COMPREHENSIVE`                    | `getIdv()`                  |
+| `ShapeConfig.VEHICLES_MINIMAL`                      | `listVehicles()`            |
+| `ShapeConfig.VEHICLES_COMPREHENSIVE`                | `getVehicle()`              |
+| `ShapeConfig.VEHICLE_AWARDEES_MINIMAL`              | `listVehicleAwardees()`     |
+| `ShapeConfig.VEHICLE_ORDERS_MINIMAL`                | `listVehicleOrders()`       |
+| `ShapeConfig.ORGANIZATIONS_MINIMAL`                 | `listOrganizations()`       |
+| `ShapeConfig.OTAS_MINIMAL`                          | `listOtas()`                |
+| `ShapeConfig.OTIDVS_MINIMAL`                        | `listOtidvs()`              |
+| `ShapeConfig.SUBAWARDS_MINIMAL`                     | `listSubawards()`           |
+| `ShapeConfig.GSA_ELIBRARY_CONTRACTS_MINIMAL`        | `listGsaElibraryContracts()` / `getGsaElibraryContract()` |
+| `ShapeConfig.ITDASHBOARD_INVESTMENTS_MINIMAL`       | `listItDashboard()`         |
+| `ShapeConfig.ITDASHBOARD_INVESTMENTS_COMPREHENSIVE` | `getItDashboard()`          |
+| `ShapeConfig.DIBBS_RFQS_MINIMAL`                    | `listDibbsRfqs()`           |
+| `ShapeConfig.DIBBS_RFPS_MINIMAL`                    | `listDibbsRfps()`           |
+| `ShapeConfig.DIBBS_AWARDS_MINIMAL`                  | `listDibbsAwards()`         |
+| `ShapeConfig.EXCLUSIONS_MINIMAL`                    | `listExclusions()`          |
+| `ShapeConfig.SBIR_TOPICS_MINIMAL`                   | `listSbirTopics()`          |
+| `ShapeConfig.SBIR_SOLICITATIONS_MINIMAL`            | `listSbirSolicitations()`   |
 
 These are plain strings — you can use them directly or as a starting point:
 

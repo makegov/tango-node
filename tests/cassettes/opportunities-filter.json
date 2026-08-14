@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/opportunities/?active=true&limit=3&page=1&shape=opportunity_id%2Ctitle%2Cactive"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "967",
+          "x-ratelimit-burst-reset": "32",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999890",
+          "x-ratelimit-daily-reset": "24272",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "967",
+          "x-ratelimit-reset": "32",
+          "x-tango-api-version": "4.22.0"
+        },
+        "body": {
+          "count": 45677,
+          "next": "https://tango.makegov.com/api/opportunities/?active=true&limit=3&page=2&shape=opportunity_id%2Ctitle%2Cactive",
+          "previous": null,
+          "results": [
+            {
+              "active": true,
+              "opportunity_id": "ba9961ee-0b29-4dbc-b9a7-2c6d2952c54b",
+              "title": "NCTAMS LANT HVAC Support Services"
+            },
+            {
+              "active": true,
+              "opportunity_id": "2a274420-1974-4c74-8cc2-77369f8769e4",
+              "title": "324933E PUMPING OF VAULT TOILETS"
+            },
+            {
+              "active": true,
+              "opportunity_id": "0e333258-a75c-409a-92c9-c02001576722",
+              "title": "USACE Portland - Bow Thruster Propeller Purchase"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

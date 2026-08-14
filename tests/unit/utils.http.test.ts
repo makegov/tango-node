@@ -318,3 +318,30 @@ describe("HttpClient", () => {
     expect(calls).toBe(2);
   });
 });
+
+describe("HttpClient — structured 400 payloads", () => {
+  it("a shape-error 400 surfaces issues and availableFields on the thrown error", async () => {
+    const body = {
+      detail: "Invalid shape",
+      issues: [{ path: "tradeoff_process", reason: "unknown_field" }],
+      available_fields: { fields: ["key", "piid"] },
+    };
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 0,
+      fetchImpl: async (): Promise<any> => ({
+        ok: false,
+        status: 400,
+        async text() {
+          return JSON.stringify(body);
+        },
+      }),
+    });
+
+    const err = await client.get("/api/contracts/").catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(TangoValidationError);
+    const validation = err as TangoValidationError;
+    expect(validation.issues).toEqual([{ path: "tradeoff_process", reason: "unknown_field" }]);
+    expect(validation.availableFields).toEqual({ fields: ["key", "piid"] });
+  });
+});
