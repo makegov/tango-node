@@ -1,4 +1,4 @@
-import { cassetteFetch, matchKey, REPLAY_ONLY, serializeInteraction } from "../integration/harness.js";
+import { cassetteFetch, matchKey, REPLAY_ONLY, responseFromRecorded, serializeInteraction } from "../integration/harness.js";
 
 describe("serializeInteraction (cassette scrubbing)", () => {
   const url = "https://tango.makegov.com/api/contracts/?limit=3";
@@ -57,6 +57,28 @@ describe("matchKey", () => {
 
   it("ignores the host so a TANGO_BASE_URL override still replays", () => {
     expect(matchKey("GET", "http://localhost:8000/api/x/")).toBe(matchKey("GET", "https://tango.makegov.com/api/x/"));
+  });
+});
+
+describe("body round-trip (record → replay)", () => {
+  const url = "https://tango.makegov.com/api/contracts/?limit=3";
+
+  it("replays a text/plain body byte-faithfully instead of as a quoted JSON string", async () => {
+    const raw = "plain text, not JSON";
+    const recorded = serializeInteraction("GET", url, 502, { "content-type": "text/plain" }, raw, null, "text");
+    expect(recorded.response.bodyKind).toBe("text");
+
+    const replayed = responseFromRecorded(recorded);
+    expect(await replayed.text()).toBe(raw);
+    expect(replayed.status).toBe(502);
+  });
+
+  it("replays a JSON body without bodyKind (pre-existing cassette schema) as JSON", async () => {
+    const recorded = serializeInteraction("GET", url, 200, { "content-type": "application/json" }, { count: 1, results: [] });
+    expect(recorded.response.bodyKind).toBeUndefined();
+
+    const replayed = responseFromRecorded(recorded);
+    expect(await replayed.json()).toEqual({ count: 1, results: [] });
   });
 });
 

@@ -1,13 +1,9 @@
 # tango-node
 
 <!--
-This is a public repository. This file is readable by anyone who clones the
-repo — keep it free of internal paths, per-developer setup details, and
-references to private infrastructure.
+This is a public repository. This file is readable by anyone who clones the repo — keep it free of internal paths, per-developer setup details, and references to private infrastructure.
 
-MakeGov team members: additional local tooling notes are in
-`.claude/mg-tools-integration.md` (gitignored). Re-run `mg-tools install`
-after cloning to regenerate it.
+MakeGov team members: additional local tooling notes are in `.claude/mg-tools-integration.md` (gitignored). Re-run `mg-tools install` after cloning to regenerate it.
 -->
 
 ## Non-Negotiables

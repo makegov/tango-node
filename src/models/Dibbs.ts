@@ -1,8 +1,7 @@
 /**
  * DLA DIBBS records (`/api/dibbs/rfqs/`, `/api/dibbs/rfps/`, `/api/dibbs/awards/`).
  *
- * These endpoints use shape-on-demand: which fields appear depends on the
- * `?shape=` query param, so EVERY field is optional.
+ * These endpoints use shape-on-demand: which fields appear depends on the `?shape=` query param, so EVERY field is optional.
  */
 
 /** Buying-organization reference nested under DIBBS records. */
@@ -26,8 +25,7 @@ export interface DibbsAwardeePayload {
 /**
  * DLA DIBBS request-for-quote solicitation.
  *
- * `is_open` is derived at query time from `return_by_date`, so it is not
- * filterable as a stored field — use the `open` filter instead.
+ * `is_open` is derived at query time from `return_by_date`, so it is not filterable as a stored field — use the `open` filter instead.
  */
 export interface DibbsRfq {
   uuid?: string;
@@ -51,8 +49,7 @@ export interface DibbsRfq {
 /**
  * DLA DIBBS request-for-proposal solicitation.
  *
- * `is_open` is derived at query time from `closes_date` — use the `open`
- * filter to select on it.
+ * `is_open` is derived at query time from `closes_date` — use the `open` filter to select on it.
  */
 export interface DibbsRfp {
   uuid?: string;
@@ -72,9 +69,7 @@ export interface DibbsRfp {
 /**
  * DLA DIBBS award.
  *
- * WARNING: `total_contract_price` is the *order* total repeated on every line
- * item of the award — never sum it across rows, or you will multiply the
- * value by the line-item count.
+ * WARNING: `total_contract_price` is the *order* total repeated on every line item of the award — never sum it across rows, or you will multiply the value by the line-item count.
  */
 export interface DibbsAward {
   uuid?: string;

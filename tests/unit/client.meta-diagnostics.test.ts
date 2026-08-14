@@ -1,15 +1,13 @@
 /**
- * `meta` from the API's agency-filter diagnostics (port of Python's
- * TestAgencyFilterDiagnostics, tango-python #55).
+ * `meta` from the API's agency-filter diagnostics (port of Python's TestAgencyFilterDiagnostics, tango-python #55).
  *
- * Agency resolution is fuzzy, so a token can be dropped entirely or matched to
- * an organization the caller did not intend. Before the API exposed `meta`,
- * both were indistinguishable from "no such records exist" — and the SDK is
- * the last place that distinction can reach a user.
+ * Agency resolution is fuzzy, so a token can be dropped entirely or matched to an organization the caller did not intend.
+ * Before the API exposed `meta`, both were indistinguishable from "no such records exist" — and the SDK is the last place that distinction can reach a user.
  */
 
 import { TangoClient } from "../../src/client.js";
 import { TangoValidationError } from "../../src/errors.js";
+import type { PaginatedResponse } from "../../src/types.js";
 
 const HUD = {
   key: "3f2a0000-0000-0000-0000-000000000001",
@@ -111,5 +109,22 @@ describe("PaginatedResponse agency-filter diagnostics", () => {
     const client = makeClient({ error: "No agency found matching 'HUDD'." }, 400);
     await expect(client.listContracts({ awarding_agency: "HUDD" })).rejects.toThrow(TangoValidationError);
     await expect(client.listContracts({ awarding_agency: "HUDD" })).rejects.toThrow(/HUDD/);
+  });
+});
+
+describe("PaginatedResponse type compatibility", () => {
+  it("a bare literal without the meta diagnostic fields still typechecks", () => {
+    const bare: PaginatedResponse<Record<string, unknown>> = {
+      count: 0,
+      next: null,
+      previous: null,
+      pageMetadata: null,
+      cursor: null,
+      results: [],
+    };
+    expect(bare.meta).toBeUndefined();
+    expect(bare.agencyWarnings).toBeUndefined();
+    expect(bare.unresolvedAgencyTokens).toBeUndefined();
+    expect(bare.resolvedAgencies).toBeUndefined();
   });
 });

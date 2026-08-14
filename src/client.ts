@@ -3,6 +3,7 @@ import { TangoNotFoundError, TangoValidationError } from "./errors.js";
 import { ModelFactory } from "./shapes/factory.js";
 import { ShapeParser } from "./shapes/parser.js";
 import type { ShapeSpec } from "./shapes/types.js";
+import { isRecord } from "./utils/guards.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
 import {
@@ -26,10 +27,6 @@ import type {
 } from "./models/Webhooks.js";
 
 type AnyRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
 
 /**
  * Normalize a webhook-endpoint create/update input into the wire body.
@@ -64,8 +61,7 @@ function extractCursorFromUrl(url: string | null): string | null {
   }
 }
 
-// `meta` is server-controlled, so every parser below tolerates a shape change
-// rather than crashing a caller's pagination loop.
+// `meta` is server-controlled, so every parser below tolerates a shape change rather than crashing a caller's pagination loop.
 function parseAgencyWarnings(meta: AnyRecord | null): string[] {
   const warnings = meta?.warnings;
   return Array.isArray(warnings) ? warnings.map(String) : [];
@@ -548,6 +544,7 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
  * DIBBS RFQ list options — matches `tango_python.TangoClient.list_dibbs_rfqs`.
  */
 export interface ListDibbsRfqsOptions extends ListOptionsBase {
+  joiner?: string;
   nsn?: string;
   part_number?: string;
   solicitation?: string;
@@ -573,6 +570,7 @@ export interface ListDibbsRfqsOptions extends ListOptionsBase {
  * DIBBS RFP list options — matches `tango_python.TangoClient.list_dibbs_rfps`.
  */
 export interface ListDibbsRfpsOptions extends ListOptionsBase {
+  joiner?: string;
   nsn?: string;
   part_number?: string;
   solicitation?: string;
@@ -594,6 +592,7 @@ export interface ListDibbsRfpsOptions extends ListOptionsBase {
  * DIBBS award list options — matches `tango_python.TangoClient.list_dibbs_awards`.
  */
 export interface ListDibbsAwardsOptions extends ListOptionsBase {
+  joiner?: string;
   award_number?: string;
   delivery_order_number?: string;
   solicitation?: string;
@@ -619,6 +618,7 @@ export interface ListDibbsAwardsOptions extends ListOptionsBase {
  * Exclusions list options — matches `tango_python.TangoClient.list_exclusions`.
  */
 export interface ListExclusionsOptions extends ListOptionsBase {
+  joiner?: string;
   uei?: string;
   entity_uei?: string;
   cage_code?: string;
@@ -647,6 +647,7 @@ export interface ListExclusionsOptions extends ListOptionsBase {
  * SBIR topic list options — matches `tango_python.TangoClient.list_sbir_topics`.
  */
 export interface ListSbirTopicsOptions extends ListOptionsBase {
+  joiner?: string;
   topic_number?: string;
   solicitation_number?: string;
   agency?: string;
@@ -669,6 +670,7 @@ export interface ListSbirTopicsOptions extends ListOptionsBase {
  * SBIR solicitation list options — matches `tango_python.TangoClient.list_sbir_solicitations`.
  */
 export interface ListSbirSolicitationsOptions extends ListOptionsBase {
+  joiner?: string;
   solicitation_number?: string;
   solicitation_status?: string;
   program?: string;
@@ -2036,6 +2038,68 @@ export class TangoClient {
     return buildPaginatedResponse<AnyRecord>(data);
   }
 
+  /**
+   * Shared page-based list flow for shape-materialized resources: default shape, `flat`/`flatLists`/`joiner` threading (joiner is sent only with `flat` and always drives unflattening), passthrough filters, and model materialization.
+   */
+  private async _shapedPaginatedList(
+    path: string,
+    baseModel: string,
+    defaultShape: string | null,
+    options: ListOptionsBase & { joiner?: string; [key: string]: unknown } = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page = 1, limit = 25, shape, flat = false, flatLists = false, joiner = ".", ...filters } = options;
+
+    const params: AnyRecord = {
+      page,
+      limit: Math.min(limit, 100),
+    };
+
+    const shapeToUse = shape ?? defaultShape;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    Object.assign(params, filters);
+
+    const data = await this.http.get<AnyRecord>(path, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+
+    const results = this.materializeList(baseModel, shapeSpec, rawResults, flat, joiner);
+
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  /** Shared detail-GET flow for shape-materialized resources — the single-object counterpart of `_shapedPaginatedList`. */
+  private async _shapedGet(
+    path: string,
+    baseModel: string,
+    defaultShape: string | null,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    const { shape, flat = false, flatLists = false, joiner = "." } = options;
+    const params: AnyRecord = {};
+
+    const shapeToUse = shape ?? defaultShape;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    const data = await this.http.get<AnyRecord>(path, params);
+    return this.materializeOne(baseModel, shapeSpec, data, flat, joiner);
+  }
+
   /** List NAICS codes. */
   async listNaics(options: ListNaicsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     return this._genericPaginatedList("/api/naics/", options);
@@ -2170,23 +2234,12 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!uuid) throw new TangoValidationError("GSA eLibrary contract uuid is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.GSA_ELIBRARY_CONTRACTS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/gsa_elibrary_contracts/${encodeURIComponent(uuid)}/`, params);
-    return this.materializeOne("GsaElibraryContract", shapeSpec, data, flat, joiner);
+    return this._shapedGet(
+      `/api/gsa_elibrary_contracts/${encodeURIComponent(uuid)}/`,
+      "GsaElibraryContract",
+      ShapeConfig.GSA_ELIBRARY_CONTRACTS_MINIMAL,
+      options,
+    );
   }
 
   /**
@@ -2287,33 +2340,10 @@ export class TangoClient {
   /**
    * List DLA DIBBS request-for-quote solicitations (`/api/dibbs/rfqs/`).
    *
-   * `is_open` is derived at query time from `return_by_date`, so filter with
-   * the `open` option rather than shaping on `is_open`.
+   * `is_open` is derived at query time from `return_by_date`, so filter with the `open` option rather than shaping on `is_open`.
    */
   async listDibbsRfqs(options: ListDibbsRfqsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
-
-    const params: AnyRecord = {
-      page,
-      limit: Math.min(limit, 100),
-    };
-
-    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFQS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) params.flat = "true";
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    Object.assign(params, filters);
-
-    const data = await this.http.get<AnyRecord>("/api/dibbs/rfqs/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
-
-    const results = this.materializeList("DibbsRfq", shapeSpec, rawResults, flat);
-
-    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+    return this._shapedPaginatedList("/api/dibbs/rfqs/", "DibbsRfq", ShapeConfig.DIBBS_RFQS_MINIMAL, options);
   }
 
   /** Get a single DIBBS RFQ by uuid (`/api/dibbs/rfqs/{uuid}/`). */
@@ -2322,55 +2352,16 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!uuid) throw new TangoValidationError("DIBBS RFQ uuid is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFQS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/dibbs/rfqs/${encodeURIComponent(uuid)}/`, params);
-    return this.materializeOne("DibbsRfq", shapeSpec, data, flat, joiner);
+    return this._shapedGet(`/api/dibbs/rfqs/${encodeURIComponent(uuid)}/`, "DibbsRfq", ShapeConfig.DIBBS_RFQS_MINIMAL, options);
   }
 
   /**
    * List DLA DIBBS request-for-proposal solicitations (`/api/dibbs/rfps/`).
    *
-   * `is_open` is derived at query time from `closes_date`, so filter with the
-   * `open` option rather than shaping on `is_open`.
+   * `is_open` is derived at query time from `closes_date`, so filter with the `open` option rather than shaping on `is_open`.
    */
   async listDibbsRfps(options: ListDibbsRfpsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
-
-    const params: AnyRecord = {
-      page,
-      limit: Math.min(limit, 100),
-    };
-
-    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFPS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) params.flat = "true";
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    Object.assign(params, filters);
-
-    const data = await this.http.get<AnyRecord>("/api/dibbs/rfps/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
-
-    const results = this.materializeList("DibbsRfp", shapeSpec, rawResults, flat);
-
-    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+    return this._shapedPaginatedList("/api/dibbs/rfps/", "DibbsRfp", ShapeConfig.DIBBS_RFPS_MINIMAL, options);
   }
 
   /** Get a single DIBBS RFP by uuid (`/api/dibbs/rfps/{uuid}/`). */
@@ -2379,57 +2370,18 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!uuid) throw new TangoValidationError("DIBBS RFP uuid is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.DIBBS_RFPS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/dibbs/rfps/${encodeURIComponent(uuid)}/`, params);
-    return this.materializeOne("DibbsRfp", shapeSpec, data, flat, joiner);
+    return this._shapedGet(`/api/dibbs/rfps/${encodeURIComponent(uuid)}/`, "DibbsRfp", ShapeConfig.DIBBS_RFPS_MINIMAL, options);
   }
 
   /**
    * List DLA DIBBS awards (`/api/dibbs/awards/`).
    *
-   * WARNING: `total_contract_price` is the *order* total repeated on every
-   * line item of the award. Never sum it across rows — doing so multiplies
-   * the value by the line-item count. Deduplicate on `award_number` +
-   * `delivery_order_number` first.
+   * WARNING: `total_contract_price` is the *order* total repeated on every line item of the award.
+   * Never sum it across rows — doing so multiplies the value by the line-item count.
+   * Deduplicate on `award_number` + `delivery_order_number` first.
    */
   async listDibbsAwards(options: ListDibbsAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
-
-    const params: AnyRecord = {
-      page,
-      limit: Math.min(limit, 100),
-    };
-
-    const shapeToUse = shape ?? ShapeConfig.DIBBS_AWARDS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) params.flat = "true";
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    Object.assign(params, filters);
-
-    const data = await this.http.get<AnyRecord>("/api/dibbs/awards/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
-
-    const results = this.materializeList("DibbsAward", shapeSpec, rawResults, flat);
-
-    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+    return this._shapedPaginatedList("/api/dibbs/awards/", "DibbsAward", ShapeConfig.DIBBS_AWARDS_MINIMAL, options);
   }
 
   /** Get a single DIBBS award by uuid (`/api/dibbs/awards/{uuid}/`). */
@@ -2438,23 +2390,7 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!uuid) throw new TangoValidationError("DIBBS award uuid is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.DIBBS_AWARDS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/dibbs/awards/${encodeURIComponent(uuid)}/`, params);
-    return this.materializeOne("DibbsAward", shapeSpec, data, flat, joiner);
+    return this._shapedGet(`/api/dibbs/awards/${encodeURIComponent(uuid)}/`, "DibbsAward", ShapeConfig.DIBBS_AWARDS_MINIMAL, options);
   }
 
   // ---------------------------------------------------------------------------
@@ -2464,34 +2400,10 @@ export class TangoClient {
   /**
    * List SAM.gov exclusion (debarment) records (`/api/exclusions/`).
    *
-   * `is_currently_excluded` is derived at query time from the
-   * activate/termination dates, so filter with the `active` option rather
-   * than shaping on `is_currently_excluded`.
+   * `is_currently_excluded` is derived at query time from the activate/termination dates, so filter with the `active` option rather than shaping on `is_currently_excluded`.
    */
   async listExclusions(options: ListExclusionsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
-
-    const params: AnyRecord = {
-      page,
-      limit: Math.min(limit, 100),
-    };
-
-    const shapeToUse = shape ?? ShapeConfig.EXCLUSIONS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) params.flat = "true";
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    Object.assign(params, filters);
-
-    const data = await this.http.get<AnyRecord>("/api/exclusions/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
-
-    const results = this.materializeList("Exclusion", shapeSpec, rawResults, flat);
-
-    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+    return this._shapedPaginatedList("/api/exclusions/", "Exclusion", ShapeConfig.EXCLUSIONS_MINIMAL, options);
   }
 
   /** Get a single exclusion by its deterministic exclusion_key (`/api/exclusions/{exclusion_key}/`). */
@@ -2500,23 +2412,7 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!exclusionKey) throw new TangoValidationError("exclusion_key is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.EXCLUSIONS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/exclusions/${encodeURIComponent(exclusionKey)}/`, params);
-    return this.materializeOne("Exclusion", shapeSpec, data, flat, joiner);
+    return this._shapedGet(`/api/exclusions/${encodeURIComponent(exclusionKey)}/`, "Exclusion", ShapeConfig.EXCLUSIONS_MINIMAL, options);
   }
 
   // ---------------------------------------------------------------------------
@@ -2525,29 +2421,7 @@ export class TangoClient {
 
   /** List SBIR/STTR topics (`/api/sbir/topics/`). */
   async listSbirTopics(options: ListSbirTopicsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
-
-    const params: AnyRecord = {
-      page,
-      limit: Math.min(limit, 100),
-    };
-
-    const shapeToUse = shape ?? ShapeConfig.SBIR_TOPICS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) params.flat = "true";
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    Object.assign(params, filters);
-
-    const data = await this.http.get<AnyRecord>("/api/sbir/topics/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
-
-    const results = this.materializeList("SbirTopic", shapeSpec, rawResults, flat);
-
-    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+    return this._shapedPaginatedList("/api/sbir/topics/", "SbirTopic", ShapeConfig.SBIR_TOPICS_MINIMAL, options);
   }
 
   /** Get a single SBIR/STTR topic by topic_id (`/api/sbir/topics/{topic_id}/`). */
@@ -2556,50 +2430,12 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!topicId) throw new TangoValidationError("topic_id is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.SBIR_TOPICS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/sbir/topics/${encodeURIComponent(topicId)}/`, params);
-    return this.materializeOne("SbirTopic", shapeSpec, data, flat, joiner);
+    return this._shapedGet(`/api/sbir/topics/${encodeURIComponent(topicId)}/`, "SbirTopic", ShapeConfig.SBIR_TOPICS_MINIMAL, options);
   }
 
   /** List DoD DSIP SBIR/STTR solicitations (`/api/sbir/solicitations/`). */
   async listSbirSolicitations(options: ListSbirSolicitationsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
-    const { page = 1, limit = 25, shape, flat = false, flatLists = false, ...filters } = options;
-
-    const params: AnyRecord = {
-      page,
-      limit: Math.min(limit, 100),
-    };
-
-    const shapeToUse = shape ?? ShapeConfig.SBIR_SOLICITATIONS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) params.flat = "true";
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    Object.assign(params, filters);
-
-    const data = await this.http.get<AnyRecord>("/api/sbir/solicitations/", params);
-    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
-
-    const results = this.materializeList("SbirSolicitation", shapeSpec, rawResults, flat);
-
-    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+    return this._shapedPaginatedList("/api/sbir/solicitations/", "SbirSolicitation", ShapeConfig.SBIR_SOLICITATIONS_MINIMAL, options);
   }
 
   /** Get a single DoD DSIP SBIR/STTR solicitation by solicitation_id (`/api/sbir/solicitations/{solicitation_id}/`). */
@@ -2608,23 +2444,12 @@ export class TangoClient {
     options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
   ): Promise<Record<string, unknown>> {
     if (!solicitationId) throw new TangoValidationError("solicitation_id is required");
-
-    const { shape, flat = false, flatLists = false, joiner = "." } = options;
-    const params: AnyRecord = {};
-
-    const shapeToUse = shape ?? ShapeConfig.SBIR_SOLICITATIONS_MINIMAL;
-    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
-    if (shapeToUse) {
-      params.shape = shapeToUse;
-      if (flat) {
-        params.flat = "true";
-        if (joiner) params.joiner = joiner;
-      }
-      if (flatLists) params.flat_lists = "true";
-    }
-
-    const data = await this.http.get<AnyRecord>(`/api/sbir/solicitations/${encodeURIComponent(solicitationId)}/`, params);
-    return this.materializeOne("SbirSolicitation", shapeSpec, data, flat, joiner);
+    return this._shapedGet(
+      `/api/sbir/solicitations/${encodeURIComponent(solicitationId)}/`,
+      "SbirSolicitation",
+      ShapeConfig.SBIR_SOLICITATIONS_MINIMAL,
+      options,
+    );
   }
 
   // ---------------------------------------------------------------------------

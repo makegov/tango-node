@@ -20,6 +20,8 @@
  *
  * Run: npx tsx scripts/generate-shape-overlay.ts            # writes the module
  *      npx tsx scripts/generate-shape-overlay.ts --report   # print gaps, write nothing
+ *
+ * `TANGO_CONTRACT_PATH` (env) or `--contract PATH` points the generator at a non-vendored contract, matching the two check scripts.
  */
 
 import * as fs from "node:fs";
@@ -34,7 +36,19 @@ import type { Contract, ShapeNode } from "./check-shape-coverage.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, "..");
-const CONTRACT_PATH = path.join(REPO_ROOT, "contracts", "filter_shape_contract.json");
+const VENDORED_CONTRACT_PATH = path.join(REPO_ROOT, "contracts", "filter_shape_contract.json");
+
+function resolveContractPath(): string {
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i += 1) {
+    if (argv[i] === "--contract" && argv[i + 1]) return path.resolve(argv[i + 1]);
+    if (argv[i].startsWith("--contract=")) return path.resolve(argv[i].slice("--contract=".length));
+  }
+  if (process.env.TANGO_CONTRACT_PATH) return path.resolve(process.env.TANGO_CONTRACT_PATH);
+  return VENDORED_CONTRACT_PATH;
+}
+
+const CONTRACT_PATH = resolveContractPath();
 const OBSERVED_PATH = path.join(REPO_ROOT, "contracts", "observed_shape_types.json");
 const OUT_PATH = path.join(REPO_ROOT, "src", "shapes", "generatedOverlay.ts");
 

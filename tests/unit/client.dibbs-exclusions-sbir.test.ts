@@ -279,6 +279,34 @@ describe("TangoClient — SBIR solicitations", () => {
   });
 });
 
+describe("TangoClient — joiner threading on the new list methods", () => {
+  it("listDibbsRfqs does not send a caller-supplied joiner when flat is off", async () => {
+    const { client, calls } = makeClient();
+    await client.listDibbsRfqs({ joiner: "__" });
+
+    const p = params(calls);
+    expect(p.has("joiner")).toBe(false);
+    expect(p.has("flat")).toBe(false);
+  });
+
+  it("listDibbsRfqs sends joiner with flat=true and unflattens with it", async () => {
+    const { client, calls } = makeClient({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [{ uuid: "u1", "organization__agency_name": "DLA" }],
+    });
+
+    const res = await client.listDibbsRfqs({ shape: "uuid,organization(agency_name)", flat: true, joiner: "__" });
+
+    const p = params(calls);
+    expect(p.get("flat")).toBe("true");
+    expect(p.get("joiner")).toBe("__");
+    expect(res.results[0].uuid).toBe("u1");
+    expect((res.results[0].organization as Record<string, unknown>).agency_name).toBe("DLA");
+  });
+});
+
 describe("TangoClient — DIBBS/exclusions/SBIR list responses", () => {
   it("listExclusions returns a materialized paginated response", async () => {
     const { client } = makeClient({

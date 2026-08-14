@@ -532,9 +532,11 @@ Shrink the baselines as gaps close — never grow them to silence a legitimate f
 
 **`npm run generate-shape-overlay`** (`scripts/generate-shape-overlay.ts`) regenerates `src/shapes/generatedOverlay.ts` — the machine-generated schema additions that close the coverage gaps — from the vendored contract plus `contracts/observed_shape_types.json` (live-API type observations vendored from tango-python).
 `SchemaRegistry` merges the overlay over the curated explicit schemas; never edit `generatedOverlay.ts` by hand.
+It honors the same `TANGO_CONTRACT_PATH` env var / `--contract` flag as the two check scripts.
+CI regenerates the overlay and fails on any diff against the committed file, so a contract refresh or curated-schema change that alters generator output must land alongside a rerun of `npm run generate-shape-overlay`.
 
-To refresh the vendored contract, copy `contracts/filter_shape_contract.json` from the tango API repo and re-run both gates.
-CI also emits a best-effort staleness notice when the vendored contract differs from tango HEAD (token-gated, never a failure).
+To refresh the vendored contract, copy `contracts/filter_shape_contract.json` from the tango API repo, regenerate the overlay, and re-run both gates.
+When the `TANGO_API_REPO_ACCESS_TOKEN` secret is configured, CI additionally runs both gates as hard checks against the fresh contract at tango HEAD, and emits a re-vendor warning when the vendored copy has drifted.
 
 ### Lint and type-check
 

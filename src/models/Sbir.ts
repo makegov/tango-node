@@ -1,8 +1,7 @@
 /**
  * SBIR/STTR records (`/api/sbir/topics/`, `/api/sbir/solicitations/`).
  *
- * These endpoints use shape-on-demand: which fields appear depends on the
- * `?shape=` query param, so EVERY field is optional.
+ * These endpoints use shape-on-demand: which fields appear depends on the `?shape=` query param, so EVERY field is optional.
  */
 
 /**

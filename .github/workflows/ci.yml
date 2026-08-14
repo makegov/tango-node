@@ -5,11 +5,12 @@ name: CI
 # The SDK filter/shape conformance check and the reverse shape-coverage check
 # are HARD gates that run offline against the vendored contract at
 # contracts/filter_shape_contract.json — no secrets needed, so forks and
-# tokenless runs get the full check instead of a silent skip. A second,
-# token-gated step compares the vendored contract against the tango repo's
-# HEAD and emits a staleness notice (never a failure — tango HEAD may carry
-# unreleased changes). Refresh the vendored contract by copying
-# contracts/filter_shape_contract.json from makegov/tango.
+# tokenless runs get the full check instead of a silent skip. When
+# TANGO_API_REPO_ACCESS_TOKEN is available, the same two checks ALSO run as
+# hard gates against the fresh contract at makegov/tango HEAD, plus a warning
+# annotation when the vendored copy has drifted (re-vendor reminder). Refresh
+# the vendored contract by copying contracts/filter_shape_contract.json from
+# makegov/tango.
 on:
   push:
     branches: [ main ]
@@ -33,6 +34,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: npm
 
       - name: Install dependencies
         # The "prepare" script runs a build that needs tsc — so ignore scripts here
@@ -49,15 +51,10 @@ jobs:
         run: npm run build
 
       - name: Test
-        # `vitest run` forces a single non-watch pass in CI.
+        # `vitest run` forces a single non-watch pass in CI; the Node 20 leg adds `--coverage` so the suite runs exactly once per leg.
+        # No coverage fail-under gate — parity with tango-python, which has none.
         # Integration tests replay the committed cassettes offline; production smoke stays excluded (env-gated on TANGO_LIVE_TESTS, never set here).
-        run: npx vitest run
-
-      - name: Coverage summary
-        # One matrix leg is enough; the text reporter prints the summary.
-        # No fail-under gate — parity with tango-python, which has none.
-        if: matrix.node-version == '20'
-        run: npx vitest run --coverage
+        run: npx vitest run ${{ matrix.node-version == '20' && '--coverage' || '' }}
 
   conformance:
     # Hard gate against the vendored contract (contracts/filter_shape_contract.json).
@@ -72,6 +69,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -86,7 +84,13 @@ jobs:
         # against the vendored contract — no secrets, works on forks.
         run: npx tsx scripts/check-shape-coverage.ts
 
-      # --- Staleness notice (best-effort, never fails the job) ---------------
+      - name: Check generated overlay is current
+        # Regenerates the overlay and fails on drift, so a contract or curated-schema change that alters generator output can't land without `npm run generate-shape-overlay`.
+        run: |
+          npm run generate-shape-overlay
+          git diff --exit-code src/shapes/generatedOverlay.ts
+
+      # --- Fresh-contract gates (token-gated hard checks against tango HEAD) --
       - name: Determine token availability
         id: gate
         env:
@@ -96,7 +100,7 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Contract staleness check skipped — TANGO_API_REPO_ACCESS_TOKEN not configured."
+            echo "::notice::Fresh-contract gates skipped — TANGO_API_REPO_ACCESS_TOKEN not configured."
           fi
 
       - name: Checkout tango API repo (contract source)
@@ -107,11 +111,23 @@ jobs:
           path: tango-api
           token: ${{ secrets.TANGO_API_REPO_ACCESS_TOKEN }}
 
-      - name: Compare vendored contract against tango HEAD
+      - name: Warn when the vendored contract has drifted from tango HEAD
         if: steps.gate.outputs.ready == 'true'
         run: |
           if ! diff -q contracts/filter_shape_contract.json tango-api/contracts/filter_shape_contract.json >/dev/null; then
-            echo "::warning::Vendored contract differs from makegov/tango HEAD. Refresh contracts/filter_shape_contract.json and re-run the conformance gates."
+            echo "::warning::Vendored contract differs from makegov/tango HEAD. Re-vendor contracts/filter_shape_contract.json and regenerate the overlay."
           else
             echo "Vendored contract matches makegov/tango HEAD."
           fi
+
+      - name: Check SDK filter/shape conformance (fresh contract, hard gate)
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          TANGO_CONTRACT_PATH: tango-api/contracts/filter_shape_contract.json
+        run: npx tsx scripts/check-filter-shape-conformance.ts
+
+      - name: Check reverse shape coverage (fresh contract, hard gate)
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          TANGO_CONTRACT_PATH: tango-api/contracts/filter_shape_contract.json
+        run: npx tsx scripts/check-shape-coverage.ts

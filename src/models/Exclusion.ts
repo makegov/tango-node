@@ -1,11 +1,9 @@
 /**
  * SAM.gov exclusion (debarment) record (`/api/exclusions/`).
  *
- * The endpoint uses shape-on-demand: which fields appear depends on the
- * `?shape=` query param, so EVERY field is optional.
+ * The endpoint uses shape-on-demand: which fields appear depends on the `?shape=` query param, so EVERY field is optional.
  *
- * `is_currently_excluded` is derived at query time from the
- * activate/termination dates — use the `active` filter to select on it.
+ * `is_currently_excluded` is derived at query time from the activate/termination dates — use the `active` filter to select on it.
  */
 export interface Exclusion {
   exclusion_key?: string;

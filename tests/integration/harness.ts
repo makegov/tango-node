@@ -36,7 +36,8 @@ const SENSITIVE_HEADERS = /^(x-api-key|authorization|proxy-authorization|cookie|
 
 export interface RecordedInteraction {
   request: { method: string; url: string };
-  response: { status: number; headers: Record<string, string>; body: unknown };
+  /** `bodyKind` discriminates replay encoding; absent means `"json"`, so every pre-existing cassette (all JSON bodies) stays valid. */
+  response: { status: number; headers: Record<string, string>; body: unknown; bodyKind?: "json" | "text" };
 }
 
 interface Cassette {
@@ -70,6 +71,7 @@ export function serializeInteraction(
   responseHeaders: Record<string, string>,
   body: unknown,
   secret?: string | null,
+  bodyKind: "json" | "text" = "json",
 ): RecordedInteraction {
   const headers: Record<string, string> = {};
   for (const [name, value] of Object.entries(responseHeaders)) {
@@ -79,7 +81,8 @@ export function serializeInteraction(
 
   const interaction: RecordedInteraction = {
     request: { method: method.toUpperCase(), url: sortedUrl(url) },
-    response: { status, headers, body },
+    // `bodyKind` is only written for text bodies, keeping JSON cassettes on the original schema.
+    response: bodyKind === "text" ? { status, headers, body, bodyKind } : { status, headers, body },
   };
 
   if (secret) {
@@ -130,14 +133,17 @@ function recordingFetch(name: string): typeof fetch {
 
     const text = await res.clone().text();
     let body: unknown = null;
+    let bodyKind: "json" | "text" = "json";
     try {
       body = text ? JSON.parse(text) : null;
     } catch {
+      // Non-JSON payload: store the raw text so replay can be byte-faithful.
       body = text;
+      bodyKind = "text";
     }
 
     const method = init?.method ?? "GET";
-    interactions.push(serializeInteraction(method, String(input), res.status, headersToRecord(res.headers), body, secret));
+    interactions.push(serializeInteraction(method, String(input), res.status, headersToRecord(res.headers), body, secret, bodyKind));
     writeFileSync(cassettePath(name), `${JSON.stringify({ version: 1, interactions } satisfies Cassette, null, 2)}\n`);
     return res;
   }) as typeof fetch;
@@ -164,11 +170,15 @@ function replayFetch(name: string): typeof fetch {
       throw new Error(`No recorded interaction in ${name}.json for:\n  ${key}\nRecorded:\n  ${recorded}\nRe-record with TANGO_REFRESH_CASSETTES=true.`);
     }
     const [hit] = remaining.splice(idx, 1);
-    return new Response(JSON.stringify(hit.response.body), {
-      status: hit.response.status,
-      headers: hit.response.headers,
-    });
+    return responseFromRecorded(hit);
   }) as typeof fetch;
+}
+
+/** Rebuild the wire Response for a recorded interaction: text bodies replay verbatim; JSON bodies re-serialize (the pre-`bodyKind` behavior). */
+export function responseFromRecorded(interaction: RecordedInteraction): Response {
+  const { status, headers, body, bodyKind } = interaction.response;
+  const raw = bodyKind === "text" ? String(body) : JSON.stringify(body);
+  return new Response(raw, { status, headers });
 }
 
 /** Cassette-aware fetch for one test: records, replays, or passes through per mode. */
