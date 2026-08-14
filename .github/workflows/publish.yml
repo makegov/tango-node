@@ -22,9 +22,8 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
-        # No lockfile is committed (package-lock.json is gitignored), so npm ci will fail.
-        # We also ignore scripts to avoid running "prepare" during install; build is explicit below.
-        run: npm install --ignore-scripts --no-audit --no-fund
+        # Ignore scripts to avoid running "prepare" during install; build is explicit below.
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Lint
         run: npm run lint

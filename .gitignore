@@ -4,7 +4,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
 pnpm-lock.yaml
 yarn.lock
 
@@ -47,4 +46,3 @@ yoni/
 .zed/
 .idea/
 # <<< mg-tools <<<
-CLAUDE.md

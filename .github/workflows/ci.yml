@@ -35,10 +35,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
-        # No lockfile is committed (package-lock.json is gitignored), and the
-        # "prepare" script runs a build that needs tsc — so ignore scripts here
+        # The "prepare" script runs a build that needs tsc — so ignore scripts here
         # and build explicitly below.
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
@@ -75,7 +74,7 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Check SDK filter/shape conformance (vendored contract)
         run: npx tsx scripts/check-filter-shape-conformance.ts
