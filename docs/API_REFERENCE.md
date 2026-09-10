@@ -541,7 +541,23 @@ const row = await client.getSledOpportunity(id, {
 });
 ```
 
-`meta.attachment_count` can be **lower** than `row.attachments.length`. Some portals auto-generate a cover sheet alongside the real documents; it is listed and flagged `is_generated_summary` but excluded from the count and from `has_documents`. The count answers "does this record hold its solicitation package"; the array answers "what files exist". Attachment bodies are never served — `size_bytes` and `char_count` only mean something as a pair.
+`meta.attachment_count` can be **lower** than `row.attachments.length`. Some portals auto-generate a cover sheet alongside the real documents; it is listed and flagged `is_generated_summary` but excluded from the count and from `has_documents`. The count answers "does this record hold its solicitation package"; the array answers "what files exist". `size_bytes` and `char_count` only mean something as a pair.
+
+**Reading a document body — `attachments(extracted_text)`:**
+
+```ts
+const row = await client.getSledOpportunity(id, {
+  shape: "opportunity_id,attachments(name,size_bytes,extracted_text)",
+});
+```
+
+Requires a **Small plan or above** and Tango API 4.25.1+. Three rules:
+
+- **You have to name it.** `attachments(*)` does not carry the body and neither `ShapeConfig` default names it — the API only resolves it for a caller who asked, so a default would make every detail fetch pay for a document nobody wanted to read.
+- **The key is absent, not null**, whenever the text is not being served to you: below Small (withheld and named in `meta.upgrade_hints`), on a contested document, or where it could not be resolved.
+- **A contested document never returns text**, at any plan — its stored bytes disagree with what the record advertised.
+
+Searching document text and reading it are separate. `search` matches inside attachment text on **every plan** and returns no fragment of it; the body is a per-record read on Small and above.
 
 `raw(*)` needs a Small plan or above and is explicitly unstable: its shape varies by portal platform.
 

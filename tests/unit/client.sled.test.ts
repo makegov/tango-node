@@ -248,6 +248,19 @@ describe("SLED shapes resolve against the registered schemas", () => {
     assertResolves(shape, model);
   });
 
+  it("the paid document body resolves when named", () => {
+    // `extracted_text` needs a Small plan, but the SDK must not reject it client-side.
+    assertResolves("opportunity_id,attachments(name,size_bytes,extracted_text)", "SledOpportunity");
+  });
+
+  it.each([
+    ["SLED_OPPORTUNITIES_MINIMAL", ShapeConfig.SLED_OPPORTUNITIES_MINIMAL],
+    ["SLED_OPPORTUNITIES_COMPREHENSIVE", ShapeConfig.SLED_OPPORTUNITIES_COMPREHENSIVE],
+  ])("%s does not name the paid document body", (_name, shape) => {
+    // The API resolves the body only when named, so a default shape naming it would make every detail fetch pay for it.
+    expect(shape).not.toContain("extracted_text");
+  });
+
   it.each(["external_id", "native_id", "platform"])("%s is a filter and never a response field", (field) => {
     expect(registry.getSchema("SledOpportunity").fields[field]).toBeUndefined();
   });

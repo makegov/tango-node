@@ -120,7 +120,10 @@ export const ShapeConfig = {
     "jurisdiction,agency,status,status_reason,posted_date,response_deadline," +
     "source_url,has_documents,first_seen_at,last_change_seen_at",
 
-  // Default for getSledOpportunity()
+  // Default for getSledOpportunity(). `attachments(*)` deliberately does not pull
+  // `attachments(extracted_text)`: the body needs a Small plan and the API only
+  // resolves it when a caller names the leaf, so putting it in a default shape
+  // would make every detail fetch pay for a document nobody asked to read.
   SLED_OPPORTUNITIES_COMPREHENSIVE:
     "opportunity_id,solicitation_number,solicitation_type," +
     "solicitation_type_source,title,description,state,jurisdiction,agency," +

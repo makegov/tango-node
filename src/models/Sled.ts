@@ -59,6 +59,12 @@ export interface SledAttachmentPayload {
   /** An auto-generated portal cover sheet rather than a document the agency wrote. Excluded from `meta.attachment_count` and `has_documents`. */
   is_generated_summary?: boolean | null;
   first_seen_at?: string | null;
+  /**
+   * The document's extracted body. Requires a **Small plan or above**, Tango API 4.25.1+, and must be **named explicitly** — `attachments(*)` does not carry it.
+   *
+   * The key is ABSENT rather than null whenever the text is not being served to you: below Small (withheld and named in `meta.upgrade_hints`), on a contested document, or where the text could not be resolved. A contested document never returns text at any plan, because its stored bytes disagree with what the record advertised.
+   */
+  extracted_text?: string | null;
 }
 
 /**

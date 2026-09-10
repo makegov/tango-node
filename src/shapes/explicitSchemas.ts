@@ -5092,6 +5092,13 @@ export const SLED_ATTACHMENT_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  extracted_text: {
+    name: "extracted_text",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
 };
 
 // One observed change. `observed_at` is the scrape that saw it, not the date the agency made it. `changes` requires a Small plan or above.
