@@ -78,6 +78,8 @@ export const RESOURCE_TO_MODEL: Record<string, string> = {
   exclusions: "Exclusion",
   "sbir/topics": "SbirTopic",
   "sbir/solicitations": "SbirSolicitation",
+  "sled/opportunities": "SledOpportunity",
+  "sled/forecasts": "SledForecast",
   events: "Event",
   news: "News",
 };

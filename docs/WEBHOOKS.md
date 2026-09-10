@@ -472,6 +472,10 @@ console.log(JSON.stringify(sample.sample_delivery, null, 2));
 
 **`createWebhookAlert` throws `TangoValidationError: query_type is required`.** The `query_type` field is singular — `"contract"`, not `"contracts"`.
 
+**An alert never fires when a record just reaches its date — except `sled_opportunity`.** An exclusion passing its termination date, or a DIBBS RFQ/RFP passing its close date, emits nothing: open/closed and in-force are derived at query time, so no stored row changes. Poll `listExclusions({ active: true })` / `listDibbsRfqs({ open: true })` if you need to observe expiry.
+
+`sled_opportunity` is the one exception. A state solicitation's liveness is a stored `status` column Tango recomputes every fifteen minutes rather than deriving per request, so a deadline passing **is** a write and `alerts.sled_opportunity.match` can follow it. There is no `sled_forecast` query type — a forecast has no deadline, so nothing transitions — and SLED revisions and attachments are not separately alertable: subscribe to `sled_opportunity` and filter on `change_seen_after` or `revision_kind`.
+
 **`testWebhookEndpoint` returns `success: false`.** Tango reached your endpoint but got a non-2xx response. Check `result.status_code` and `result.response_body` in the result, then look at your handler's logs.
 
 **`getWebhookSamplePayload` throws with 401.** Set `TANGO_API_KEY` (or pass `apiKey` to `TangoClient`). This endpoint requires authentication.
