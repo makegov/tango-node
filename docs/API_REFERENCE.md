@@ -265,7 +265,7 @@ The canonical agency/department/office hierarchy. `level` filters by hierarchy d
 
 ```ts
 const orgs = await client.listOrganizations({
-  level: 1,                // 1 = department, 2 = agency, 3 = sub-agency, …
+  level: 1, // 1 = department, 2 = agency, 3 = sub-agency, …
   include_inactive: false,
   search: "Defense",
   limit: 25,
@@ -438,13 +438,13 @@ const accounts = await client.listBudgetAccounts({
 The range filters use the API's **dunder wire names** (double underscore, e.g. `fiscal_year__gte`) — these are passed through verbatim.
 A representative sample:
 
-| Filter family | Example params |
-| ------------- | -------------- |
-| Identity / categorical | `federal_account_symbol`, `fiscal_year`, `agency_code__in`, `bureau_name__icontains`, `bea_category`, `subfunction_code`, `account_title__icontains` |
-| Lifecycle amounts | `requested_ba__gte`, `enacted_ba__lte`, `apportioned__gte`, `obligated_total__gte`, `outlayed_total__lte`, `unobligated_balance__gte` |
-| Contract / assistance breakdowns | `contract_obligated__gte`, `assistance_outlayed__lte`, `contract_share_of_obligated_capped__gte` |
-| Ratios | `obligated_to_apportioned_pct__gte`, `apportioned_to_enacted_pct_capped__lte`, `outlayed_to_obligated_pct__gte`, `unobligated_pct__gte` |
-| Trends | `enacted_ba_yoy_pct__gte`, `obligated_yoy_pct__lte`, `enacted_ba_5yr_cagr__gte`, `ba_growth_next_year_pct__gte`, `actual_vs_requested_contract__gte` |
+| Filter family                    | Example params                                                                                                                                       |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity / categorical           | `federal_account_symbol`, `fiscal_year`, `agency_code__in`, `bureau_name__icontains`, `bea_category`, `subfunction_code`, `account_title__icontains` |
+| Lifecycle amounts                | `requested_ba__gte`, `enacted_ba__lte`, `apportioned__gte`, `obligated_total__gte`, `outlayed_total__lte`, `unobligated_balance__gte`                |
+| Contract / assistance breakdowns | `contract_obligated__gte`, `assistance_outlayed__lte`, `contract_share_of_obligated_capped__gte`                                                     |
+| Ratios                           | `obligated_to_apportioned_pct__gte`, `apportioned_to_enacted_pct_capped__lte`, `outlayed_to_obligated_pct__gte`, `unobligated_pct__gte`              |
+| Trends                           | `enacted_ba_yoy_pct__gte`, `obligated_yoy_pct__lte`, `enacted_ba_5yr_cagr__gte`, `ba_growth_next_year_pct__gte`, `actual_vs_requested_contract__gte` |
 
 See `ListBudgetAccountsOptions` in `src/client.ts` for the complete list — every filter is a typed, autocompleted option.
 Any of the numeric fields is a valid `ordering` target (`ordering: "-unobligated_balance"` ranks by largest headroom first), and `search` covers account title, agency name, and bureau name.
@@ -505,6 +505,81 @@ Two API behaviors worth knowing:
 
 - `is_open` is **derived at query time** from `return_by_date` (RFQs) / `closes_date` (RFPs) — filter with the `open` option rather than shaping on `is_open`.
 - DIBBS `total_contract_price` is the **order** total repeated on every line item — never sum it across rows; deduplicate on award + delivery-order number first.
+
+---
+
+## State & Local (SLED) — Beta
+
+State, local and education procurement — solicitations that never appear on SAM.gov because they were never federal. Coverage is partial and grows one jurisdiction at a time.
+
+This data does not join to the federal data: no UEI, no PIID, no agency-hierarchy key and no NAICS/PSC crosswalk. `organization(*)` here is three strings, not the federal 7-key office payload.
+
+### `listSledOpportunities(options?)` / `getSledOpportunity(opportunityId, options?)`
+
+```ts
+const open = await client.listSledOpportunities({
+  state: "TX",
+  response_deadline_before: "2026-10-01",
+  ordering: "response_deadline",
+});
+```
+
+Typed filters: `state`, `jurisdiction`, `status`, `active`, `agency`, `solicitation_number`, `solicitation_type`, `has_documents`, `revision_kind`, `naics`, `nigp`, `unspsc`, `category`, `category_code`, `posted_after` / `posted_before`, `response_deadline_after` / `response_deadline_before`, `first_seen_after` / `first_seen_before`, `change_seen_after`, `modified_after` / `modified_before`, `platform`, `native_id`, `external_id`, `search`, `ordering`.
+
+**Two defaults to know before your first call:**
+
+- **Passing neither `status` nor `active` returns open solicitations only.** Only about a fifth of the corpus is open, and a portal drops a closed solicitation rather than restating it, so the API defaults the list to `status=open`. Pass an explicit `status` to page the whole corpus; `status: "open|unknown"` also reaches the standing rosters and dateless RFIs that `unknown` covers. `getSledOpportunity()` returns a solicitation whatever its status.
+- **`status` is Tango's answer, not the portal's.** It is derived from the portal's word, the deadline and the clock, and refreshed every fifteen minutes. The portal's own word is served as `source_status`, is frozen at last capture, and is not filterable — most of what it calls open already has a passed deadline.
+
+`?search=` is ranked over title, agency, identifiers, category labels and description, widened by the solicitations whose _attachment text_ matched. A row that matched on its description carries a `snippet` with the matching passage; a title-or-agency match honestly carries none. Attachment matching contributes ids only — a caller learns _that_ a document matched, never what it said.
+
+`category_codes` scheme tagging is mid-migration, so **`naics` matches only the small tagged share**. Use `category_code` to match a code under any scheme, including the untagged pre-migration strings.
+
+```ts
+const row = await client.getSledOpportunity(id, {
+  shape: "opportunity_id,title,status,meta(*),attachments(*),revisions(*)",
+});
+```
+
+`meta.attachment_count` can be **lower** than `row.attachments.length`. Some portals auto-generate a cover sheet alongside the real documents; it is listed and flagged `is_generated_summary` but excluded from the count and from `has_documents`. The count answers "does this record hold its solicitation package"; the array answers "what files exist". Attachment bodies are never served — `size_bytes` and `char_count` only mean something as a pair.
+
+`raw(*)` needs a Small plan or above and is explicitly unstable: its shape varies by portal platform.
+
+### `listSledOpportunityRevisions(opportunityId, options?)`
+
+```ts
+const revisions = await client.listSledOpportunityRevisions(id, { kind: "deadline_change" });
+```
+
+Typed filters: `kind`, `source_declared`, `observed_after` / `observed_before`.
+
+`observed_at` is the scrape that saw the change, not the date the agency made it. No state portal emits amendment notices, so `kind` is Tango's inference from the diff on about 95% of revisions, resolution is that state's crawl cadence, and history starts when Tango began reading the jurisdiction rather than when the solicitation was posted.
+
+Unlike the `revisions(*)` expand, this route serves `enrichment` rows — Tango's own detail fetch filling in coverage rather than an agency amendment. Pass `kind: "enrichment"` for only those. `changes` (the per-field before and after) needs a Small plan, which is why it is left out of `SLED_REVISIONS_MINIMAL`; `changed_fields` is in the default and available at every plan.
+
+### `getSledCoverage()`
+
+```ts
+const coverage = await client.getSledCoverage();
+for (const row of coverage.states as Array<Record<string, unknown>>) {
+  console.log(row.state, row.total_count, row.by_status, row.last_change_observed_at);
+}
+```
+
+**Call this before treating a per-state count as market size.** A thin result for a state is at least as likely to be a portal Tango does not read as a quiet market, and that is the ambiguity this endpoint exists to resolve. Every state row carries all five status buckets whether or not they have rows, so a total and two buckets never invite subtraction. Takes no parameters and is neither shaped nor paginated.
+
+### `listSledForecasts(options?)` / `getSledForecast(forecastId, options?)`
+
+```ts
+const forecasts = await client.listSledForecasts({ state: "MD", advertisement_after: "2026-10-01" });
+```
+
+Typed filters: `state`, `agency`, `procurement_category`, `procurement_method`, `contract_number`, `incumbent_name`, `advertisement_after` / `advertisement_before`, `first_seen_after` / `first_seen_before`, `modified_after` / `modified_before`, `search`, `ordering`.
+
+- **Forecasts carry no liveness at all** — no deadline to have passed, so no `status`, no `active`, and no open-only default. Currency is the caller's call from `estimated_advertisement_date`.
+- `estimated_advertisement_date` is the **start of the published quarter**, not a posting date. `estimated_advertisement_raw` keeps the portal's own words (`"Q3 (Jan.-March 2027)"`), and a large share of rows publish no quarter at all.
+- `estimated_value(min,max,raw)` is parsed from a free-text award band at serve time. **A band naming one number is a floor, so `max` is null** — never read a missing `max` as an unbounded ceiling.
+- `incumbent_name` is published text, not a resolved Tango entity.
 
 ---
 
@@ -749,7 +824,7 @@ for await (const contract of client.iterate("listContracts", { awarding_agency: 
 }
 ```
 
-Named wrappers: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, `iterateNotices`, `iterateGrants`, `iterateForecasts`, `iterateIdvs`, `iterateVehicles`, `iterateDibbsRfqs`, `iterateDibbsRfps`, `iterateDibbsAwards`, `iterateExclusions`, `iterateSbirTopics`, `iterateSbirSolicitations`.
+Named wrappers: `iterateContracts`, `iterateEntities`, `iterateOpportunities`, `iterateNotices`, `iterateGrants`, `iterateForecasts`, `iterateIdvs`, `iterateVehicles`, `iterateDibbsRfqs`, `iterateDibbsRfps`, `iterateDibbsAwards`, `iterateExclusions`, `iterateSbirTopics`, `iterateSbirSolicitations`, `iterateSledOpportunities`, `iterateSledForecasts`.
 
 ---
 
@@ -845,11 +920,11 @@ The Alerts API is a filter-subscription convenience layer on top of subscription
 ```ts
 // Create
 const alert = await client.createWebhookAlert({
-  name: "New IT cloud contracts",                  // vs subscription_name on the wire
-  query_type: "contract",                          // SINGULAR — not "contracts"
-  filters: { naics: "541511" },                    // vs filter_definition on the wire
-  frequency: "realtime",                           // realtime | daily | weekly | custom
-  cron_expression: undefined,                      // required if frequency === "custom"
+  name: "New IT cloud contracts", // vs subscription_name on the wire
+  query_type: "contract", // SINGULAR — not "contracts"
+  filters: { naics: "541511" }, // vs filter_definition on the wire
+  frequency: "realtime", // realtime | daily | weekly | custom
+  cron_expression: undefined, // required if frequency === "custom"
 });
 
 // List

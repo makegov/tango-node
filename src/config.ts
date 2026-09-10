@@ -64,54 +64,42 @@ export const ShapeConfig = {
   VEHICLE_AWARDEES_MINIMAL: "uuid,key,piid,award_date,title,order_count,idv_obligations,idv_contracts_value,recipient(display_name,uei)",
 
   // Default for listVehicleOrders()
-  VEHICLE_ORDERS_MINIMAL:
-    "key,piid,award_date,obligated,total_contract_value,description,recipient(display_name,uei)",
+  VEHICLE_ORDERS_MINIMAL: "key,piid,award_date,obligated,total_contract_value,description,recipient(display_name,uei)",
 
   // Default for listOrganizations()
   ORGANIZATIONS_MINIMAL: "key,fh_key,name,level,type,short_name",
 
   // Default for listOtas()
-  OTAS_MINIMAL:
-    "key,piid,award_date,recipient(display_name,uei),description,total_contract_value,obligated",
+  OTAS_MINIMAL: "key,piid,award_date,recipient(display_name,uei),description,total_contract_value,obligated",
 
   // Default for listOtidvs()
   OTIDVS_MINIMAL: "key,piid,award_date,recipient(display_name,uei),description,total_contract_value,obligated,idv_type",
 
   // Default for listSubawards()
   // Note: API does not accept "id" or "amount" in shape (unknown_field). Use only accepted fields.
-  SUBAWARDS_MINIMAL:
-    "award_key,prime_recipient(uei,display_name),subaward_recipient(uei,display_name)",
+  SUBAWARDS_MINIMAL: "award_key,prime_recipient(uei,display_name),subaward_recipient(uei,display_name)",
 
   // Default for listGsaElibraryContracts()
-  GSA_ELIBRARY_CONTRACTS_MINIMAL:
-    "uuid,contract_number,schedule,recipient(display_name,uei),idv(key,award_date)",
+  GSA_ELIBRARY_CONTRACTS_MINIMAL: "uuid,contract_number,schedule,recipient(display_name,uei),idv(key,award_date)",
 
   // Default for listItdashboardInvestments()
   // Free-tier safe: matches the API's INVESTMENT_LIST_DEFAULT_SHAPE.
-  ITDASHBOARD_INVESTMENTS_MINIMAL:
-    "uii,agency_name,bureau_name,investment_title," +
-    "type_of_investment,part_of_it_portfolio,updated_time,url",
+  ITDASHBOARD_INVESTMENTS_MINIMAL: "uii,agency_name,bureau_name,investment_title," + "type_of_investment,part_of_it_portfolio,updated_time,url",
 
   // Default for getItdashboardInvestment()
   // Free-tier safe: matches the API's INVESTMENT_RETRIEVE_DEFAULT_SHAPE.
   ITDASHBOARD_INVESTMENTS_COMPREHENSIVE:
-    "uii,agency_code,agency_name,bureau_code,bureau_name," +
-    "investment_title,type_of_investment,part_of_it_portfolio," +
-    "updated_time,url",
+    "uii,agency_code,agency_name,bureau_code,bureau_name," + "investment_title,type_of_investment,part_of_it_portfolio," + "updated_time,url",
 
   // Default for listDibbsRfqs()
-  DIBBS_RFQS_MINIMAL:
-    "uuid,solicitation,nsn,part_number,nomenclature,quantity,issue_date,return_by_date,is_open",
+  DIBBS_RFQS_MINIMAL: "uuid,solicitation,nsn,part_number,nomenclature,quantity,issue_date,return_by_date,is_open",
 
   // Default for listDibbsRfps()
-  DIBBS_RFPS_MINIMAL:
-    "uuid,solicitation,nsn,part_number,nomenclature,issued_date,closes_date,is_open",
+  DIBBS_RFPS_MINIMAL: "uuid,solicitation,nsn,part_number,nomenclature,issued_date,closes_date,is_open",
 
   // Default for listDibbsAwards(). total_contract_price is the ORDER total
   // repeated per line item — never sum it across rows.
-  DIBBS_AWARDS_MINIMAL:
-    "uuid,award_number,solicitation,nsn,part_number,nomenclature," +
-    "awardee_cage,award_date,total_contract_price",
+  DIBBS_AWARDS_MINIMAL: "uuid,award_number,solicitation,nsn,part_number,nomenclature," + "awardee_cage,award_date,total_contract_price",
 
   // Default for listExclusions()
   EXCLUSIONS_MINIMAL:
@@ -119,12 +107,45 @@ export const ShapeConfig = {
     "excluding_agency_name,activate_date,termination_date,is_currently_excluded",
 
   // Default for listSbirTopics()
-  SBIR_TOPICS_MINIMAL:
-    "topic_id,topic_number,title,agency,activity,year," +
-    "solicitation_number,open_date,close_date,listed_open",
+  SBIR_TOPICS_MINIMAL: "topic_id,topic_number,title,agency,activity,year," + "solicitation_number,open_date,close_date,listed_open",
 
   // Default for listSbirSolicitations()
   SBIR_SOLICITATIONS_MINIMAL:
-    "solicitation_id,solicitation_number,title,program,activity," +
-    "cycle_name,solicitation_status,year,start_date,end_date",
+    "solicitation_id,solicitation_number,title,program,activity," + "cycle_name,solicitation_status,year,start_date,end_date",
+
+  // Default for listSledOpportunities(). `description` is detail-only on the API
+  // (median ~550 chars, tail past 120k), so it is not in the list default.
+  SLED_OPPORTUNITIES_MINIMAL:
+    "opportunity_id,solicitation_number,solicitation_type,title,state," +
+    "jurisdiction,agency,status,status_reason,posted_date,response_deadline," +
+    "source_url,has_documents,first_seen_at,last_change_seen_at",
+
+  // Default for getSledOpportunity()
+  SLED_OPPORTUNITIES_COMPREHENSIVE:
+    "opportunity_id,solicitation_number,solicitation_type," +
+    "solicitation_type_source,title,description,state,jurisdiction,agency," +
+    "status,status_reason,status_computed_at,source_status,source_url," +
+    "posted_date,response_deadline,response_deadline_original," +
+    "bid_opening_date,bid_opening_raw,category_codes,has_documents," +
+    "first_seen_at,last_seen_at,last_change_seen_at," +
+    "organization(*),contact(*),meta(*),attachments(*),revisions(*)",
+
+  // Default for listSledOpportunityRevisions(). `changes` is omitted because it
+  // needs a Small plan; name it explicitly when the caller has one.
+  SLED_REVISIONS_MINIMAL: "observed_at,sequence,kind,changed_fields,source_declared",
+
+  // Default for listSledForecasts()
+  SLED_FORECASTS_MINIMAL:
+    "forecast_id,state,agency,title,estimated_advertisement_date," +
+    "estimated_advertisement_raw,procurement_category,procurement_method," +
+    "contract_number,incumbent_name,source_url,estimated_value(*)",
+
+  // Default for getSledForecast()
+  SLED_FORECASTS_COMPREHENSIVE:
+    "forecast_id,state,agency,title,description," +
+    "estimated_advertisement_date,estimated_advertisement_raw," +
+    "procurement_category,procurement_method,contract_term,contract_number," +
+    "incumbent_name,mbe_dbe_goal,delivery_location,source_url,source_status," +
+    "has_documents,first_seen_at,last_seen_at," +
+    "organization(*),contact(*),estimated_value(*)",
 } as const;

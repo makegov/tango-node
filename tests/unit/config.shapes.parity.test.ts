@@ -22,6 +22,11 @@ describe("ShapeConfig parity with Python SDK", () => {
       "VEHICLE_ORDERS_MINIMAL",
       "ITDASHBOARD_INVESTMENTS_MINIMAL",
       "ITDASHBOARD_INVESTMENTS_COMPREHENSIVE",
+      "SLED_OPPORTUNITIES_MINIMAL",
+      "SLED_OPPORTUNITIES_COMPREHENSIVE",
+      "SLED_REVISIONS_MINIMAL",
+      "SLED_FORECASTS_MINIMAL",
+      "SLED_FORECASTS_COMPREHENSIVE",
     ] as const;
 
     it.each(newKeys)("%s is exported and non-empty", (key) => {
@@ -136,6 +141,9 @@ describe("ShapeConfig parity with Python SDK", () => {
       ["EXCLUSIONS_MINIMAL", "Exclusion"],
       ["SBIR_TOPICS_MINIMAL", "SbirTopic"],
       ["SBIR_SOLICITATIONS_MINIMAL", "SbirSolicitation"],
+      ["SLED_OPPORTUNITIES_MINIMAL", "SledOpportunity"],
+      ["SLED_REVISIONS_MINIMAL", "SledOpportunityRevision"],
+      ["SLED_FORECASTS_MINIMAL", "SledForecast"],
     ] as const;
 
     it.each(presetToModel)("%s parses and every field exists on %s", (presetName, modelName) => {

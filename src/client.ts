@@ -6,15 +6,7 @@ import type { ShapeSpec } from "./shapes/types.js";
 import { isRecord } from "./utils/guards.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
-import {
-  AgencyRecord,
-  PaginatedResponse,
-  ProtestRecord,
-  RateLimitInfo,
-  ResolveResult,
-  TangoClientOptions,
-  ValidateResult,
-} from "./types.js";
+import { AgencyRecord, PaginatedResponse, ProtestRecord, RateLimitInfo, ResolveResult, TangoClientOptions, ValidateResult } from "./types.js";
 import type {
   WebhookAlert,
   WebhookAlertCreateInput,
@@ -210,21 +202,21 @@ export interface ListContractsOptions extends ListOptionsBase {
   piid?: string;
   solicitation_identifier?: string;
   naics?: string;
-  naics_code?: string;       // SDK-friendly alias mapped to `naics`
+  naics_code?: string; // SDK-friendly alias mapped to `naics`
   psc?: string;
-  psc_code?: string;         // SDK-friendly alias mapped to `psc`
+  psc_code?: string; // SDK-friendly alias mapped to `psc`
   recipient?: string;
-  recipient_name?: string;   // SDK-friendly alias mapped to `recipient`
+  recipient_name?: string; // SDK-friendly alias mapped to `recipient`
   uei?: string;
-  recipient_uei?: string;    // SDK-friendly alias mapped to `uei`
+  recipient_uei?: string; // SDK-friendly alias mapped to `uei`
   set_aside?: string;
-  set_aside_type?: string;   // SDK-friendly alias mapped to `set_aside`
+  set_aside_type?: string; // SDK-friendly alias mapped to `set_aside`
 
   // Search + ordering
   search?: string;
-  keyword?: string;          // SDK-friendly alias mapped to `search`
+  keyword?: string; // SDK-friendly alias mapped to `search`
   ordering?: string;
-  sort?: string;             // SDK-friendly alias combined with `order` → `ordering`
+  sort?: string; // SDK-friendly alias combined with `order` → `ordering`
   order?: "asc" | "desc";
 
   [key: string]: unknown;
@@ -689,6 +681,108 @@ export interface ListSbirSolicitationsOptions extends ListOptionsBase {
 }
 
 /**
+ * SLED solicitation list options.
+ *
+ * Two things behave unlike the federal endpoints.
+ *
+ * Passing neither `status` nor `active` returns open solicitations only — the API defaults the list to `status=open`, because only about a fifth of the corpus is open and portals drop a closed solicitation rather than restating it. Pass an explicit `status` to page the whole corpus. `getSledOpportunity()` returns a solicitation whatever its status.
+ *
+ * `status` is Tango-derived liveness, refreshed every fifteen minutes. The portal's own word is served as `source_status`, is frozen at last capture, and is NOT filterable — most of what it calls open already has a passed deadline.
+ */
+export interface ListSledOpportunitiesOptions extends ListOptionsBase {
+  joiner?: string;
+  /** Two-letter state or territory code. Multi-value: `"TX|OK"`. */
+  state?: string;
+  /** `state`, `local`, `education`, or `unknown` for aggregator rows that cannot tell state from local. */
+  jurisdiction?: string;
+  /** `open`, `closed`, `awarded`, `cancelled` or `unknown`. Absent (with `active` also absent) the API returns open only; `unknown` is hidden by that default and reachable with `"open|unknown"`. */
+  status?: string;
+  /** Sugar for federal-shaped callers: true is `status=open`, false is its complement (so it includes `unknown`). */
+  active?: boolean;
+  /** Substring match on the buyer's published text (min 2 characters). No code resolution behind it — state agencies have no entry in the federal organization tree. */
+  agency?: string;
+  solicitation_number?: string;
+  /** `rfp`, `ifb`, `rfq`, `rfi`, `itb`, `sole_source`, `grant` or `other`. `"null"` (the portal states no type) is a distinct answer from `"other"`. */
+  solicitation_type?: string;
+  has_documents?: boolean;
+  /** Kind of the most recent substantive revision. */
+  revision_kind?: string;
+  /** Exact match within the `naics` category scheme. Thin on purpose: scheme tagging is mid-migration, so only a small share of entries are tagged NAICS. Prefer `category_code` unless you need scheme precision. */
+  naics?: string;
+  nigp?: string;
+  unspsc?: string;
+  /** Exact match within the `text` scheme, where the code is the portal's own human label. */
+  category?: string;
+  /** Match a code under ANY scheme, including the untagged pre-migration strings. The escape hatch when a scheme-specific filter returns less than you expected. */
+  category_code?: string;
+  posted_after?: string;
+  posted_before?: string;
+  response_deadline_after?: string;
+  response_deadline_before?: string;
+  /** When Tango FIRST OBSERVED the solicitation. The polling primitive. */
+  first_seen_after?: string;
+  first_seen_before?: string;
+  /** When Tango OBSERVED the last substantive change. A scrape date, not an amendment date. */
+  change_seen_after?: string;
+  modified_after?: string;
+  modified_before?: string;
+  /** Support filter identifying the source portal's platform family. Not in any response shape, and not a stable value. */
+  platform?: string;
+  /** Support filter — the portal's own identifier. */
+  native_id?: string;
+  /** Support filter — Tango's opaque lake key. At most 500 values. */
+  external_id?: string;
+  /** Ranked full-text search over title, agency, identifiers, category labels and description, widened by the solicitations whose ATTACHMENT text matched (min 2 characters). Adds a `snippet` to rows that matched on their description. */
+  search?: string;
+  /** Sort field (rank, response_deadline, posted_date, first_seen_at, last_seen_at, last_change_seen_at, modified). `rank` requires a non-empty `search`. */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/** SLED revision list options, for the nested `/revisions/` route. */
+export interface ListSledOpportunityRevisionsOptions extends ListOptionsBase {
+  joiner?: string;
+  /** Revision kind, plus `enrichment` — which the `revisions(*)` expand excludes and this route serves. Multi-value: use `|`. */
+  kind?: string;
+  /** Whether the portal's own amendment marker moved at this emission. True on about 5% of revisions; everything else is Tango inferring the change from the diff. */
+  source_declared?: boolean;
+  observed_after?: string;
+  observed_before?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * SLED forecast list options.
+ *
+ * Forecasts carry no liveness at all — no deadline to have passed, so no `status`, no `active`, and no open-only default.
+ */
+export interface ListSledForecastsOptions extends ListOptionsBase {
+  joiner?: string;
+  /** Two-letter state code. Multi-value: use `|`. */
+  state?: string;
+  /** Substring match on the buyer's published text (min 2 characters). */
+  agency?: string;
+  /** The portal's own category word, verbatim. */
+  procurement_category?: string;
+  /** The portal's own method word, verbatim. */
+  procurement_method?: string;
+  contract_number?: string;
+  /** Substring match on the incumbent vendor's name as published. NOT resolved to a Tango entity. */
+  incumbent_name?: string;
+  /** Estimated advertisement date range. Remember the date is a QUARTER START, not a posting date. */
+  advertisement_after?: string;
+  advertisement_before?: string;
+  first_seen_after?: string;
+  first_seen_before?: string;
+  modified_after?: string;
+  modified_before?: string;
+  search?: string;
+  /** Sort field (rank, estimated_advertisement_date, first_seen_at, last_seen_at, modified). `rank` requires a non-empty `search`. */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
  * List methods on `TangoClient` that `iterate()` knows how to drive. Every
  * entry must accept an options object and return a `PaginatedResponse<T>`
  * with a `next` URL containing either `?page=` or `?cursor=`.
@@ -707,7 +801,9 @@ export type IterableListMethod =
   | "listDibbsAwards"
   | "listExclusions"
   | "listSbirTopics"
-  | "listSbirSolicitations";
+  | "listSbirSolicitations"
+  | "listSledOpportunities"
+  | "listSledForecasts";
 
 // ---------------------------------------------------------------------------
 // Read-method option interfaces (lookups + awards completeness + other)
@@ -1127,10 +1223,7 @@ export class TangoClient {
   }
 
   /** List transactions under a contract (`/api/contracts/{key}/transactions/`). */
-  async getContractTransactions(
-    key: string,
-    options: ListOptionsBase & { [key: string]: unknown } = {},
-  ): Promise<PaginatedResponse<AnyRecord>> {
+  async getContractTransactions(key: string, options: ListOptionsBase & { [key: string]: unknown } = {}): Promise<PaginatedResponse<AnyRecord>> {
     if (!key) throw new TangoValidationError("Contract key is required");
     return this._genericPaginatedList(`/api/contracts/${encodeURIComponent(key)}/transactions/`, options);
   }
@@ -1777,9 +1870,7 @@ export class TangoClient {
     // duplicate). Raising client-side gives a clearer error and matches the
     // Python SDK's 1.0.0 behavior.
     if (!body.name) {
-      throw new TangoValidationError(
-        "createWebhookEndpoint: `name` is required. The Tango API enforces unique(user, name) on endpoints.",
-      );
+      throw new TangoValidationError("createWebhookEndpoint: `name` is required. The Tango API enforces unique(user, name) on endpoints.");
     }
     // Preserve historical default for create: active endpoints unless caller opts out.
     if (body.is_active === undefined) {
@@ -1845,12 +1936,7 @@ export class TangoClient {
   async createWebhookAlert(input: WebhookAlertCreateInput): Promise<WebhookAlert> {
     if (!input?.name) throw new TangoValidationError("Webhook alert name is required");
     if (!input.query_type) throw new TangoValidationError('Webhook alert query_type is required (singular, e.g. "contract")');
-    if (
-      !input.filters ||
-      typeof input.filters !== "object" ||
-      Array.isArray(input.filters) ||
-      Object.keys(input.filters).length === 0
-    ) {
+    if (!input.filters || typeof input.filters !== "object" || Array.isArray(input.filters) || Object.keys(input.filters).length === 0) {
       throw new TangoValidationError("Webhook alert filters must be a non-empty plain object");
     }
 
@@ -2019,6 +2105,14 @@ export class TangoClient {
 
   iterateSbirSolicitations(options: ListSbirSolicitationsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
     return this.iterate<Record<string, unknown>>("listSbirSolicitations", options);
+  }
+
+  iterateSledOpportunities(options: ListSledOpportunitiesOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listSledOpportunities", options);
+  }
+
+  iterateSledForecasts(options: ListSledForecastsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listSledForecasts", options);
   }
 
   // ---------------------------------------------------------------------------
@@ -2278,10 +2372,7 @@ export class TangoClient {
   }
 
   /** Get a single budget account by id (`/api/budget/accounts/{id}/`). */
-  async getBudgetAccount(
-    id: string | number,
-    options: { shape?: string | null; flat?: boolean; flatLists?: boolean } = {},
-  ): Promise<AnyRecord> {
+  async getBudgetAccount(id: string | number, options: { shape?: string | null; flat?: boolean; flatLists?: boolean } = {}): Promise<AnyRecord> {
     if (id === undefined || id === null || id === "") {
       throw new TangoValidationError("Budget account id is required");
     }
@@ -2299,10 +2390,7 @@ export class TangoClient {
    *
    * `tas` narrows to a single Treasury Account Symbol.
    */
-  async getBudgetAccountQuarters(
-    id: string | number,
-    options: { tas?: string; limit?: number } = {},
-  ): Promise<PaginatedResponse<AnyRecord>> {
+  async getBudgetAccountQuarters(id: string | number, options: { tas?: string; limit?: number } = {}): Promise<PaginatedResponse<AnyRecord>> {
     if (id === undefined || id === null || id === "") {
       throw new TangoValidationError("Budget account id is required");
     }
@@ -2448,6 +2536,93 @@ export class TangoClient {
       `/api/sbir/solicitations/${encodeURIComponent(solicitationId)}/`,
       "SbirSolicitation",
       ShapeConfig.SBIR_SOLICITATIONS_MINIMAL,
+      options,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // State, local and education (SLED) procurement
+  // ---------------------------------------------------------------------------
+
+  /**
+   * List state, local and education solicitations (`/api/sled/opportunities/`).
+   *
+   * Beta. Coverage is partial and grows one jurisdiction at a time, so a thin per-state result is at least as likely to be a portal Tango does not read as a quiet market — call `getSledCoverage()` before treating a per-state count as market size.
+   *
+   * Passing neither `status` nor `active` returns open solicitations only; that default is the API's, and this method deliberately does not synthesize one, since doing so would make `active: false` unreachable.
+   */
+  async listSledOpportunities(options: ListSledOpportunitiesOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/sled/opportunities/", "SledOpportunity", ShapeConfig.SLED_OPPORTUNITIES_MINIMAL, options);
+  }
+
+  /**
+   * Get a single SLED solicitation by `opportunity_id` (`/api/sled/opportunities/{opportunity_id}/`).
+   *
+   * The open-only default applies to the list endpoint, not here — a closed solicitation still resolves on its own URL.
+   */
+  async getSledOpportunity(
+    opportunityId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!opportunityId) throw new TangoValidationError("opportunity_id is required");
+    return this._shapedGet(
+      `/api/sled/opportunities/${encodeURIComponent(opportunityId)}/`,
+      "SledOpportunity",
+      ShapeConfig.SLED_OPPORTUNITIES_COMPREHENSIVE,
+      options,
+    );
+  }
+
+  /**
+   * List one solicitation's observed revision history (`/api/sled/opportunities/{opportunity_id}/revisions/`).
+   *
+   * `observed_at` is the scrape that saw the change, not the date the agency made it: no state portal emits amendment notices, so resolution is that state's crawl cadence and history starts when Tango began reading the jurisdiction.
+   *
+   * Unlike the `revisions(*)` expand, this route serves `enrichment` rows — Tango's own detail fetch filling in coverage rather than an agency amendment. Pass `kind: "enrichment"` for only those.
+   */
+  async listSledOpportunityRevisions(
+    opportunityId: string,
+    options: ListSledOpportunityRevisionsOptions = {},
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    if (!opportunityId) throw new TangoValidationError("opportunity_id is required");
+    return this._shapedPaginatedList(
+      `/api/sled/opportunities/${encodeURIComponent(opportunityId)}/revisions/`,
+      "SledOpportunityRevision",
+      ShapeConfig.SLED_REVISIONS_MINIMAL,
+      options,
+    );
+  }
+
+  /**
+   * Get the per-state SLED coverage rollup (`/api/sled/opportunities/coverage/`).
+   *
+   * Corpus totals plus one row per jurisdiction — the total, the count in each of the five statuses, the jurisdiction levels present, and when a solicitation there last changed. It answers one question: whether a thin result for a state is a thin market or a portal Tango does not read.
+   *
+   * Every state row carries all five status buckets whether or not they have rows, so a total and two buckets never invite subtraction. Takes no parameters and is neither shaped nor paginated.
+   */
+  async getSledCoverage(): Promise<Record<string, unknown>> {
+    return this.http.get<Record<string, unknown>>("/api/sled/opportunities/coverage/", {});
+  }
+
+  /**
+   * List planned state procurements (`/api/sled/forecasts/`).
+   *
+   * Forecasts carry no liveness at all — there is no deadline to have passed, so there is no `status` option and no open-only default. Currency is the caller's call from `estimated_advertisement_date`, which is the START of the published quarter rather than a posting date.
+   */
+  async listSledForecasts(options: ListSledForecastsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/sled/forecasts/", "SledForecast", ShapeConfig.SLED_FORECASTS_MINIMAL, options);
+  }
+
+  /** Get a single SLED forecast by `forecast_id` (`/api/sled/forecasts/{forecast_id}/`). */
+  async getSledForecast(
+    forecastId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!forecastId) throw new TangoValidationError("forecast_id is required");
+    return this._shapedGet(
+      `/api/sled/forecasts/${encodeURIComponent(forecastId)}/`,
+      "SledForecast",
+      ShapeConfig.SLED_FORECASTS_COMPREHENSIVE,
       options,
     );
   }

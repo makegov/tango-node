@@ -1,22 +1,48 @@
 <!-- markdownlint-disable MD024, MD013 -->
+
 # Changelog
 
 All notable changes to `@makegov/tango-node` will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **State, local and education (SLED) procurement support** (Tango API 4.25.0; parity with tango-python). Six methods over the new `/api/sled/` namespace: `listSledOpportunities`/`getSledOpportunity`, `listSledOpportunityRevisions`, `getSledCoverage`, `listSledForecasts`/`getSledForecast`, plus `iterateSledOpportunities` / `iterateSledForecasts` and their `IterableListMethod` entries. New model interfaces `SledOpportunity`, `SledOpportunityRevision`, `SledForecast` and the six nested payload types; explicit shape schemas for all of them; five `ShapeConfig` defaults. Every one of the API's 27 solicitation filters and 13 forecast filters is a typed option.
+
+  Four behaviors are documented on the options interfaces because each misleads a caller who assumes federal semantics. **Passing neither `status` nor `active` returns open solicitations only** — that default is the API's, and the SDK deliberately does not synthesize a `status` param, since doing so would make `active: false` unreachable (pinned by a test). **`status` is Tango-derived and refreshed every fifteen minutes**; the portal's own word is served as `source_status`, is frozen at last capture, and is not a liveness filter. **Category scheme tagging is mid-migration**, so `naics` matches only the small tagged share and `category_code` is the escape hatch. And **`meta.attachment_count` can be lower than `attachments.length`**, because an auto-generated portal cover sheet is listed and flagged `is_generated_summary` but excluded from the count.
+
+  `SLED_REVISIONS_MINIMAL` omits `changes` on purpose: the per-field before/after needs a Small plan, so naming it by default would 403 a Free caller.
+
+- **Fourteen nested sub-resource routes now mapped in the conformance gate.** `agencies_contracts_awarding`, `agencies_contracts_funding`, `contracts_subawards`, `entities_contracts`, `entities_idvs`, `entities_lcats`, `entities_otas`, `entities_otidvs`, `entities_subawards`, `idvs_awards`, `idvs_idvs`, `idvs_lcats`, `otidvs_awards` and `vehicles_orders` all have SDK methods and are published by the newer contract for the first time; unmapped, each was a hard conformance error. Mapping them turns those into the honest finding, which is that most of their options interfaces accept filters through an index signature rather than declaring them.
+
+### Changed
+
+- Re-vendored `contracts/filter_shape_contract.json` (schema_version 2, 48 resources) and regenerated `src/shapes/generatedOverlay.ts` from it — 359 fields across 25 containers, 73 nested schemas.
+- Baselined 14 reverse-shape-coverage gaps in `contracts/shape_coverage_baseline.json`, matching tango-python. All 14 are the nested sub-resource routes above, which reuse the parent resource's model rather than carrying one of their own; none is SLED, and none is a regression — they became visible only with the re-vendored contract.
+
+### Documentation
+
+- New **State & Local (SLED) — Beta** section in `docs/API_REFERENCE.md` covering all six methods, both defaults that surprise people, and the new `ShapeConfig` constants.
+- `docs/WEBHOOKS.md` troubleshooting gained the date-lapse rule and its one exception. An exclusion or a DIBBS solicitation reaching its date fires nothing, because open/closed is derived at query time — but `alerts.sled_opportunity.match` **does** fire on a closing, since SLED liveness is a stored column a fifteen-minute sweep writes.
+
 ## [1.3.0] - 2026-08-14
 
 ### Changed
+
 - **Node.js 20 is now the minimum supported version** (`engines.node >= 20`); the CI matrix moves from 18/20/22 to 20/22/24. Node 18 has been end-of-life since April 2025, and the security-patched test toolchain below requires 20+. Nothing in the published code changed — existing installs on Node 18 keep working, but they are no longer tested or supported.
 - Dev-dependency security upgrade clearing all six open Dependabot alerts (vitest 2.1.9 → 4.x, @vitest/coverage-v8 to match, tsx to the esbuild-0.28 line — the published package is unaffected, its only runtime dependency remains `commander`). One test-only fix for vitest 4's stricter mocks: constructable mocks now use regular-function implementations.
 
 ## [1.2.0] - 2026-08-14
 
 ### Added
+
 - **DIBBS, exclusions, and SBIR/STTR endpoint support** (parity with tango-python v1.3.0). Six endpoint families had no SDK support at all — no models, no methods. Added `listDibbsRfqs`/`getDibbsRfq`, `listDibbsRfps`/`getDibbsRfp`, `listDibbsAwards`/`getDibbsAward`, `listExclusions`/`getExclusion`, `listSbirTopics`/`getSbirTopic`, and `listSbirSolicitations`/`getSbirSolicitation`, with every filter param in the API contract exposed as a typed option, explicit shape schemas (including the nested organization/awardee/topic/document expands), `ShapeConfig` defaults, and async iterators (`iterateDibbsRfqs`, `iterateDibbsRfps`, `iterateDibbsAwards`, `iterateExclusions`, `iterateSbirTopics`, `iterateSbirSolicitations`, plus the matching `IterableListMethod` entries for the generic `iterate()`). New model interfaces: `DibbsRfq`, `DibbsRfp`, `DibbsAward`, `Exclusion`, `SbirTopic`, `SbirSolicitation`.
 
-  Two API behaviors are worth knowing. `is_open` (DIBBS) and `is_currently_excluded` (exclusions) are derived at query time, so filter with the `open` / `active` options rather than shaping on those fields. And DIBBS `total_contract_price` is the *order* total repeated on every line item — never sum it across rows; deduplicate on award + delivery-order number first.
+  Two API behaviors are worth knowing. `is_open` (DIBBS) and `is_currently_excluded` (exclusions) are derived at query time, so filter with the `open` / `active` options rather than shaping on those fields. And DIBBS `total_contract_price` is the _order_ total repeated on every line item — never sum it across rows; deduplicate on award + delivery-order number first.
+
 - **Full typed filter surface on `listBudgetAccounts`** (parity with tango-python and the API contract). `ListBudgetAccountsOptions` now declares every `budget/accounts` filter param — the exact / `__gte` / `__lte` triplet for all 26 numeric lifecycle, ratio, and trend fields (`requested_ba`, `enacted_ba`, `apportioned`, `obligated_total`, `outlayed_total`, `unobligated_balance`, the contract/assistance breakdowns, the `*_pct` / `*_capped` ratios, YoY + 5-year-CAGR trends, and `actual_vs_requested_contract`), plus the `__in` / `__icontains` variants of the categorical filters (`federal_account_symbol`, `fiscal_year`, `agency_code`, `bureau_name`, `bea_category`, `subfunction_code`, `account_title__icontains`).
 - `getGsaElibraryContract(uuid, options)` for `/api/gsa_elibrary_contracts/{uuid}/` (parity with tango-python), with the standard `shape` / `flat` / `flatLists` / `joiner` options and the `GSA_ELIBRARY_CONTRACTS_MINIMAL` default shape.
 - Typed filter options that previously worked only through the index-signature escape hatch: `key` on `listContracts` / `listIdvs` / `listOtas` / `listOtidvs`, `cage` on `listEntities`, `id` on `listForecasts`, `opportunity_id` on `listOpportunities`, `previous_uii` on `listItDashboard`, `naics_code` on `listProtests` (sent verbatim, not remapped to `naics`), and `has_awards` on `listPsc`. The filter-shape conformance gate now reports zero index-signature warnings.
@@ -31,16 +57,19 @@ This project follows [Semantic Versioning](https://semver.org/).
 - **Env-gated production smoke suite** (`tests/production/smoke.test.ts`, the node port of tango-python's `tests/production/`): runs only with `TANGO_LIVE_TESTS=true` plus `TANGO_API_KEY`, asserting light live-API invariants (pagination shape, shaping, rate-limit header parsing). Excluded from default runs and CI by `vitest.config.ts`.
 
 ### Changed
+
 - Both conformance baselines shrank with the new resources: `dibbs/*`, `exclusions`, and `sbir/*` left `unimplemented_resources` in `contracts/conformance_baseline.json`, and their `unmapped_resource` entries left `contracts/shape_coverage_baseline.json` (422 → 416 known gaps, then 416 → 0 with the generated overlay above).
 - `scripts/check-filter-shape-conformance.ts` now defaults to the vendored contract instead of a checked-out tango API repo (`TANGO_CONTRACT_PATH` or `--manifest` still point it at one), covers every resource in the 4.22.0 contract in its resource map, and treats an unimplemented resource as an error unless baselined.
 - Removed the dead legacy `.eslintrc.cjs` — the flat `eslint.config.js` has been the operative ESLint config since the flat-config migration, and the leftover file only invited divergent edits.
 
 ### Fixed
+
 - The six new list methods (`listDibbsRfqs`, `listDibbsRfps`, `listDibbsAwards`, `listExclusions`, `listSbirTopics`, `listSbirSolicitations`) leaked a caller-supplied `joiner` to the server as a bare query param and ignored it when unflattening `flat: true` responses (always unflattening on the default `.`). `joiner` is now threaded the same way as `listIdvs`: sent only alongside `flat=true`, and used as the unflatten separator.
 - `listBudgetAccounts`: the `fiscal_year_gte`, `fiscal_year_lte`, and `account_title` options were sent verbatim, which the API silently ignores. They are kept as legacy aliases and now remapped to the forms the API understands (`fiscal_year__gte`, `fiscal_year__lte`, `account_title__icontains`); an explicitly passed dunder param wins over its alias.
 - Docs: removed the stale `getIdvSummary` / `listIdvSummaryAwards` sections from `README.md` and `docs/API_REFERENCE.md` — those methods were removed from the SDK in 1.1.0. Documented the full new surface (DIBBS/exclusions/SBIR, budget accounts and their filter surface, `getGsaElibraryContract`, the newly typed filters, `PaginatedResponse` meta diagnostics, structured `TangoValidationError` details), completed the `ShapeConfig` preset table in `docs/SHAPES.md`, and rewrote the maintainer half of `docs/DEVELOPERS.md` around the conformance gates and the cassette record/replay workflow (the old text still claimed the SDK had no cassette mechanism).
 
 ### CI
+
 - `package-lock.json` is now committed, and the CI + publish workflows install with `npm ci --ignore-scripts` instead of `npm install` — installs are reproducible from the lockfile instead of re-resolving dependency ranges on every run.
 - The test job's Node 20 leg runs the suite once with `--coverage` (instead of a second full pass), the default `npx vitest run` now includes the integration suite replayed offline from the committed cassettes, and both setup-node steps cache the npm store off the committed lockfile. No coverage fail-under gate, matching tango-python.
 - The `conformance` job is now a hard gate that runs both conformance directions offline against the vendored contract on every PR — it no longer needs `TANGO_API_REPO_ACCESS_TOKEN` and no longer skips silently without it. When the token is configured, both checks additionally run as hard gates against the fresh contract at makegov/tango HEAD, with a re-vendor warning when the vendored copy has drifted.
@@ -49,12 +78,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 ## [1.1.0] - 2026-05-29
 
 ### Changed (breaking)
+
 - Removed `getIdvSummary` and `listIdvSummaryAwards`. These called
   `/api/idvs/{id}/summary/` and `/api/idvs/{id}/summary/awards/`, which have
   never existed in the Tango API (no OpenAPI backing), so no consumer could
   have been using them successfully. Use `getIdv` + `listIdvAwards` instead.
 
 ### Fixed
+
 - `Contract` interface: removed dead fields (`id`, `award_id`,
   `recipient_name`, `award_amount`, `awarding_agency`, `funding_agency`) and
   added the real API fields from `ContractListSerializer` (`key`, `piid`,
@@ -77,6 +108,7 @@ This project follows [Semantic Versioning](https://semver.org/).
   shapes validate instead of raising a shape-validation error.
 
 ### Added
+
 - Budget accounts surface (tango v4.6.8): `listBudgetAccounts`,
   `getBudgetAccount`, `getBudgetAccountQuarters`, `getBudgetAccountRecipients`.
   New exported `BudgetAccount` interface and `ListBudgetAccountsOptions`.
@@ -90,6 +122,7 @@ This project follows [Semantic Versioning](https://semver.org/).
   API param; `grant_id` also accepted directly).
 
 ### CI
+
 - Added `ci.yml` PR + push-to-main gate (lint, typecheck, build, test on Node
   18/20/22). The filter/shape conformance check is a separate job that skips
   cleanly until a `TANGO_API_REPO_ACCESS_TOKEN` secret for the private manifest
