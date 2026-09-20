@@ -10,6 +10,12 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Boards-of-contract-appeals decisions** (Tango API 4.26.0). `listContractAppeals(options)` and `getContractAppeal(uuid, options)` over `/api/contract_appeals/`, with every filter the API accepts declared as a typed option on `ListContractAppealsOptions` (`search`, `board`, `docket`, `appellant`, `judge`, `decision_type`, the `decision_date_after` / `_before` pair, `listed`, `document_id`, `ordering`), the new `ContractAppealRecord` return type, and a registered `ContractAppeal` shape schema so the typed shape API resolves the resource's fields.
+
+  These are Contract Disputes Act decisions from the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests remain the separate `listProtests()` resource, and the two do not overlap.
+
+  Two properties are documented on the record type and in `docs/API_REFERENCE.md`. An unshaped list returns only a **core subset** of the decision, so every property on `ContractAppealRecord` is optional and anything past the subset has to be named in a `shape`. And `decision_text` is **Enterprise-only, with the key absent rather than null** below that tier — a caller checks for presence, not for a nullish value.
+
 - **`attachments(extracted_text)` — SLED document bodies on the Small plan and above** (Tango API 4.25.1; parity with tango-python). The leaf joins `SledAttachmentPayload` and the explicit shape schema, and the contract was re-vendored so it validates instead of being rejected client-side. Three properties are documented on the interface and in `docs/API_REFERENCE.md`: the leaf must be **named** (neither `ShapeConfig` default includes it, and `attachments(*)` does not carry it, because the API only resolves the body for a caller who asked); the **key is absent rather than null** when the text is not being served; and a **contested document never returns text at any plan**. Searching document text stays ungated on every plan and returns no fragment of it.
 
 - **State, local and education (SLED) procurement support** (Tango API 4.25.0; parity with tango-python). Six methods over the new `/api/sled/` namespace: `listSledOpportunities`/`getSledOpportunity`, `listSledOpportunityRevisions`, `getSledCoverage`, `listSledForecasts`/`getSledForecast`, plus `iterateSledOpportunities` / `iterateSledForecasts` and their `IterableListMethod` entries. New model interfaces `SledOpportunity`, `SledOpportunityRevision`, `SledForecast` and the six nested payload types; explicit shape schemas for all of them; five `ShapeConfig` defaults. Every one of the API's 27 solicitation filters and 13 forecast filters is a typed option.
@@ -23,7 +29,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Re-vendored `contracts/filter_shape_contract.json` (schema_version 2, 48 resources) and regenerated `src/shapes/generatedOverlay.ts` from it — 359 fields across 25 containers, 73 nested schemas.
-- Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win. Contract appeals and eBuy requests are in the contract without SDK methods yet, so both are baselined as tracked gaps.
+- Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win. eBuy requests are in the contract without an SDK method yet, so it is baselined as a tracked gap.
 - Baselined 14 reverse-shape-coverage gaps in `contracts/shape_coverage_baseline.json`, matching tango-python. All 14 are the nested sub-resource routes above, which reuse the parent resource's model rather than carrying one of their own; none is SLED, and none is a regression — they became visible only with the re-vendored contract.
 
 ### Fixed
@@ -35,6 +41,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
+- New **Contract Appeals** section in `docs/API_REFERENCE.md` covering both methods, the full filter table, and the two properties that catch people out (the core-subset default and the tier-gated, absent-rather-than-null `decision_text`). `README.md`'s method list gained both methods.
 - New **State & Local (SLED) — Beta** section in `docs/API_REFERENCE.md` covering all six methods, both defaults that surprise people, and the new `ShapeConfig` constants.
 - `docs/WEBHOOKS.md` troubleshooting gained the date-lapse rule and its one exception. An exclusion or a DIBBS solicitation reaching its date fires nothing, because open/closed is derived at query time — but `alerts.sled_opportunity.match` **does** fire on a closing, since SLED liveness is a stored column a fifteen-minute sweep writes.
 

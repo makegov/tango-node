@@ -182,3 +182,42 @@ export interface ProtestRecord {
   docket?: Array<Record<string, unknown>>;
   [key: string]: unknown;
 }
+
+/**
+ * Typed return model for `client.getContractAppeal()`. Mirrors the boards-of-contract-appeals decision schema (CBCA and ASBCA).
+ *
+ * Every property is optional: an unshaped list response carries only a core subset of them, and `decision_text` is absent entirely below the Enterprise tier.
+ */
+export interface ContractAppealRecord {
+  uuid?: string;
+  /** Deciding board — `cbca` (civilian) or `asbca` (defense). */
+  board?: string;
+  /** Every docket number the decision covers; a consolidated appeal carries more than one. */
+  docket_numbers?: string[];
+  docket_source?: string | null;
+  /** The docket text as the board published it, before parsing into `docket_numbers`. */
+  docket_raw?: string | null;
+  /** ISO date. */
+  decision_date?: string | null;
+  /** The date as the board published it, before parsing. */
+  decision_date_raw?: string | null;
+  /** Whether the published date needed repair to parse — `decision_date_raw` keeps the board's original string either way. */
+  decision_date_repaired?: boolean;
+  appellant?: string | null;
+  judge?: string | null;
+  decision_type?: string | null;
+  /** The decision type as the board published it, before normalization. */
+  decision_type_raw?: string | null;
+  url?: string;
+  document_id?: string;
+  listing_url?: string;
+  listing_year?: number | null;
+  /** ISO datetime of the first time Tango saw the decision on the board's listing. */
+  first_listed_at?: string;
+  listed?: boolean;
+  text_status?: string | null;
+  text_char_count?: number | null;
+  /** Full decision text. Enterprise only — below that tier the key is absent rather than null, so check with `in` rather than for a nullish value. */
+  decision_text?: string | null;
+  [key: string]: unknown;
+}
