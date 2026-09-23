@@ -206,7 +206,7 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 **GSA eLibrary / Protests / IT Dashboard / LCATs**
 
 - `listGsaElibraryContracts(options)` / `getGsaElibraryContract(uuid, options)`
-- `listProtests(options)` / `getProtest(caseNumber)`
+- `listProtests(options)` / `getProtest(caseId)`
 - `listItDashboard(options)` / `getItDashboard(uii)`
 - `listLcats(options)` / `listIdvLcats(key, options)`
 

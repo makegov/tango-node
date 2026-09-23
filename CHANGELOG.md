@@ -23,7 +23,15 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Re-vendored `contracts/filter_shape_contract.json` (schema_version 2, 48 resources) and regenerated `src/shapes/generatedOverlay.ts` from it — 359 fields across 25 containers, 73 nested schemas.
+- Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win. Contract appeals and eBuy requests are in the contract without SDK methods yet, so both are baselined as tracked gaps.
 - Baselined 14 reverse-shape-coverage gaps in `contracts/shape_coverage_baseline.json`, matching tango-python. All 14 are the nested sub-resource routes above, which reuse the parent resource's model rather than carrying one of their own; none is SLED, and none is a regression — they became visible only with the re-vendored contract.
+
+### Fixed
+
+- **`attachments(name,doc_role,doc_role_alt)` no longer throws `ShapeValidationError`** on `getOpportunity`, `listOpportunities`, `getNotice` and `listNotices`; the API serves both fields on the Pro plan and above when they are named. New `OpportunityAttachment` and `AttachmentDocRole` types cover the six roles and are used on `Opportunity` and `Notice`.
+- **SLED solicitations accept `delisted_at` and `meta(jurisdiction_declared)`**, which were rejected client-side. `SledOpportunity` and `SledMetaPayload` carry the new fields, and `status_reason` now documents `delisted`.
+- **`ProtestRecord` types `agency` and `protester` as the strings the API returns**, and gains `title`, `docket_url`, `decision_url`, `organization`, `dockets` and `decisions`. The never-served `docket` property is deprecated in favor of `dockets`.
+- **`getProtest` takes the case's `case_id` UUID**, which is all the route accepts; a case number returns 404. The parameter is renamed `caseId` and the docs say how to look a case up by number, and `listProtests` is documented as covering GAO, COFC and SBA OHA.
 
 ### Documentation
 

@@ -16,7 +16,7 @@ export type { Forecast } from "./Forecast.js";
 export type { Grant } from "./Grant.js";
 export type { Location } from "./Location.js";
 export type { Notice } from "./Notice.js";
-export type { Opportunity } from "./Opportunity.js";
+export type { AttachmentDocRole, Opportunity, OpportunityAttachment } from "./Opportunity.js";
 export type { RecipientProfile } from "./RecipientProfile.js";
 export type { SbirTopic, SbirSolicitation } from "./Sbir.js";
 export type {

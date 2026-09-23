@@ -154,21 +154,31 @@ export interface AgencyRecord {
 }
 
 /**
- * Typed return model for `client.getProtest()`. Mirrors the canonical
- * GAO/COFC protest case schema.
+ * Typed return model for `client.getProtest()`. Mirrors the API's protest case (GAO, COFC and SBA OHA).
  */
 export interface ProtestRecord {
+  /** The case UUID — the id `getProtest()` takes. */
   case_id?: string;
   case_number?: string;
+  /** `gao`, `cofc` or `sba_oha`. */
   source_system?: string;
+  title?: string | null;
   outcome?: string | null;
   case_type?: string | null;
   filed_date?: string | null;
   decision_date?: string | null;
-  agency?: Record<string, unknown> | null;
-  protester?: Record<string, unknown> | null;
+  /** The protested agency's name as the source publishes it. The resolved office is under `organization`. */
+  agency?: string | null;
+  /** The protester's name as the source publishes it. */
+  protester?: string | null;
+  docket_url?: string | null;
+  decision_url?: string | null;
+  organization?: Record<string, unknown> | null;
   resolved_agency?: Record<string, unknown> | null;
   resolved_protester?: Record<string, unknown> | null;
+  dockets?: Array<Record<string, unknown>> | null;
+  decisions?: Array<Record<string, unknown>> | null;
+  /** @deprecated The API does not return `docket`; the per-docket rows are under `dockets`. */
   docket?: Array<Record<string, unknown>>;
   [key: string]: unknown;
 }

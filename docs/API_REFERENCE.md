@@ -387,17 +387,21 @@ const contract = await client.getGsaElibraryContract("00000000-0000-0000-0000-00
 
 ### `listProtests(options?)`
 
+Bid protests from GAO, the Court of Federal Claims (COFC) and SBA OHA.
+
 ```ts
 const protests = await client.listProtests({ source_system: "gao", limit: 25 });
 ```
 
 `naics_code` is a typed filter sent to the API verbatim (it is **not** remapped to `naics`, unlike the contracts alias).
 
-### `getProtest(caseNumber)`
+### `getProtest(caseId)`
 
 ```ts
 const protest = await client.getProtest("CASE_UUID");
 ```
+
+Takes the case's `case_id` UUID, not a case number. To look a case up by number, list with `case_number` and read `case_id` off the result.
 
 ---
 

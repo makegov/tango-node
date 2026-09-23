@@ -213,6 +213,20 @@ function expandEntry(res: string, nodePath: string, ename: string, enode: ShapeN
 const overlay: Record<string, Record<string, Entry>> = {};
 const reportRows: string[] = [];
 
+// A model can be reached from more than one resource (vehicles embed an opportunity), so two walks can mint the same container expand.
+// Merge the two nested schemas instead of letting the later walk replace the earlier one: a narrower embedded shape must not erase fields the owning resource serves.
+// Where both define a field, the later walk still wins, as it did before merging; an expand either walk observed as a list stays a list.
+function setExpand(container: string, ename: string, e: Entry): void {
+  const slot = (overlay[container] ??= {});
+  const prev = slot[ename];
+  if (prev?.nested && e.nested && prev.nested !== e.nested && nestedSchemas[prev.nested] && nestedSchemas[e.nested]) {
+    const merged = { ...nestedSchemas[prev.nested], ...nestedSchemas[e.nested] };
+    slot[ename] = entry(e.type, prev.isList || e.isList, internNested(titleName(ename), merged));
+    return;
+  }
+  slot[ename] = e;
+}
+
 function walk(res: string, nodePath: string, node: ShapeNode, schema: FieldSchemaMap | null, container: string): void {
   if (schema === null) return;
   const fields = node.fields ?? [];
@@ -231,7 +245,7 @@ function walk(res: string, nodePath: string, node: ShapeNode, schema: FieldSchem
     const childSchema = nestedName ? baseSchema(nestedName) : null;
     if (fs_ === undefined || childSchema === null) {
       if (isWildcard(enode) && fs_ !== undefined) continue;
-      (overlay[container] ??= {})[ename] = expandEntry(res, nodePath, ename, enode);
+      setExpand(container, ename, expandEntry(res, nodePath, ename, enode));
       reportRows.push(`${res}:${nodePath || "(root)"}.${ename}  ->  expand`);
     } else {
       walk(res, childPath, enode, childSchema, nestedName!);

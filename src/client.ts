@@ -2631,15 +2631,19 @@ export class TangoClient {
   // Protests + IT Dashboard + Metrics
   // ---------------------------------------------------------------------------
 
-  /** List protests (GAO + CoFC). */
+  /** List bid protests from GAO, the Court of Federal Claims (COFC) and SBA OHA. */
   async listProtests(options: ListProtestsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
     return this._genericPaginatedList("/api/protests/", options);
   }
 
-  /** Get a single protest by case number / id. */
-  async getProtest(caseNumber: string): Promise<ProtestRecord> {
-    if (!caseNumber) throw new TangoValidationError("Protest case number is required");
-    return await this.http.get<AnyRecord>(`/api/protests/${encodeURIComponent(caseNumber)}/`);
+  /**
+   * Get a single protest case by its `case_id` UUID (`/api/protests/{case_id}/`).
+   *
+   * The route accepts only the UUID. A case number such as `B-423456` or `26-1391` is not an id — find the case with `listProtests({ case_number })` and use its `case_id`.
+   */
+  async getProtest(caseId: string): Promise<ProtestRecord> {
+    if (!caseId) throw new TangoValidationError("Protest case_id is required");
+    return await this.http.get<AnyRecord>(`/api/protests/${encodeURIComponent(caseId)}/`);
   }
 
   /** List IT Dashboard investments. */

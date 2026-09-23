@@ -4997,6 +4997,13 @@ export const SLED_META_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  jurisdiction_declared: {
+    name: "jurisdiction_declared",
+    type: "bool",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
 };
 
 // One advertised document — metadata and extraction stats, never the body. `size_bytes` and `char_count` only mean something as a pair.
@@ -5253,6 +5260,13 @@ export const SLED_OPPORTUNITY_SCHEMA: FieldSchemaMap = {
   },
   status_computed_at: {
     name: "status_computed_at",
+    type: "datetime",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  delisted_at: {
+    name: "delisted_at",
     type: "datetime",
     isOptional: true,
     isList: false,
