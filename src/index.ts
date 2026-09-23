@@ -29,6 +29,7 @@ export type {
   ListSledOpportunityRevisionsOptions,
   ListSledForecastsOptions,
   ListProtestsOptions,
+  ListContractAppealsOptions,
   ListItDashboardOptions,
   ListMetricsOptions,
   ResolveInput,

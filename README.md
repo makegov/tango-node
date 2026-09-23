@@ -203,10 +203,11 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 - `getForecast(id, options)` / `getOpportunity(opportunityId, options)` / `getNotice(noticeId, options)` / `getGrant(grantId, options)`
 - `searchOpportunityAttachments(options)`
 
-**GSA eLibrary / Protests / IT Dashboard / LCATs**
+**GSA eLibrary / Protests / Contract Appeals / IT Dashboard / LCATs**
 
 - `listGsaElibraryContracts(options)` / `getGsaElibraryContract(uuid, options)`
 - `listProtests(options)` / `getProtest(caseId)`
+- `listContractAppeals(options)` / `getContractAppeal(uuid, options)`
 - `listItDashboard(options)` / `getItDashboard(uii)`
 - `listLcats(options)` / `listIdvLcats(key, options)`
 

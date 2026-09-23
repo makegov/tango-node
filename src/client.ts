@@ -6,7 +6,16 @@ import type { ShapeSpec } from "./shapes/types.js";
 import { isRecord } from "./utils/guards.js";
 import { HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
-import { AgencyRecord, PaginatedResponse, ProtestRecord, RateLimitInfo, ResolveResult, TangoClientOptions, ValidateResult } from "./types.js";
+import {
+  AgencyRecord,
+  ContractAppealRecord,
+  PaginatedResponse,
+  ProtestRecord,
+  RateLimitInfo,
+  ResolveResult,
+  TangoClientOptions,
+  ValidateResult,
+} from "./types.js";
 import type {
   WebhookAlert,
   WebhookAlertCreateInput,
@@ -948,6 +957,34 @@ export interface ListProtestsOptions {
   filed_date_before?: string;
   decision_date_after?: string;
   decision_date_before?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Contract-appeal list options.
+ *
+ * Contract appeals are Contract Disputes Act decisions from the civilian (CBCA) and defense (ASBCA) boards of contract appeals — disputes under an existing contract. A challenge to an award is a bid protest, which is the separate `listProtests()` resource.
+ */
+export interface ListContractAppealsOptions extends ListOptionsBase {
+  /** Separator for flattened keys. Only meaningful alongside `flat`. */
+  joiner?: string;
+  /** Ranked full-text search across the decision. */
+  search?: string;
+  /** Deciding board — `cbca` (civilian) or `asbca` (defense). */
+  board?: string;
+  /** Docket number, as the board publishes it. */
+  docket?: string;
+  appellant?: string;
+  judge?: string;
+  decision_type?: string;
+  decision_date_after?: string;
+  decision_date_before?: string;
+  /** Whether the decision is currently on the board's published listing. */
+  listed?: boolean;
+  /** The board's own document identifier. */
+  document_id?: string;
+  /** Sort field (decision_date, appellant, first_listed_at, rank). Defaults to `-decision_date`; `rank` is only meaningful with a non-empty `search`. */
+  ordering?: string;
   [key: string]: unknown;
 }
 
@@ -2644,6 +2681,34 @@ export class TangoClient {
   async getProtest(caseId: string): Promise<ProtestRecord> {
     if (!caseId) throw new TangoValidationError("Protest case_id is required");
     return await this.http.get<AnyRecord>(`/api/protests/${encodeURIComponent(caseId)}/`);
+  }
+
+  /**
+   * List boards-of-contract-appeals decisions (`/api/contract_appeals/`).
+   *
+   * These are Contract Disputes Act appeals decided by the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests are `listProtests()`.
+   *
+   * Without a `shape` the API returns a core subset of the decision, so shape explicitly for the rest. `decision_text` is Enterprise-only and its key is absent, not null, below that tier.
+   */
+  async listContractAppeals(options: ListContractAppealsOptions = {}): Promise<PaginatedResponse<AnyRecord>> {
+    return this._genericPaginatedList("/api/contract_appeals/", options);
+  }
+
+  /** Get a single contract-appeal decision by uuid (`/api/contract_appeals/{uuid}/`). */
+  async getContractAppeal(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<ContractAppealRecord> {
+    if (!uuid) throw new TangoValidationError("Contract appeal uuid is required");
+    const { shape, flat, flatLists, joiner } = options;
+    const params: AnyRecord = {};
+    if (shape) params.shape = shape;
+    if (flat) {
+      params.flat = "true";
+      if (joiner) params.joiner = joiner;
+    }
+    if (flatLists) params.flat_lists = "true";
+    return await this.http.get<AnyRecord>(`/api/contract_appeals/${encodeURIComponent(uuid)}/`, params);
   }
 
   /** List IT Dashboard investments. */

@@ -405,6 +405,51 @@ Takes the case's `case_id` UUID, not a case number. To look a case up by number,
 
 ---
 
+## Contract Appeals
+
+Contract Disputes Act decisions from the two boards of contract appeals — the CBCA (civilian) and the ASBCA (defense). These are disputes under an existing contract; a challenge to an award is a bid protest, which is the separate [Protests](#protests) resource.
+
+### `listContractAppeals(options?)`
+
+```ts
+const appeals = await client.listContractAppeals({
+  board: "asbca",
+  decision_date_after: "2026-01-01",
+  limit: 25,
+});
+```
+
+#### Parameters (Contract Appeals)
+
+| Name                              | Type      | Description                                                                            |
+| --------------------------------- | --------- | -------------------------------------------------------------------------------------- |
+| `search`                          | `string`  | Ranked full-text search across the decision.                                           |
+| `board`                           | `string`  | `cbca` or `asbca`.                                                                     |
+| `docket`                          | `string`  | Docket number, as the board publishes it.                                              |
+| `appellant`                       | `string`  | Appellant name.                                                                        |
+| `judge`                           | `string`  | Deciding judge.                                                                        |
+| `decision_type`                   | `string`  | Normalized decision type.                                                              |
+| `decision_date_after` / `_before` | `string`  | ISO date bounds on the decision date.                                                  |
+| `listed`                          | `boolean` | Whether the decision is currently on the board's published listing.                    |
+| `document_id`                     | `string`  | The board's own document identifier.                                                   |
+| `ordering`                        | `string`  | `decision_date` (default `-decision_date`), `appellant`, `first_listed_at`, or `rank`. |
+
+`rank` ordering is only meaningful with a non-empty `search`. The standard `page` / `limit` / `shape` / `flat` / `flatLists` / `joiner` options apply.
+
+Without a `shape` the API returns a core subset of the decision, so name the rest explicitly when you need it. `decision_text` is served on the Enterprise tier only, and below it the key is **absent rather than null** — test for presence, not for a nullish value.
+
+### `getContractAppeal(uuid, options?)`
+
+```ts
+const appeal = await client.getContractAppeal("00000000-0000-0000-0000-000000000001", {
+  shape: "uuid,board,docket_numbers,decision_date,appellant,judge,decision_text",
+});
+```
+
+Returns a `ContractAppealRecord`. Every property on it is optional, for the same two reasons: an unshaped list carries only the core subset, and `decision_text` is tier-gated.
+
+---
+
 ## IT Dashboard
 
 ### `listItDashboard(options?)`
