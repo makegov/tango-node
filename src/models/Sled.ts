@@ -34,6 +34,8 @@ export interface SledMetaPayload {
   last_revision_kind?: string | null;
   /** Whether the portal's own amendment marker moved at the emission behind `last_change_seen_at`. False means Tango inferred the change by diffing consecutive scrapes, which is the common case. */
   last_change_source_declared?: boolean | null;
+  /** Whether a source stated the jurisdiction level — a portal field naming the issuer type, or a portal that belongs to one issuing government. False means Tango classified it from the issuer's name, which is the common case on a state's central portal. Null alongside a null level. */
+  jurisdiction_declared?: boolean | null;
 }
 
 /**
@@ -117,9 +119,11 @@ export interface SledOpportunity {
   agency?: string | null;
   /** Tango-derived liveness: `open`, `closed`, `awarded`, `cancelled`, `unknown`. */
   status?: string | null;
-  /** Which input decided `status`: `deadline_future`, `deadline_past`, `no_deadline`, `source_terminal`. */
+  /** Which input decided `status`: `deadline_future`, `deadline_past`, `no_deadline`, `source_terminal`, `delisted`. */
   status_reason?: string | null;
   status_computed_at?: string | null;
+  /** When a complete crawl of the portal first omitted the solicitation, stamped only if that was before its deadline. Null when it was never delisted or has been seen again since. A set value derives `status_reason=delisted`. */
+  delisted_at?: string | null;
   /** The portal's own status word, frozen at last capture. NOT liveness. */
   source_status?: string | null;
   source_url?: string | null;

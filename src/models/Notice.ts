@@ -1,3 +1,5 @@
+import type { OpportunityAttachment } from "./Opportunity.js";
+
 export interface Notice {
   notice_id: string;
   title: string;
@@ -5,4 +7,5 @@ export interface Notice {
   description?: string | null;
   posted_date?: string | null;
   naics_code?: string | null;
+  attachments?: OpportunityAttachment[] | null;
 }

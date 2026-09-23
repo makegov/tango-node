@@ -205,22 +205,31 @@ describe("Typed return models (resolve / validate / getAgency / getProtest)", ()
     expect(a.abbreviation).toBe("DOD");
   });
 
-  it("getProtest returns ProtestRecord-shaped object", async () => {
-    const fakeFetch = async () =>
-      jsonResponse({
-        case_id: "B-12345",
-        case_number: "B-12345",
-        source_system: "GAO",
-        outcome: "dismissed",
+  it("getProtest fetches the case by case_id and returns ProtestRecord-shaped object", async () => {
+    const caseId = "89026562-0b1c-5d2e-8f3a-4b5c6d7e8f90";
+    const urls: string[] = [];
+    const fakeFetch = async (url: string | URL) => {
+      urls.push(String(url));
+      return jsonResponse({
+        case_id: caseId,
+        case_number: "26-292",
+        source_system: "cofc",
+        outcome: "Sustained",
+        agency: "N/A",
+        protester: "ACME FEDERAL, LLC",
       });
+    };
     const client = new TangoClient({
       apiKey: "k",
       baseUrl: "http://localhost",
       fetchImpl: fakeFetch as unknown as typeof fetch,
       retries: 0,
     });
-    const p: ProtestRecord = await client.getProtest("B-12345");
-    expect(p.case_id).toBe("B-12345");
-    expect(p.source_system).toBe("GAO");
+    const p: ProtestRecord = await client.getProtest(caseId);
+    const protester: string | null | undefined = p.protester;
+    expect(new URL(urls[0]).pathname).toBe(`/api/protests/${caseId}/`);
+    expect(p.case_id).toBe(caseId);
+    expect(protester).toBe("ACME FEDERAL, LLC");
+    expect(p.agency).toBe("N/A");
   });
 });
