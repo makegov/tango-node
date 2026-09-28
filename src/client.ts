@@ -1,5 +1,5 @@
 import { DEFAULT_BASE_URL, ShapeConfig } from "./config.js";
-import { TangoNotFoundError, TangoValidationError } from "./errors.js";
+import { TangoEbuyAttachmentLinkError, TangoNotFoundError, TangoValidationError } from "./errors.js";
 import { ModelFactory } from "./shapes/factory.js";
 import { ShapeParser } from "./shapes/parser.js";
 import type { ShapeSpec } from "./shapes/types.js";
@@ -9,6 +9,8 @@ import { unflattenResponse } from "./utils/unflatten.js";
 import {
   AgencyRecord,
   ContractAppealRecord,
+  EbuyAccess,
+  EbuyRequestRecord,
   PaginatedResponse,
   ProtestRecord,
   RateLimitInfo,
@@ -984,6 +986,46 @@ export interface ListContractAppealsOptions extends ListOptionsBase {
   /** The board's own document identifier. */
   document_id?: string;
   /** Sort field (decision_date, appellant, first_listed_at, rank). Defaults to `-decision_date`; `rank` is only meaningful with a non-empty `search`. */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * GSA eBuy request list options.
+ *
+ * Results are scoped to the GSA schedule contracts linked to the caller's account; with no linked contract the list is empty rather than an error, so use `getEbuyAccess()` to tell "no access" from "no matches".
+ * Every filter except `contract_number` and the date bounds accepts `|` for OR.
+ */
+export interface ListEbuyRequestsOptions extends ListOptionsBase {
+  /** Separator for flattened keys. Only meaningful alongside `flat`. */
+  joiner?: string;
+  /** Full-text search over title, description, reference number, request id and attachment text. Results rank by relevance unless `ordering` is given. */
+  search?: string;
+  /** eBuy request id, exact (e.g. `RFQ1835158`). */
+  rfq_id?: string;
+  /** The buyer's own solicitation number; matches dashed and undashed spellings. */
+  reference_number?: string;
+  /** `RFQ`, `RFP` or `RFI`. */
+  request_type?: string;
+  /** `Open` or `Cancelled`. Frozen at the last-seen state, so `Open` is not proof a request is still open — use `last_seen` for staleness. */
+  status?: string;
+  sin?: string;
+  schedule?: string;
+  /** Buying department as fed, free text. */
+  buyer_agency?: string;
+  /** Agency name, abbreviation or code, including every sub-agency and office beneath it. */
+  agency?: string;
+  /** Narrow to one of your own linked contracts; a contract you do not hold returns nothing rather than an error. */
+  contract_number?: string;
+  /** YYYY-MM-DD, inclusive. */
+  issue_date_after?: string;
+  /** YYYY-MM-DD, inclusive. */
+  issue_date_before?: string;
+  /** YYYY-MM-DD, inclusive. */
+  close_date_after?: string;
+  /** YYYY-MM-DD, inclusive. */
+  close_date_before?: string;
+  /** Sort field (issue_date, close_date, last_seen, modified); prefix `-` for descending. Defaults to `-issue_date`. */
   ordering?: string;
   [key: string]: unknown;
 }
@@ -2709,6 +2751,71 @@ export class TangoClient {
     }
     if (flatLists) params.flat_lists = "true";
     return await this.http.get<AnyRecord>(`/api/contract_appeals/${encodeURIComponent(uuid)}/`, params);
+  }
+
+  /**
+   * List GSA eBuy requests (`/api/ebuy/requests/`). Requires the Pro tier or above.
+   *
+   * Scoped to the GSA schedule contracts linked to the caller's account: with no linked contract this returns an empty page, not an error. `getEbuyAccess()` tells the two apart.
+   *
+   * `status` is frozen at the last-seen state — a request that closes stops appearing rather than getting a final row, so `Open` means "open the last time it was seen". Use `last_seen` for staleness.
+   */
+  async listEbuyRequests(options: ListEbuyRequestsOptions = {}): Promise<PaginatedResponse<EbuyRequestRecord>> {
+    return this._genericPaginatedList("/api/ebuy/requests/", options);
+  }
+
+  /**
+   * Get one GSA eBuy request by its request id (`/api/ebuy/requests/{rfq_id}/`).
+   *
+   * The default shape is every field plus `organization(*)` and `attachments(*)`. A request outside the caller's contract scope raises `TangoNotFoundError`, the same as an id that does not exist.
+   */
+  async getEbuyRequest(
+    rfqId: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<EbuyRequestRecord> {
+    if (!rfqId) throw new TangoValidationError("eBuy rfq_id is required");
+    const { shape, flat, flatLists, joiner } = options;
+    const params: AnyRecord = {};
+    if (shape) params.shape = shape;
+    if (flat) {
+      params.flat = "true";
+      if (joiner) params.joiner = joiner;
+    }
+    if (flatLists) params.flat_lists = "true";
+    return await this.http.get<AnyRecord>(`/api/ebuy/requests/${encodeURIComponent(rfqId)}/`, params);
+  }
+
+  /**
+   * Get a short-lived download URL for one eBuy attachment (`/api/ebuy/requests/{rfq_id}/attachments/{doc_seq_num}/download/`).
+   *
+   * Returns the redirect target without downloading the document. The URL is presigned and expires after about five minutes, so fetch it promptly.
+   *
+   * Throws `TangoEbuyAttachmentLinkError` (carrying the link's `url`) when the entry is an external link rather than a stored document, and `TangoNotFoundError` when the document has not been captured yet or the request is out of scope.
+   */
+  async getEbuyAttachmentUrl(rfqId: string, docSeqNum: number | string): Promise<string> {
+    if (!rfqId) throw new TangoValidationError("eBuy rfq_id is required");
+    if (docSeqNum === undefined || docSeqNum === null || docSeqNum === "") {
+      throw new TangoValidationError("eBuy attachment doc_seq_num is required");
+    }
+    const path = `/api/ebuy/requests/${encodeURIComponent(rfqId)}/attachments/${encodeURIComponent(String(docSeqNum))}/download/`;
+    try {
+      return await this.http.getRedirectLocation(path);
+    } catch (err) {
+      if (err instanceof TangoValidationError && isRecord(err.responseData) && typeof err.responseData.url === "string") {
+        const detail = typeof err.responseData.detail === "string" ? err.responseData.detail : undefined;
+        throw new TangoEbuyAttachmentLinkError(err.responseData.url, detail, err.statusCode, err.responseData);
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Whether the caller can read eBuy requests (`/api/ebuy/access/`).
+   *
+   * `enabled` is false with `reason: "tier_required"` below the Pro tier, or `reason: "no_contract_grant"` when no contract is linked to the account. `contracts` lists the caller's own active grants.
+   */
+  async getEbuyAccess(): Promise<EbuyAccess> {
+    return await this.http.get<EbuyAccess>("/api/ebuy/access/");
   }
 
   /** List IT Dashboard investments. */

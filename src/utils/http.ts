@@ -19,6 +19,8 @@ export interface RequestOptions {
   path: string;
   query?: Record<string, unknown>;
   body?: unknown;
+  /** `"manual"` resolves a 3xx to `{ location }` instead of following it. */
+  redirect?: "manual";
 }
 
 function isSafePrimitive(value: unknown): value is string | number | boolean | symbol | bigint {
@@ -189,7 +191,7 @@ export class HttpClient {
    * extracted from the response's `Retry-After` header.
    */
   private async attemptRequest<T>(options: RequestOptions): Promise<T> {
-    const { method, path, query, body } = options;
+    const { method, path, query, body, redirect } = options;
 
     const url = new URL(path.replace(/^\//, ""), this.baseUrl.endsWith("/") ? `${this.baseUrl}` : `${this.baseUrl}/`);
 
@@ -229,6 +231,7 @@ export class HttpClient {
         headers,
         body: jsonBody,
         signal: controller?.signal,
+        ...(redirect ? { redirect } : {}),
       });
     } catch (err) {
       if (timeoutId) clearTimeout(timeoutId);
@@ -251,6 +254,14 @@ export class HttpClient {
     // last_response_headers parity with the Python SDK).
     this.lastResponseHeaders = headersToRecord(res.headers);
     this.rateLimitInfo = parseRateLimit(res.headers);
+
+    if (redirect === "manual" && res.status >= 300 && res.status < 400) {
+      const location = getHeader(res.headers, "location");
+      if (!location) {
+        throw new TangoAPIError(`Redirect (status ${res.status}) carried no Location header`, res.status);
+      }
+      return { location } as T;
+    }
 
     let text: string;
     let data: unknown = null;
@@ -365,6 +376,12 @@ export class HttpClient {
 
   get<T = unknown>(path: string, query?: Record<string, unknown>): Promise<T> {
     return this.request<T>({ method: "GET", path, query });
+  }
+
+  /** GET a path that answers with a redirect, and return the redirect target without following it. */
+  async getRedirectLocation(path: string, query?: Record<string, unknown>): Promise<string> {
+    const { location } = await this.request<{ location: string }>({ method: "GET", path, query, redirect: "manual" });
+    return location;
   }
 
   post<T = unknown>(path: string, body?: unknown): Promise<T> {

@@ -60,6 +60,20 @@ export class TangoValidationError extends TangoAPIError {
   }
 }
 
+/**
+ * Raised by `getEbuyAttachmentUrl()` when the attachment is an external link rather than a stored document.
+ * `url` is the link's target, so a caller can follow it directly.
+ */
+export class TangoEbuyAttachmentLinkError extends TangoValidationError {
+  readonly url: string;
+
+  constructor(url: string, message = "This entry is an external link, not a stored document.", statusCode?: number, responseData?: unknown) {
+    super(message, statusCode, responseData);
+    this.name = "TangoEbuyAttachmentLinkError";
+    this.url = url;
+  }
+}
+
 export class TangoRateLimitError extends TangoAPIError {
   constructor(message = "Rate limit exceeded", statusCode?: number, responseData?: unknown) {
     super(message, statusCode, responseData);
