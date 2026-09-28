@@ -223,3 +223,96 @@ export interface ContractAppealRecord {
   decision_text?: string | null;
   [key: string]: unknown;
 }
+
+/** One attachment or link on a GSA eBuy request. */
+export interface EbuyAttachmentRecord {
+  /** The attachment's position on the request; pass it to `getEbuyAttachmentUrl()`. */
+  doc_seq_num?: number;
+  doc_name?: string | null;
+  doc_type?: number | null;
+  /** For a link entry (`is_link: true`) this is the outbound URL; otherwise the document's original path. */
+  doc_path?: string | null;
+  /** `true` means the entry is an external link with no stored document behind it, so `getEbuyAttachmentUrl()` refuses it. */
+  is_link?: boolean;
+  /** ISO datetime. */
+  doc_session_date?: string | null;
+  [key: string]: unknown;
+}
+
+/**
+ * Typed return model for `client.getEbuyRequest()`, and for rows of `client.listEbuyRequests()`.
+ *
+ * Every property is optional: the list's default shape carries a subset of them, and any shape can narrow the set further.
+ * `status` is frozen at the last-seen state — a request that closes stops appearing rather than getting a final row, so `Open` means "open the last time it was seen". Use `last_seen` for staleness.
+ * The contract number a request was posted under is never returned.
+ * `buyer_agency_code` and several buyer and contracting-officer fields are sparse on older requests.
+ */
+export interface EbuyRequestRecord {
+  /** eBuy request id, e.g. `RFQ1835158`. */
+  rfq_id?: string;
+  /** `RFQ`, `RFP` or `RFI`. */
+  request_type?: string | null;
+  title?: string | null;
+  schedule?: string | null;
+  sin?: string | null;
+  /** `Open` or `Cancelled`, frozen at the last-seen state. */
+  status?: string | null;
+  buyer_name?: string | null;
+  /** Buying department as fed, free text. */
+  buyer_agency?: string | null;
+  buyer_agency_code?: string | null;
+  /** The buyer's own solicitation number. */
+  reference_number?: string | null;
+  /** ISO datetime. */
+  issue_date?: string | null;
+  /** ISO datetime. */
+  close_date?: string | null;
+  attachment_count?: number | null;
+  link_count?: number | null;
+  /** ISO datetime of the last time the request was seen as active. */
+  last_seen?: string;
+  description?: string | null;
+  buyer_email?: string | null;
+  buyer_user_id?: string | null;
+  /** The buying office, in the same shape as other resources' awarding office. */
+  organization?: Record<string, unknown> | null;
+  award_method?: string | null;
+  contract_type?: string | null;
+  commercial_type?: string | null;
+  follow_on?: boolean | null;
+  source_sought?: boolean | null;
+  pop_start_date?: string | null;
+  pop_end_date?: string | null;
+  cancel_date?: string | null;
+  last_mod_date?: string | null;
+  oco_name?: string | null;
+  oco_title?: string | null;
+  oco_agency?: string | null;
+  oco_phone?: string | null;
+  oco_aac?: string | null;
+  ocs_name?: string | null;
+  ocs_title?: string | null;
+  ocs_agency?: string | null;
+  ocs_phone?: string | null;
+  ocs_aac?: string | null;
+  amendment_count?: number | null;
+  mod_version?: number | null;
+  qa_document_count?: number | null;
+  amendments?: unknown[] | null;
+  line_items?: unknown[] | null;
+  addresses?: unknown[] | null;
+  detail_fetched?: boolean;
+  /** ISO datetime. */
+  first_seen?: string;
+  attachments?: EbuyAttachmentRecord[];
+  [key: string]: unknown;
+}
+
+/** Response of `client.getEbuyAccess()`: whether the caller can read eBuy requests, and through which of their own contracts. */
+export interface EbuyAccess {
+  enabled: boolean;
+  /** Why `enabled` is false, `null` when it is true. `tier_required` wins when both apply. */
+  reason: "tier_required" | "no_contract_grant" | null;
+  /** The caller's own active contract grants, sorted. */
+  contracts: string[];
+}
