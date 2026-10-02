@@ -335,6 +335,9 @@ describe("TangoClient", () => {
                   solicitation_identifier: "47QSWA20D0001",
                   solicitation_date: "2024-01-15",
                   vehicle_obligations: 123.45,
+                  awardee_count: 7,
+                  holder_count: 12,
+                  order_winner_count: 7,
                 },
               ],
             });
@@ -368,6 +371,7 @@ describe("TangoClient", () => {
     });
     expect((vehicles.results[0] as any).solicitation_date).toBeInstanceOf(Date);
     expect((vehicles.results[0] as any).vehicle_obligations).toBe("123.45");
+    expect(vehicles.results[0]).toMatchObject({ holder_count: 12, order_winner_count: 7, awardee_count: 7 });
 
     const vehicle = await client.getVehicle("00000000-0000-0000-0000-000000000001", {
       shape: "uuid,opportunity(title)",

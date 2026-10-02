@@ -4,6 +4,7 @@
   "unimplemented_resources": [
     "ebuy/requests",
     "events",
+    "federal_register",
     "news"
   ]
 }

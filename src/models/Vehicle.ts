@@ -24,7 +24,12 @@ export interface Vehicle {
   award_date?: string | null;
   last_date_to_order?: string | null;
 
+  /** @deprecated Same value as `order_winner_count`; the API removes this alias at its next major version. */
   awardee_count?: number | null;
+  /** Number of distinct companies holding one of the vehicle's IDVs. */
+  holder_count?: number | null;
+  /** Number of distinct companies that have won a task order under the vehicle. */
+  order_winner_count?: number | null;
   order_count?: number | null;
   vehicle_obligations?: string | null;
   vehicle_contracts_value?: string | null;

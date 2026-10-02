@@ -1,6 +1,6 @@
 {
   "meta": {
-    "api_version": "5.1.0",
+    "api_version": "5.8.0",
     "description": "Canonical API filter/shape contract. Downstream consumers (SDK, MCP) should validate their conformance against this manifest.",
     "generated_from": "scripts/filter_shape_conformance.py",
     "schema_version": 2
@@ -1628,6 +1628,8 @@
       "resource_key": "budget/accounts",
       "runtime": {
         "filter_params": [
+          "account_category",
+          "account_category__in",
           "account_title__icontains",
           "actual_vs_requested_contract",
           "actual_vs_requested_contract__gte",
@@ -1635,6 +1637,7 @@
           "actual_vs_requested_contract_capped",
           "actual_vs_requested_contract_capped__gte",
           "actual_vs_requested_contract_capped__lte",
+          "agency",
           "agency_code",
           "agency_code__in",
           "apportioned",
@@ -1669,6 +1672,10 @@
           "contract_share_of_obligated_capped",
           "contract_share_of_obligated_capped__gte",
           "contract_share_of_obligated_capped__lte",
+          "data_through_period",
+          "data_through_period__gte",
+          "data_through_period__isnull",
+          "data_through_period__lte",
           "enacted_ba",
           "enacted_ba_5yr_cagr",
           "enacted_ba_5yr_cagr__gte",
@@ -1726,6 +1733,15 @@
           "unobligated_pct__lte"
         ],
         "filter_params_detail": {
+          "account_category": {
+            "filter_class": "CharFilter",
+            "type": "string"
+          },
+          "account_category__in": {
+            "filter_class": "CharInFilter",
+            "lookup": "in",
+            "type": "string"
+          },
           "account_title__icontains": {
             "filter_class": "CharFilter",
             "lookup": "icontains",
@@ -1758,6 +1774,10 @@
             "filter_class": "NumberFilter",
             "lookup": "lte",
             "type": "number"
+          },
+          "agency": {
+            "filter_class": "OrganizationScopeAgencyFilter",
+            "type": "string"
           },
           "agency_code": {
             "filter_class": "CharFilter",
@@ -1913,6 +1933,25 @@
             "type": "number"
           },
           "contract_share_of_obligated_capped__lte": {
+            "filter_class": "NumberFilter",
+            "lookup": "lte",
+            "type": "number"
+          },
+          "data_through_period": {
+            "filter_class": "NumberFilter",
+            "type": "number"
+          },
+          "data_through_period__gte": {
+            "filter_class": "NumberFilter",
+            "lookup": "gte",
+            "type": "number"
+          },
+          "data_through_period__isnull": {
+            "filter_class": "BooleanFilter",
+            "lookup": "isnull",
+            "type": "boolean"
+          },
+          "data_through_period__lte": {
             "filter_class": "NumberFilter",
             "lookup": "lte",
             "type": "number"
@@ -2240,9 +2279,22 @@
                 "subaccount_code",
                 "subfunction_code"
               ]
+            },
+            "organization": {
+              "expands": {},
+              "fields": [
+                "agency_code",
+                "agency_name",
+                "department_code",
+                "department_name",
+                "office_code",
+                "office_name",
+                "organization_id"
+              ]
             }
           },
           "fields": [
+            "account_category",
             "account_narrative_excerpt",
             "account_title",
             "actual_vs_requested_contract",
@@ -2275,6 +2327,7 @@
             "contract_share_of_obligated",
             "contract_share_of_obligated_capped",
             "created",
+            "data_through_period",
             "enacted_ba",
             "enacted_ba_5yr_cagr",
             "enacted_ba_yoy_pct",
@@ -2299,6 +2352,7 @@
             "obligated_total",
             "obligated_yoy_pct",
             "on_off_budget",
+            "organization_id",
             "outlayed_to_obligated_pct",
             "outlayed_to_obligated_pct_capped",
             "outlayed_to_obligated_pct_capped_flag",
@@ -2306,6 +2360,7 @@
             "requested_ba",
             "requested_contractual_services",
             "requested_personnel_share",
+            "source_anomalies",
             "subfunction_code",
             "top_contract_recipients",
             "top_grant_recipients",
@@ -2315,6 +2370,7 @@
           ]
         },
         "shape_flat_paths": [
+          "account_category",
           "account_narrative_excerpt",
           "account_title",
           "actual_vs_requested_contract",
@@ -2360,6 +2416,7 @@
           "contract_share_of_obligated",
           "contract_share_of_obligated_capped",
           "created",
+          "data_through_period",
           "enacted_ba",
           "enacted_ba_5yr_cagr",
           "enacted_ba_yoy_pct",
@@ -2407,6 +2464,15 @@
           "obligated_total",
           "obligated_yoy_pct",
           "on_off_budget",
+          "organization",
+          "organization.agency_code",
+          "organization.agency_name",
+          "organization.department_code",
+          "organization.department_name",
+          "organization.office_code",
+          "organization.office_name",
+          "organization.organization_id",
+          "organization_id",
           "outlayed_to_obligated_pct",
           "outlayed_to_obligated_pct_capped",
           "outlayed_to_obligated_pct_capped_flag",
@@ -2414,6 +2480,7 @@
           "requested_ba",
           "requested_contractual_services",
           "requested_personnel_share",
+          "source_anomalies",
           "subfunction_code",
           "top_contract_recipients",
           "top_grant_recipients",
@@ -4174,6 +4241,7 @@
       "resource_key": "ebuy/requests",
       "runtime": {
         "filter_params": [
+          "agency",
           "buyer_agency",
           "close_date_after",
           "close_date_before",
@@ -4189,6 +4257,10 @@
           "status"
         ],
         "filter_params_detail": {
+          "agency": {
+            "filter_class": "OrganizationScopeAgencyFilter",
+            "type": "string"
+          },
           "buyer_agency": {
             "filter_class": "BaseSmartFilter",
             "type": "string"
@@ -4234,7 +4306,7 @@
             "type": "string"
           },
           "search": {
-            "filter_class": "BaseSmartFilter",
+            "filter_class": "EbuyRequestSearchFilter",
             "type": "string"
           },
           "sin": {
@@ -7363,6 +7435,7 @@
           "activate_date_after",
           "activate_date_before",
           "active",
+          "agency",
           "cage_code",
           "classification_type",
           "delisted",
@@ -7393,6 +7466,10 @@
           "active": {
             "filter_class": "BooleanFilter",
             "type": "boolean"
+          },
+          "agency": {
+            "filter_class": "OrganizationScopeAgencyFilter",
+            "type": "string"
           },
           "cage_code": {
             "filter_class": "BaseSmartFilter",
@@ -7474,7 +7551,20 @@
           "max_page_size": 100
         },
         "shape": {
-          "expands": {},
+          "expands": {
+            "organization": {
+              "expands": {},
+              "fields": [
+                "agency_code",
+                "agency_name",
+                "department_code",
+                "department_name",
+                "office_code",
+                "office_name",
+                "organization_id"
+              ]
+            }
+          },
           "fields": [
             "activate_date",
             "additional_comments",
@@ -7500,6 +7590,7 @@
             "middle_name",
             "more_locations",
             "npi",
+            "organization_id",
             "prefix",
             "primary_address",
             "references",
@@ -7542,6 +7633,15 @@
           "middle_name",
           "more_locations",
           "npi",
+          "organization",
+          "organization.agency_code",
+          "organization.agency_name",
+          "organization.department_code",
+          "organization.department_name",
+          "organization.office_code",
+          "organization.office_name",
+          "organization.organization_id",
+          "organization_id",
           "prefix",
           "primary_address",
           "references",
@@ -7562,6 +7662,230 @@
         "shape_supported": true,
         "shape_tier_required": null,
         "viewset": "exclusions.views.ExclusionViewSet"
+      },
+      "swagger_has_key": true,
+      "swagger_params": [
+        "flat",
+        "flat_lists",
+        "joiner",
+        "limit",
+        "ordering",
+        "page",
+        "shape",
+        "show_shapes"
+      ]
+    },
+    "federal_register": {
+      "basename": "federalregisterdocument",
+      "docs_file": null,
+      "docs_params": [],
+      "prefix": "federal_register",
+      "resource_key": "federal_register",
+      "runtime": {
+        "filter_params": [
+          "agency",
+          "cfr_part",
+          "cfr_title",
+          "comments_close_on_after",
+          "comments_close_on_before",
+          "comments_open",
+          "document_number",
+          "effective_on_after",
+          "effective_on_before",
+          "executive_order_number",
+          "fr_agency",
+          "publication_date_after",
+          "publication_date_before",
+          "rin",
+          "search",
+          "significant",
+          "type"
+        ],
+        "filter_params_detail": {
+          "agency": {
+            "filter_class": "FederalRegisterAgencyFilter",
+            "type": "string"
+          },
+          "cfr_part": {
+            "filter_class": "CharFilter",
+            "type": "string"
+          },
+          "cfr_title": {
+            "filter_class": "CharFilter",
+            "type": "string"
+          },
+          "comments_close_on_after": {
+            "filter_class": "DateFilter",
+            "lookup": "gte",
+            "type": "date"
+          },
+          "comments_close_on_before": {
+            "filter_class": "DateFilter",
+            "lookup": "lte",
+            "type": "date"
+          },
+          "comments_open": {
+            "filter_class": "BooleanFilter",
+            "type": "boolean"
+          },
+          "document_number": {
+            "filter_class": "IdListFilter",
+            "type": "string"
+          },
+          "effective_on_after": {
+            "filter_class": "DateFilter",
+            "lookup": "gte",
+            "type": "date"
+          },
+          "effective_on_before": {
+            "filter_class": "DateFilter",
+            "lookup": "lte",
+            "type": "date"
+          },
+          "executive_order_number": {
+            "filter_class": "CharFilter",
+            "type": "string"
+          },
+          "fr_agency": {
+            "filter_class": "JsonbContainsFilter",
+            "type": "string"
+          },
+          "publication_date_after": {
+            "filter_class": "DateFilter",
+            "lookup": "gte",
+            "type": "date"
+          },
+          "publication_date_before": {
+            "filter_class": "DateFilter",
+            "lookup": "lte",
+            "type": "date"
+          },
+          "rin": {
+            "filter_class": "JsonbContainsFilter",
+            "type": "string"
+          },
+          "search": {
+            "filter_class": "FederalRegisterSearchFilter",
+            "type": "string"
+          },
+          "significant": {
+            "filter_class": "BooleanFilter",
+            "type": "boolean"
+          },
+          "type": {
+            "filter_class": "DocumentTypeFilter",
+            "type": "string"
+          }
+        },
+        "ordering_aliases": [],
+        "ordering_fields": [
+          "comments_close_on",
+          "document_number",
+          "effective_on",
+          "publication_date",
+          "rank"
+        ],
+        "pagination": {
+          "class": "CachedPageNumberPagination",
+          "max_page_size": 100
+        },
+        "shape": {
+          "expands": {},
+          "fields": [
+            "abstract",
+            "action",
+            "agencies",
+            "body_html_url",
+            "cfr_references",
+            "citation",
+            "comment_url",
+            "comments_close_on",
+            "correction_of",
+            "corrections",
+            "dates",
+            "disposition_notes",
+            "docket_ids",
+            "dockets",
+            "document_number",
+            "effective_on",
+            "end_page",
+            "executive_order_notes",
+            "executive_order_number",
+            "html_url",
+            "not_received_for_publication",
+            "page_length",
+            "pdf_url",
+            "presidential_document_number",
+            "proclamation_number",
+            "public_inspection_pdf_url",
+            "publication_date",
+            "raw_text_url",
+            "regulation_id_number_info",
+            "regulation_id_numbers",
+            "regulations_dot_gov_info",
+            "regulations_dot_gov_url",
+            "significant",
+            "signing_date",
+            "start_page",
+            "subtype",
+            "title",
+            "toc_doc",
+            "toc_subject",
+            "topics",
+            "type",
+            "uuid",
+            "volume"
+          ]
+        },
+        "shape_flat_paths": [
+          "abstract",
+          "action",
+          "agencies",
+          "body_html_url",
+          "cfr_references",
+          "citation",
+          "comment_url",
+          "comments_close_on",
+          "correction_of",
+          "corrections",
+          "dates",
+          "disposition_notes",
+          "docket_ids",
+          "dockets",
+          "document_number",
+          "effective_on",
+          "end_page",
+          "executive_order_notes",
+          "executive_order_number",
+          "html_url",
+          "not_received_for_publication",
+          "page_length",
+          "pdf_url",
+          "presidential_document_number",
+          "proclamation_number",
+          "public_inspection_pdf_url",
+          "publication_date",
+          "raw_text_url",
+          "regulation_id_number_info",
+          "regulation_id_numbers",
+          "regulations_dot_gov_info",
+          "regulations_dot_gov_url",
+          "significant",
+          "signing_date",
+          "start_page",
+          "subtype",
+          "title",
+          "toc_doc",
+          "toc_subject",
+          "topics",
+          "type",
+          "uuid",
+          "volume"
+        ],
+        "shape_gated_by_level": {},
+        "shape_supported": true,
+        "shape_tier_required": null,
+        "viewset": "federal_register.views.FederalRegisterDocumentViewSet"
       },
       "swagger_has_key": true,
       "swagger_params": [
@@ -10472,6 +10796,7 @@
       "resource_key": "itdashboard",
       "runtime": {
         "filter_params": [
+          "agency",
           "agency_code",
           "agency_name",
           "cio_rating",
@@ -10484,6 +10809,10 @@
           "updated_time_before"
         ],
         "filter_params_detail": {
+          "agency": {
+            "filter_class": "OrganizationScopeAgencyFilter",
+            "type": "string"
+          },
           "agency_code": {
             "filter_class": "NumberFilter",
             "type": "number"
@@ -11169,7 +11498,11 @@
             "archive",
             "attachment_count",
             "attachments",
+            "award_amount",
+            "award_date",
             "award_number",
+            "awardee",
+            "awardee_uei",
             "description",
             "last_updated",
             "meta",
@@ -11211,7 +11544,11 @@
           "attachments.resource_id",
           "attachments.type",
           "attachments.url",
+          "award_amount",
+          "award_date",
           "award_number",
+          "awardee",
+          "awardee_uei",
           "description",
           "last_updated",
           "meta",
@@ -11401,6 +11738,8 @@
         "filter_params": [
           "active",
           "agency",
+          "awarded",
+          "awardee_uei",
           "first_notice_date_after",
           "first_notice_date_before",
           "last_notice_date_after",
@@ -11423,6 +11762,14 @@
           },
           "agency": {
             "filter_class": "PerformantAgencyFilter",
+            "type": "string"
+          },
+          "awarded": {
+            "filter_class": "BooleanFilter",
+            "type": "boolean"
+          },
+          "awardee_uei": {
+            "filter_class": "AwardeeUeiFilter",
             "type": "string"
           },
           "first_notice_date_after": {
@@ -11524,6 +11871,18 @@
                 "resource_id",
                 "type",
                 "url"
+              ]
+            },
+            "awards": {
+              "expands": {},
+              "fields": [
+                "award_amount",
+                "award_date",
+                "award_number",
+                "awardee",
+                "awardee_uei",
+                "notice_id",
+                "opportunity_id"
               ]
             },
             "department": {
@@ -11632,7 +11991,13 @@
             "agency_id",
             "archive_date",
             "attachments",
+            "award_amount",
+            "award_count",
+            "award_date",
             "award_number",
+            "awarded",
+            "awardee",
+            "awardee_uei",
             "department",
             "department_id",
             "description",
@@ -11654,6 +12019,7 @@
             "set_aside",
             "snippet",
             "solicitation_number",
+            "solicitation_opportunity_id",
             "title"
           ]
         },
@@ -11677,7 +12043,21 @@
           "attachments.resource_id",
           "attachments.type",
           "attachments.url",
+          "award_amount",
+          "award_count",
+          "award_date",
           "award_number",
+          "awarded",
+          "awardee",
+          "awardee_uei",
+          "awards",
+          "awards.award_amount",
+          "awards.award_date",
+          "awards.award_number",
+          "awards.awardee",
+          "awards.awardee_uei",
+          "awards.notice_id",
+          "awards.opportunity_id",
           "department",
           "department.abbreviation",
           "department.cgac",
@@ -11748,6 +12128,7 @@
           "set_aside.description",
           "snippet",
           "solicitation_number",
+          "solicitation_opportunity_id",
           "title"
         ],
         "shape_gated_by_level": {
@@ -11765,6 +12146,8 @@
       "swagger_params": [
         "active",
         "agency",
+        "awarded",
+        "awardee_uei",
         "first_notice_date_after",
         "first_notice_date_before",
         "flat",
@@ -13598,6 +13981,18 @@
                 "s3_key"
               ]
             },
+            "organization": {
+              "expands": {},
+              "fields": [
+                "agency_code",
+                "agency_name",
+                "department_code",
+                "department_name",
+                "office_code",
+                "office_name",
+                "organization_id"
+              ]
+            },
             "topics": {
               "expands": {},
               "fields": [
@@ -13642,6 +14037,14 @@
           "documents.n_pages",
           "documents.s3_key",
           "end_date",
+          "organization",
+          "organization.agency_code",
+          "organization.agency_name",
+          "organization.department_code",
+          "organization.department_name",
+          "organization.office_code",
+          "organization.office_name",
+          "organization.organization_id",
           "out_of_cycle",
           "program",
           "sol_download_url",
@@ -13681,6 +14084,7 @@
           "agency",
           "close_date_after",
           "close_date_before",
+          "cycle_name",
           "doc_source",
           "open_date_after",
           "open_date_before",
@@ -13703,8 +14107,7 @@
             "type": "choice"
           },
           "agency": {
-            "filter_class": "CharFilter",
-            "lookup": "icontains",
+            "filter_class": "OrganizationScopeAgencyFilter",
             "type": "string"
           },
           "close_date_after": {
@@ -13716,6 +14119,10 @@
             "filter_class": "DateFromToRangeFilter",
             "lookup": "lte",
             "type": "date"
+          },
+          "cycle_name": {
+            "filter_class": "CharFilter",
+            "type": "string"
           },
           "doc_source": {
             "filter_class": "CharFilter",
@@ -13794,6 +14201,18 @@
                 "title"
               ]
             },
+            "organization": {
+              "expands": {},
+              "fields": [
+                "agency_code",
+                "agency_name",
+                "department_code",
+                "department_name",
+                "office_code",
+                "office_name",
+                "organization_id"
+              ]
+            },
             "solicitation": {
               "expands": {},
               "fields": [
@@ -13814,6 +14233,7 @@
             "activity",
             "agency",
             "close_date",
+            "cycle_name",
             "description",
             "doc_source",
             "due_dates_text",
@@ -13836,6 +14256,7 @@
           "activity",
           "agency",
           "close_date",
+          "cycle_name",
           "description",
           "doc_source",
           "due_dates_text",
@@ -13852,6 +14273,14 @@
           "opportunity.response_deadline",
           "opportunity.solicitation_number",
           "opportunity.title",
+          "organization",
+          "organization.agency_code",
+          "organization.agency_name",
+          "organization.department_code",
+          "organization.department_name",
+          "organization.office_code",
+          "organization.office_name",
+          "organization.organization_id",
           "release_date",
           "solicitation",
           "solicitation.cycle_name",
@@ -15485,6 +15914,18 @@
                     "url"
                   ]
                 },
+                "awards": {
+                  "expands": {},
+                  "fields": [
+                    "award_amount",
+                    "award_date",
+                    "award_number",
+                    "awardee",
+                    "awardee_uei",
+                    "notice_id",
+                    "opportunity_id"
+                  ]
+                },
                 "department": {
                   "expands": {},
                   "fields": [
@@ -15591,7 +16032,13 @@
                 "agency_id",
                 "archive_date",
                 "attachments",
+                "award_amount",
+                "award_count",
+                "award_date",
                 "award_number",
+                "awarded",
+                "awardee",
+                "awardee_uei",
                 "department",
                 "department_id",
                 "description",
@@ -15613,6 +16060,7 @@
                 "set_aside",
                 "snippet",
                 "solicitation_number",
+                "solicitation_opportunity_id",
                 "title"
               ]
             },
@@ -15638,6 +16086,7 @@
             "description",
             "descriptions",
             "fiscal_year",
+            "holder_count",
             "idv_count",
             "is_synthetic_solicitation",
             "last_date_to_order",
@@ -15646,6 +16095,7 @@
             "name",
             "opportunity_id",
             "order_count",
+            "order_winner_count",
             "organization",
             "organization_id",
             "program_acronym",
@@ -16051,6 +16501,7 @@
           "description",
           "descriptions",
           "fiscal_year",
+          "holder_count",
           "idv_count",
           "is_synthetic_solicitation",
           "last_date_to_order",
@@ -16088,7 +16539,21 @@
           "opportunity.attachments.resource_id",
           "opportunity.attachments.type",
           "opportunity.attachments.url",
+          "opportunity.award_amount",
+          "opportunity.award_count",
+          "opportunity.award_date",
           "opportunity.award_number",
+          "opportunity.awarded",
+          "opportunity.awardee",
+          "opportunity.awardee_uei",
+          "opportunity.awards",
+          "opportunity.awards.award_amount",
+          "opportunity.awards.award_date",
+          "opportunity.awards.award_number",
+          "opportunity.awards.awardee",
+          "opportunity.awards.awardee_uei",
+          "opportunity.awards.notice_id",
+          "opportunity.awards.opportunity_id",
           "opportunity.department",
           "opportunity.department.abbreviation",
           "opportunity.department.cgac",
@@ -16159,9 +16624,11 @@
           "opportunity.set_aside.description",
           "opportunity.snippet",
           "opportunity.solicitation_number",
+          "opportunity.solicitation_opportunity_id",
           "opportunity.title",
           "opportunity_id",
           "order_count",
+          "order_winner_count",
           "organization",
           "organization.agency_code",
           "organization.agency_name",
@@ -16993,6 +17460,7 @@
       "entities_subawards",
       "events",
       "exclusions",
+      "federal_register",
       "forecasts",
       "grants",
       "gsa_elibrary_contracts",
