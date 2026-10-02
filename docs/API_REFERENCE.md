@@ -130,6 +130,12 @@ Supported parameters:
 - `page`, `limit` (max 100)
 - `shape`, `flat`, `flatLists`
 
+Company counts (on both the list and detail defaults; neither is orderable or filterable):
+
+- `holder_count`: distinct companies holding one of the vehicle's IDVs.
+- `order_winner_count`: distinct companies that have won a task order under the vehicle.
+- `awardee_count`: deprecated alias of `order_winner_count` (same value), removed at the API's next major version.
+
 ### `getVehicle(uuid, options?)`
 
 ```ts

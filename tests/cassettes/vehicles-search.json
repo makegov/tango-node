@@ -4,7 +4,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "https://tango.makegov.com/api/vehicles/?limit=3&page=1&search=SEWP&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
+        "url": "https://tango.makegov.com/api/vehicles/?limit=3&page=1&search=SEWP&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cholder_count%2Corder_winner_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
       },
       "response": {
         "status": 200,
@@ -23,10 +23,12 @@
         },
         "body": {
           "count": 8,
-          "next": "https://tango.makegov.com/api/vehicles/?limit=3&page=2&search=SEWP&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date",
+          "next": "https://tango.makegov.com/api/vehicles/?limit=3&page=2&search=SEWP&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cholder_count%2Corder_winner_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date",
           "previous": null,
           "results": [
             {
+              "holder_count": 1410,
+              "order_winner_count": 0,
               "awardee_count": 0,
               "description": [
                 "NASA ITPO SEWP VI GWAC SOLICITATION. THE PRINCIPAL PURPOSE OF THIS REQUIREMENT IS TO PROVIDE THE FEDERAL GOVERNMENT WITH AN ALL-ENCOMPASSING ONE-STOP ACQUISITION VEHICLE FOR INFORMATION TECHNOLOGY PRODUCT AND SERVICE SOLUTIONS.",
@@ -60,6 +62,8 @@
               }
             },
             {
+              "holder_count": 16,
+              "order_winner_count": 0,
               "awardee_count": 0,
               "description": [
                 "IGF::CT::IGF:: REQUEST FOR DESKTOPS TO BE USED WITHIN BY EPIC DEVELOPERS TO ACCESS APPLICATIONS IN DEVELOPMENT ENVIRONMENTS.",
@@ -107,6 +111,8 @@
               }
             },
             {
+              "holder_count": 6,
+              "order_winner_count": 43,
               "awardee_count": 43,
               "description": [
                 "LAN NETWORKING SYSTEMS ENGINEERING AND COMPUTER SYSTEMS DESIGN",
