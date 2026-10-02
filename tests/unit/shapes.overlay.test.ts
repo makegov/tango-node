@@ -59,6 +59,13 @@ describe("Entity relationships shape coverage", () => {
     }
   });
 
+  it("BudgetAccount resolves source_anomalies and account_category", () => {
+    const parser = new ShapeParser();
+    const generator = new TypeGenerator({ schemaRegistry: registry });
+    const model = generator.generateModelDescriptor("BudgetAccount", parser.parse("federal_account_symbol,account_category,source_anomalies"));
+    expect(model.fields.map((f) => f.field.name).sort()).toEqual(["account_category", "federal_account_symbol", "source_anomalies"]);
+  });
+
   it("relationships(type, source) generates a model descriptor without raising", () => {
     const parser = new ShapeParser();
     const generator = new TypeGenerator({ schemaRegistry: registry });

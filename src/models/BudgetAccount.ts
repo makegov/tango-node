@@ -1,3 +1,41 @@
+/** One FY-specific File C source row behind a {@link BudgetSourceAnomaly}. Every property is optional. */
+export interface BudgetSourceAnomalyRow {
+  fiscal_period?: number | string | null;
+  piid?: string | null;
+  parent_piid?: string | null;
+  tas?: string | null;
+  reporting_agency_id?: string | null;
+  transaction_obligated_amount?: number | string | null;
+  file_c_source?: string | null;
+}
+
+/** Where a {@link BudgetSourceAnomaly} was observed in the upstream spending data. */
+export interface BudgetSourceAnomalySource {
+  dataset?: string | null;
+  fiscal_year?: number | null;
+  rows?: BudgetSourceAnomalyRow[] | null;
+}
+
+/**
+ * A source-data inconsistency the API detected on a budget account row, and what it did about it.
+ *
+ * `action` is `"capped"` when a served value was clamped to its bound (`reported_value` is what the source said, `served_value` is what the row carries), or `"flagged"` when the value is served as reported and only annotated.
+ * `code` is an open string: today's codes are `contract_exceeds_obligations`, `assistance_exceeds_obligations`, and `contract_without_obligations`, and more may be added without notice.
+ * Every property is optional and may be null.
+ */
+export interface BudgetSourceAnomaly {
+  code?: string | null;
+  field?: string | null;
+  bound_field?: string | null;
+  action?: "capped" | "flagged" | (string & {}) | null;
+  reported_value?: number | string | null;
+  served_value?: number | string | null;
+  likely_cause?: string | null;
+  affected_fields?: string[] | null;
+  message?: string | null;
+  source?: BudgetSourceAnomalySource | null;
+}
+
 /**
  * Federal account x fiscal year budget rollup.
  *
@@ -22,6 +60,8 @@ export interface BudgetAccount {
   bea_category?: string | null;
   on_off_budget?: string | null;
   subfunction_code?: string | null;
+  /** Account category: `"budgetary"` or `"credit_financing"` today. Treat as an open string. */
+  account_category?: string | null;
 
   // Lifecycle
   requested_ba?: number | null;
@@ -47,6 +87,8 @@ export interface BudgetAccount {
   assistance_share_of_obligated?: number | null;
   assistance_share_of_obligated_capped?: number | null;
   assistance_share_capped_flag?: boolean;
+  /** Source-data inconsistencies detected on this row; `[]` when the row is clean. */
+  source_anomalies?: BudgetSourceAnomaly[] | null;
 
   // Forward-look
   next_year_requested_ba?: number | null;
