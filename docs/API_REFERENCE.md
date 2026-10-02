@@ -487,16 +487,33 @@ const accounts = await client.listBudgetAccounts({
 The range filters use the API's **dunder wire names** (double underscore, e.g. `fiscal_year__gte`) — these are passed through verbatim.
 A representative sample:
 
-| Filter family                    | Example params                                                                                                                                       |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Identity / categorical           | `federal_account_symbol`, `fiscal_year`, `agency_code__in`, `bureau_name__icontains`, `bea_category`, `subfunction_code`, `account_title__icontains` |
-| Lifecycle amounts                | `requested_ba__gte`, `enacted_ba__lte`, `apportioned__gte`, `obligated_total__gte`, `outlayed_total__lte`, `unobligated_balance__gte`                |
-| Contract / assistance breakdowns | `contract_obligated__gte`, `assistance_outlayed__lte`, `contract_share_of_obligated_capped__gte`                                                     |
-| Ratios                           | `obligated_to_apportioned_pct__gte`, `apportioned_to_enacted_pct_capped__lte`, `outlayed_to_obligated_pct__gte`, `unobligated_pct__gte`              |
-| Trends                           | `enacted_ba_yoy_pct__gte`, `obligated_yoy_pct__lte`, `enacted_ba_5yr_cagr__gte`, `ba_growth_next_year_pct__gte`, `actual_vs_requested_contract__gte` |
+| Filter family                    | Example params                                                                                                                                                                         |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity / categorical           | `federal_account_symbol`, `fiscal_year`, `agency`, `agency_code__in`, `bureau_name__icontains`, `bea_category`, `account_category__in`, `subfunction_code`, `account_title__icontains` |
+| Lifecycle amounts                | `requested_ba__gte`, `enacted_ba__lte`, `apportioned__gte`, `obligated_total__gte`, `outlayed_total__lte`, `unobligated_balance__gte`                                                  |
+| Contract / assistance breakdowns | `contract_obligated__gte`, `assistance_outlayed__lte`, `contract_share_of_obligated_capped__gte`                                                                                       |
+| Ratios                           | `obligated_to_apportioned_pct__gte`, `apportioned_to_enacted_pct_capped__lte`, `outlayed_to_obligated_pct__gte`, `unobligated_pct__gte`                                                |
+| Trends                           | `enacted_ba_yoy_pct__gte`, `obligated_yoy_pct__lte`, `enacted_ba_5yr_cagr__gte`, `ba_growth_next_year_pct__gte`, `actual_vs_requested_contract__gte`                                   |
 
 See `ListBudgetAccountsOptions` in `src/client.ts` for the complete list — every filter is a typed, autocompleted option.
 Any of the numeric fields is a valid `ordering` target (`ordering: "-unobligated_balance"` ranks by largest headroom first), and `search` covers account title, agency name, and bureau name.
+With no `ordering`, rows come back newest fiscal year first, then by `enacted_ba` descending, with accounts that have no `enacted_ba` last.
+
+**Account category.** Each row carries `account_category` (`"budgetary"` or `"credit_financing"` today; treat it as an open string), and `account_category` / `account_category__in` filter on it.
+For example, `account_category: "budgetary"` leaves out credit financing accounts.
+
+**Source anomalies.** Each row carries `source_anomalies`, a list typed as `BudgetSourceAnomaly[]` that is `[]` when the row is clean.
+An entry records a source-data inconsistency the API found and what it did: `action: "capped"` means a served value was clamped to its bound (`reported_value` is what the source said, `served_value` is what the row carries), and `action: "flagged"` means the value is served as reported and only annotated.
+`code` is an open string (`contract_exceeds_obligations`, `assistance_exceeds_obligations` and `contract_without_obligations` today), `affected_fields` names the fields the anomaly touches, and `source` points at the upstream rows behind it.
+Every property on an entry is optional.
+There is no filter on anomalies, so check the list client-side:
+
+```ts
+import type { BudgetAccount } from "@makegov/tango-node/models";
+
+const res = await client.listBudgetAccounts({ fiscal_year: 2025, account_category: "budgetary" });
+const capped = (res.results as BudgetAccount[]).filter((row) => row.source_anomalies?.some((a) => a.action === "capped"));
+```
 
 **Legacy aliases.** Three pre-1.2 option names are kept and remapped to the params the API actually understands: `fiscal_year_gte` → `fiscal_year__gte`, `fiscal_year_lte` → `fiscal_year__lte`, and `account_title` → `account_title__icontains`.
 An explicitly passed dunder param wins over its alias.
