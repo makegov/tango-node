@@ -53,6 +53,8 @@ export interface BudgetAccount {
   id?: number;
   federal_account_symbol?: string;
   fiscal_year?: number;
+  /** File A fiscal period (1-12) this account-year's figures run through; the latest fiscal year is partial until it reaches 12. Null when the row has no File A data. */
+  data_through_period?: number | null;
   agency_code?: string | null;
   agency_name?: string | null;
   bureau_name?: string | null;
