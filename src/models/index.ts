@@ -1,5 +1,5 @@
 export type { Agency } from "./Agency.js";
-export type { BudgetAccount } from "./BudgetAccount.js";
+export type { BudgetAccount, BudgetSourceAnomaly, BudgetSourceAnomalyRow, BudgetSourceAnomalySource } from "./BudgetAccount.js";
 export type {
   Contract,
   OrganizationOfficePayload,

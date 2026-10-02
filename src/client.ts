@@ -414,6 +414,7 @@ export interface ListGrantsOptions extends ListOptionsBase {
  * Budget account list options — matches `tango_python.TangoClient.list_budget_accounts`.
  *
  * Every numeric lifecycle/ratio field exposes an exact / `__gte` / `__lte` triplet, and any of them is a valid `ordering` target (e.g. `ordering: "-unobligated_balance"` ranks by largest headroom first).
+ * With no `ordering`, rows come back newest fiscal year first, then by `enacted_ba` descending with null `enacted_ba` last.
  */
 export interface ListBudgetAccountsOptions extends ListOptionsBase {
   // Identity / categorical filters (`__in` variants take a comma-separated list)
@@ -427,6 +428,12 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
   fiscal_year_gte?: number | string;
   /** Legacy alias remapped to `fiscal_year__lte`. */
   fiscal_year_lte?: number | string;
+  /** File A fiscal period (1-12) the account-year's figures run through; below 12 the fiscal year is partial. */
+  data_through_period?: number | string;
+  data_through_period__gte?: number | string;
+  data_through_period__lte?: number | string;
+  /** `true` for account-years with no File A data (`data_through_period` is null), `false` for those with it. */
+  data_through_period__isnull?: boolean;
   agency_code?: string;
   agency_code__in?: string;
   bureau_name?: string;
@@ -440,6 +447,12 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
   on_off_budget?: string;
   subfunction_code?: string;
   subfunction_code__in?: string;
+  /** Account category, e.g. `"budgetary"` or `"credit_financing"`. */
+  account_category?: string;
+  /** Comma-separated list of account categories. */
+  account_category__in?: string;
+  /** Agency by name, abbreviation, or code; a department rolls up across its bureaus. Multi-value OR via `|`. */
+  agency?: string;
 
   // President's-budget requested BA
   requested_ba?: number | string;

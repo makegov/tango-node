@@ -1,6 +1,6 @@
 {
   "description": "Known reverse shape-coverage gaps (Tango exposes, SDK schema lacks), accepted as a tracked backlog. check-shape-coverage.ts fails only on gaps NOT listed here. Burn down and regenerate with --update-baseline.",
-  "count": 15,
+  "count": 16,
   "known_gaps": [
     "unmapped_resource|agencies_contracts_awarding|(root)|(no model mapped)",
     "unmapped_resource|agencies_contracts_funding|(root)|(no model mapped)",
@@ -12,6 +12,7 @@
     "unmapped_resource|entities_otas|(root)|(no model mapped)",
     "unmapped_resource|entities_otidvs|(root)|(no model mapped)",
     "unmapped_resource|entities_subawards|(root)|(no model mapped)",
+    "unmapped_resource|federal_register|(root)|(no model mapped)",
     "unmapped_resource|idvs_awards|(root)|(no model mapped)",
     "unmapped_resource|idvs_idvs|(root)|(no model mapped)",
     "unmapped_resource|idvs_lcats|(root)|(no model mapped)",

@@ -10,6 +10,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Budget account `source_anomalies` and `account_category`** (Tango API 5.7.0). `BudgetAccount` gains `account_category` (`"budgetary"` or `"credit_financing"` today, typed as an open string) and `source_anomalies`, a list that is `[]` when the row is clean. Each entry is a new `BudgetSourceAnomaly` (with `BudgetSourceAnomalySource` and `BudgetSourceAnomalyRow` for its upstream rows), and every property on it is optional. `action` is `"capped"` when a served value was clamped to its bound and `"flagged"` when it is served as reported; `code` is an open string. `ListBudgetAccountsOptions` types the new `account_category` and `account_category__in` filters, plus the `agency` filter the API already accepted. There is no anomaly filter. The default ordering now puts accounts with a null `enacted_ba` last, which is documented on the options interface and in `docs/API_REFERENCE.md`.
+- **Budget account `data_through_period`** (Tango API 5.8.0). `BudgetAccount` gains `data_through_period`, the File A fiscal period (1–12) an account-year's figures run through, so the latest fiscal year is partial until it reaches 12; it is null when the row has no File A data. `ListBudgetAccountsOptions` types the `data_through_period`, `data_through_period__gte`, `data_through_period__lte` and `data_through_period__isnull` filters.
+
 - **Boards-of-contract-appeals decisions** (Tango API 4.26.0). `listContractAppeals(options)` and `getContractAppeal(uuid, options)` over `/api/contract_appeals/`, with every filter the API accepts declared as a typed option on `ListContractAppealsOptions` (`search`, `board`, `docket`, `appellant`, `judge`, `decision_type`, the `decision_date_after` / `_before` pair, `listed`, `document_id`, `ordering`), the new `ContractAppealRecord` return type, and a registered `ContractAppeal` shape schema so the typed shape API resolves the resource's fields.
 
   These are Contract Disputes Act decisions from the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests remain the separate `listProtests()` resource, and the two do not overlap.
@@ -28,6 +31,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Re-vendored the contract for Tango API 5.8.0 and regenerated the overlay, so budget accounts, opportunities, notices, exclusions and SBIR shapes resolve the fields the API now serves. Federal Register documents are in the contract without an SDK method yet, so the resource is baselined as a tracked gap in both conformance baselines.
 - Re-vendored `contracts/filter_shape_contract.json` (schema_version 2, 48 resources) and regenerated `src/shapes/generatedOverlay.ts` from it — 359 fields across 25 containers, 73 nested schemas.
 - Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win. eBuy requests are in the contract without an SDK method yet, so it is baselined as a tracked gap.
 - Baselined 14 reverse-shape-coverage gaps in `contracts/shape_coverage_baseline.json`, matching tango-python. All 14 are the nested sub-resource routes above, which reuse the parent resource's model rather than carrying one of their own; none is SLED, and none is a regression — they became visible only with the re-vendored contract.
