@@ -345,6 +345,30 @@ describe("TangoClient — filter-surface catch-up", () => {
     expect(params.get("agency")).toBe("DOD");
   });
 
+  it("listBudgetAccounts sends the data_through_period filters and returns the field as served", async () => {
+    const { client, calls } = makeClient({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [
+        { federal_account_symbol: "097-0100", fiscal_year: 2026, data_through_period: 9 },
+        { federal_account_symbol: "097-4000", fiscal_year: 2026, data_through_period: null },
+      ],
+    });
+    const resp = await client.listBudgetAccounts({
+      data_through_period: 9,
+      data_through_period__gte: 3,
+      data_through_period__lte: 11,
+      data_through_period__isnull: false,
+    });
+    const params = new URL(calls[0].url).searchParams;
+    expect(params.get("data_through_period")).toBe("9");
+    expect(params.get("data_through_period__gte")).toBe("3");
+    expect(params.get("data_through_period__lte")).toBe("11");
+    expect(params.get("data_through_period__isnull")).toBe("false");
+    expect((resp.results as BudgetAccount[]).map((r) => r.data_through_period)).toEqual([9, null]);
+  });
+
   it("listBudgetAccounts returns source_anomalies as served", async () => {
     const anomaly = {
       code: "contract_exceeds_obligations",

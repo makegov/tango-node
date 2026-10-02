@@ -499,6 +499,10 @@ See `ListBudgetAccountsOptions` in `src/client.ts` for the complete list — eve
 Any of the numeric fields is a valid `ordering` target (`ordering: "-unobligated_balance"` ranks by largest headroom first), and `search` covers account title, agency name, and bureau name.
 With no `ordering`, rows come back newest fiscal year first, then by `enacted_ba` descending, with accounts that have no `enacted_ba` last.
 
+**Data through period.** Each row carries `data_through_period`, the File A fiscal period (1–12) the account-year's figures run through, so the latest fiscal year is partial until it reaches 12.
+It is null when the row has no File A data.
+`data_through_period`, `data_through_period__gte`, `data_through_period__lte` and `data_through_period__isnull` filter on it; for example, `data_through_period__isnull: false` keeps only rows with File A data.
+
 **Account category.** Each row carries `account_category` (`"budgetary"` or `"credit_financing"` today; treat it as an open string), and `account_category` / `account_category__in` filter on it.
 For example, `account_category: "budgetary"` leaves out credit financing accounts.
 

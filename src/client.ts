@@ -428,6 +428,12 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
   fiscal_year_gte?: number | string;
   /** Legacy alias remapped to `fiscal_year__lte`. */
   fiscal_year_lte?: number | string;
+  /** File A fiscal period (1-12) the account-year's figures run through; below 12 the fiscal year is partial. */
+  data_through_period?: number | string;
+  data_through_period__gte?: number | string;
+  data_through_period__lte?: number | string;
+  /** `true` for account-years with no File A data (`data_through_period` is null), `false` for those with it. */
+  data_through_period__isnull?: boolean;
   agency_code?: string;
   agency_code__in?: string;
   bureau_name?: string;

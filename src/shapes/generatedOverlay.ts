@@ -700,6 +700,7 @@ export const GENERATED_OVERLAY: Record<string, FieldSchemaMap> = {
     contract_share_of_obligated: f("contract_share_of_obligated", "str"),
     contract_share_of_obligated_capped: f("contract_share_of_obligated_capped", "str"),
     created: f("created", "datetime"),
+    data_through_period: f("data_through_period", "str"),
     enacted_ba: f("enacted_ba", "str"),
     enacted_ba_5yr_cagr: f("enacted_ba_5yr_cagr", "str"),
     enacted_ba_yoy_pct: f("enacted_ba_yoy_pct", "str"),
