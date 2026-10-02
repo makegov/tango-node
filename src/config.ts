@@ -45,7 +45,7 @@ export const ShapeConfig = {
   VEHICLES_MINIMAL:
     "uuid,solicitation_identifier,is_synthetic_solicitation,program_acronym," +
     "organization_id,organization,vehicle_type,description," +
-    "idv_count,awardee_count,order_count,total_obligated," +
+    "idv_count,awardee_count,holder_count,order_winner_count,order_count,total_obligated," +
     "vehicle_obligations,vehicle_contracts_value,latest_award_date," +
     "solicitation_title,solicitation_date",
 
@@ -56,7 +56,7 @@ export const ShapeConfig = {
     "solicitation_title,solicitation_description,solicitation_date,opportunity_id," +
     "naics_code,psc_code,set_aside," +
     "fiscal_year,award_date,latest_award_date,last_date_to_order," +
-    "description,idv_count,awardee_count,order_count,total_obligated," +
+    "description,idv_count,awardee_count,holder_count,order_winner_count,order_count,total_obligated," +
     "vehicle_obligations,vehicle_contracts_value," +
     "type_of_idc,contract_type,metrics(*)",
 

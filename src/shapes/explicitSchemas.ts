@@ -2520,6 +2520,20 @@ export const VEHICLE_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  holder_count: {
+    name: "holder_count",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
+  order_winner_count: {
+    name: "order_winner_count",
+    type: "int",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
   order_count: {
     name: "order_count",
     type: "int",
