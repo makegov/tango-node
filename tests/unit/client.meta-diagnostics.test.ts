@@ -49,6 +49,21 @@ describe("PaginatedResponse agency-filter diagnostics", () => {
     expect(res.meta).toEqual(meta);
   });
 
+  it("matched_by reaches the caller and leaves the parsed views unchanged", async () => {
+    const entries = [
+      { token: "HUD", matched_by: "alias", resolved: HUD },
+      { token: "Housing and Urban Developmnt", matched_by: "fuzzy", resolved: HUD },
+      { token: "HUDD", resolved: null },
+    ];
+    const res = await makeClient(emptyPage({ resolved_filters: { awarding_agency: entries } })).listContracts({
+      awarding_agency: "HUD|Housing and Urban Developmnt|HUDD",
+    });
+    const returned = (res.meta?.resolved_filters as Record<string, Array<Record<string, unknown>>>).awarding_agency;
+    expect(returned.map((entry) => entry.matched_by)).toEqual(["alias", "fuzzy", undefined]);
+    expect(res.unresolvedAgencyTokens).toEqual({ awarding_agency: ["HUDD"] });
+    expect(res.resolvedAgencies).toEqual({ awarding_agency: [HUD, HUD] });
+  });
+
   it("dropped tokens are reported per filter", async () => {
     const res = await makeClient(
       emptyPage({
