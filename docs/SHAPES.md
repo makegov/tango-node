@@ -101,6 +101,8 @@ import { TangoClient, ShapeConfig } from "@makegov/tango-node";
 | `ShapeConfig.EXCLUSIONS_MINIMAL`                    | `listExclusions()`          |
 | `ShapeConfig.SBIR_TOPICS_MINIMAL`                   | `listSbirTopics()`          |
 | `ShapeConfig.SBIR_SOLICITATIONS_MINIMAL`            | `listSbirSolicitations()`   |
+| `ShapeConfig.FEDERAL_REGISTER_MINIMAL`              | `listFederalRegisterDocuments()` |
+| `ShapeConfig.FEDERAL_REGISTER_COMPREHENSIVE`        | `getFederalRegisterDocument()` |
 
 These are plain strings — you can use them directly or as a starting point:
 

@@ -353,6 +353,10 @@ export interface ListOpportunitiesOptions extends ListOptionsBase {
   notice_type?: string;
   /** Filter by opportunity id (the detail-endpoint identifier). */
   opportunity_id?: string;
+  /** Whether the opportunity has an award, either posted on it or linked to it from a separate award notice. Searches every opportunity rather than only active ones. Requires Tango API 5.5.0. */
+  awarded?: boolean;
+  /** The awardee's UEI (case-insensitive). Multi-value OR via `|`. Searches every opportunity rather than only active ones. Requires Tango API 5.5.0. */
+  awardee_uei?: string;
   ordering?: string;
   place_of_performance?: string;
   psc?: string;
@@ -427,6 +431,12 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
   fiscal_year_gte?: number | string;
   /** Legacy alias remapped to `fiscal_year__lte`. */
   fiscal_year_lte?: number | string;
+  /** File A fiscal period (1-12) the account-year's figures run through; below 12 the fiscal year is partial. */
+  data_through_period?: number | string;
+  data_through_period__gte?: number | string;
+  data_through_period__lte?: number | string;
+  /** `true` for account-years with no File A data (`data_through_period` is null), `false` for those with it. */
+  data_through_period__isnull?: boolean;
   agency_code?: string;
   agency_code__in?: string;
   bureau_name?: string;
@@ -440,6 +450,12 @@ export interface ListBudgetAccountsOptions extends ListOptionsBase {
   on_off_budget?: string;
   subfunction_code?: string;
   subfunction_code__in?: string;
+  /** Account category, e.g. `"budgetary"` or `"credit_financing"`. */
+  account_category?: string;
+  /** Comma-separated list of account categories. */
+  account_category__in?: string;
+  /** Agency by name, abbreviation, or code; a department rolls up across its bureaus. Multi-value OR via `|`. */
+  agency?: string;
 
   // President's-budget requested BA
   requested_ba?: number | string;
@@ -629,6 +645,8 @@ export interface ListExclusionsOptions extends ListOptionsBase {
   exclusion_program?: string;
   excluding_agency_code?: string;
   excluding_agency_name?: string;
+  /** The excluding agency by name, abbreviation, code or organization key (e.g. `EPA`); a department includes its sub-agencies. Multi-value OR via `|`. Requires Tango API 5.3.0. */
+  agency?: string;
   /** True returns only records currently in effect. `is_currently_excluded` is derived at query time, so filter with this rather than shaping on it. */
   active?: boolean;
   delisted?: boolean;
@@ -655,6 +673,8 @@ export interface ListSbirTopicsOptions extends ListOptionsBase {
   activity?: string;
   year?: number;
   doc_source?: string;
+  /** DSIP solicitation cycle, exact (e.g. `DOD_SBIR_2026_P1_CBZ`). Requires Tango API 5.3.1. */
+  cycle_name?: string;
   open_date_after?: string;
   open_date_before?: string;
   close_date_after?: string;
@@ -988,10 +1008,59 @@ export interface ListContractAppealsOptions extends ListOptionsBase {
   [key: string]: unknown;
 }
 
+/**
+ * Federal Register document list options — matches `tango_python.TangoClient.list_federal_register_documents`.
+ *
+ * Rules, proposed rules, notices and presidential documents published in the Federal Register since 1994.
+ */
+export interface ListFederalRegisterDocumentsOptions extends ListOptionsBase {
+  /** Separator for flattened keys. Only meaningful alongside `flat`. */
+  joiner?: string;
+  /** Ranked full-text search over the title, abstract and action. Wrap in double quotes for a phrase. */
+  search?: string;
+  /** Exact FR document number, e.g. `2016-31922`. Multi-value OR via `|`. A number the Federal Register reused before 2016 matches every document that carries it. */
+  document_number?: string;
+  /** `Notice`, `Rule`, `Proposed Rule`, `Presidential Document`, `Correction`, `Sunshine Act Document` or `Uncategorized Document` (case-insensitive). Multi-value OR via `|`. An unknown type is an error, not an empty page. Documents published before 2008 are mostly `Uncategorized Document`, so a type filter undercounts that era. */
+  type?: string;
+  /** A Tango agency name, abbreviation, code or organization key, e.g. `EPA`. Matches a document when any agency it lists falls within that organization, so a department includes its sub-agencies. Multi-value OR via `|`. */
+  agency?: string;
+  /** The Federal Register's own agency slug, e.g. `environmental-protection-agency`. Multi-value OR via `|`. */
+  fr_agency?: string;
+  /** Published on or after (YYYY-MM-DD). */
+  publication_date_after?: string;
+  /** Published on or before (YYYY-MM-DD). */
+  publication_date_before?: string;
+  /** Effective on or after (YYYY-MM-DD). */
+  effective_on_after?: string;
+  /** Effective on or before (YYYY-MM-DD). */
+  effective_on_before?: string;
+  /** Comment period closes on or after (YYYY-MM-DD). */
+  comments_close_on_after?: string;
+  /** Comment period closes on or before (YYYY-MM-DD). */
+  comments_close_on_before?: string;
+  /** `true` for documents whose comment period closes today or later, `false` for those already closed. Documents with no comment deadline match neither. */
+  comments_open?: boolean;
+  /** A CFR title number, e.g. `40`. */
+  cfr_title?: string | number;
+  /** A CFR part number, e.g. `52`. Requires `cfr_title`, and both must match the same CFR reference. */
+  cfr_part?: string | number;
+  /** Significant under Executive Order 12866. */
+  significant?: boolean;
+  /** A Regulation Identifier Number, e.g. `2060-AV16`. Multi-value OR via `|`. */
+  rin?: string;
+  /** Exact executive order number. */
+  executive_order_number?: string | number;
+  /** Sort field (publication_date, effective_on, comments_close_on, document_number, rank). Defaults to `-publication_date`; `rank` requires a non-empty `search`. */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
 export interface ListItDashboardOptions {
   page?: number;
   limit?: number;
   search?: string;
+  /** Agency by name, abbreviation, code or organization key (e.g. `EPA`); a department includes its sub-agencies. Multi-value OR via `|`. Available at every plan. Requires Tango API 5.3.0. */
+  agency?: string;
   agency_code?: string;
   agency_name?: string;
   type_of_investment?: string;
@@ -2709,6 +2778,37 @@ export class TangoClient {
     }
     if (flatLists) params.flat_lists = "true";
     return await this.http.get<AnyRecord>(`/api/contract_appeals/${encodeURIComponent(uuid)}/`, params);
+  }
+
+  /**
+   * List Federal Register documents (`/api/federal_register/`).
+   *
+   * Rules, proposed rules, notices and presidential documents published in the Federal Register since 1994.
+   *
+   * `document_number` is not unique on its own: the Federal Register reused some numbers before 2016, so `document_number` can match more than one document.
+   */
+  async listFederalRegisterDocuments(options: ListFederalRegisterDocumentsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/federal_register/", "FederalRegisterDocument", ShapeConfig.FEDERAL_REGISTER_MINIMAL, options);
+  }
+
+  /**
+   * Get a single Federal Register document by uuid (`/api/federal_register/{uuid}/`).
+   *
+   * The route takes the document's `uuid`, not its `document_number`, which is not unique on its own. To look a document up by number, use `listFederalRegisterDocuments({ document_number })`.
+   *
+   * Name `full_text` in `shape` to get the document's plain text. It can run to several MB, so the default shape leaves it out.
+   */
+  async getFederalRegisterDocument(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("Federal Register document uuid is required");
+    return this._shapedGet(
+      `/api/federal_register/${encodeURIComponent(uuid)}/`,
+      "FederalRegisterDocument",
+      ShapeConfig.FEDERAL_REGISTER_COMPREHENSIVE,
+      options,
+    );
   }
 
   /** List IT Dashboard investments. */

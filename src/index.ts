@@ -30,6 +30,7 @@ export type {
   ListSledForecastsOptions,
   ListProtestsOptions,
   ListContractAppealsOptions,
+  ListFederalRegisterDocumentsOptions,
   ListItDashboardOptions,
   ListMetricsOptions,
   ResolveInput,
