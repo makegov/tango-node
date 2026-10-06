@@ -6,6 +6,7 @@ export interface OpportunityAttachment {
   attachment_id?: string | null;
   resource_id?: string | null;
   name?: string | null;
+  /** `file` for a document, `link` for a URL the notice lists. Only a file has extracted text. */
   type?: string | null;
   mime_type?: string | null;
   file_size?: number | null;
@@ -22,6 +23,22 @@ export interface OpportunityAttachment {
   doc_role_alt?: AttachmentDocRole | null;
 }
 
+/**
+ * Counts on an opportunity (the `meta(...)` expand).
+ *
+ * `files_count` and `links_count` are null until the opportunity has been counted, so read null as unknown, not zero.
+ */
+export interface OpportunityMeta {
+  notices_count?: number | null;
+  /** Every attachment across the opportunity's notices, links included. */
+  attachments_count?: number | null;
+  /** Attachments whose `type` is `file`. An attachment of any other type counts only in `attachments_count`, so `files_count + links_count` need not equal it. Requires Tango API 5.9.0. */
+  files_count?: number | null;
+  /** Attachments whose `type` is `link`. Requires Tango API 5.9.0. */
+  links_count?: number | null;
+  notice_type?: Record<string, unknown> | null;
+}
+
 export interface Opportunity {
   opportunity_id: string;
   title: string;
@@ -32,4 +49,5 @@ export interface Opportunity {
   naics_code?: string | null;
   psc_code?: string | null;
   attachments?: OpportunityAttachment[] | null;
+  meta?: OpportunityMeta | null;
 }

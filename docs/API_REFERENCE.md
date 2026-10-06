@@ -243,11 +243,30 @@ Forecast search, with optional shaping.
 Search SAM.gov opportunities with shaping.
 `opportunity_id` is a typed filter for fetching specific opportunities through the list endpoint.
 
+`awarded` (boolean) filters by whether the opportunity has an award, either posted on it or linked to it from a separate award notice, and `awardee_uei` filters by the awardee's UEI (case-insensitive; OR several with `|`).
+Both search every opportunity rather than only active ones, and both require Tango API 5.5.0.
+
+**Attachment counts.** `meta(attachments_count,files_count,links_count)` counts an opportunity's attachments.
+An attachment's `type` is `file` (a document; only a file has extracted text) or `link` (a URL the notice lists).
+`files_count` and `links_count` count each, and `attachments_count` still counts every attachment, links included.
+An attachment of any other type counts only in the total, so `files_count + links_count` need not equal `attachments_count`.
+Both new counts are `null` until the opportunity has been counted, so read `null` as unknown, not zero.
+They require Tango API 5.9.0 and are not in the SDK's default shape; name them in `shape`.
+
+```ts
+const page = await client.listOpportunities({
+  shape: "opportunity_id,title,meta(attachments_count,files_count,links_count)",
+});
+```
+
 ---
 
 ## Notices
 
 ### `listNotices(options)`
+
+**Attachment counts.** `file_count` and `link_count` sit beside `attachment_count` and follow the same rules as the opportunity counts above: files are documents, links are URLs the notice lists, `attachment_count` still counts every attachment, the two need not add up to it, and each is `null` (unknown, not zero) until the notice has been counted.
+They require Tango API 5.9.0; name them in `shape`, e.g. `shape: "notice_id,title,attachment_count,file_count,link_count"`.
 
 ---
 
@@ -450,6 +469,67 @@ Returns a `ContractAppealRecord`. Every property on it is optional, for the same
 
 ---
 
+## Federal Register
+
+Federal Register documents: rules, proposed rules, notices and presidential documents published since 1994.
+
+A document is identified by `uuid`. `document_number` is not unique on its own: the Federal Register reused some numbers before 2016, so `document_number` can return more than one document.
+
+### `listFederalRegisterDocuments(options?)`
+
+```ts
+const documents = await client.listFederalRegisterDocuments({
+  type: "Proposed Rule",
+  comments_open: true,
+  agency: "EPA",
+  limit: 25,
+});
+
+for (const doc of documents.results) {
+  console.log(doc.document_number, doc.publication_date, doc.title, doc.comments_close_on);
+}
+```
+
+#### Parameters (Federal Register)
+
+| Name                                       | Type               | Description                                                                                                                                                                                                                                                      |
+| ------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `search`                                   | `string`           | Ranked full-text search over the title, abstract and action. Wrap in double quotes for a phrase.                                                                                                                                                                 |
+| `document_number`                          | `string`           | Exact FR document number, e.g. `2016-31922`. OR several with `\|`.                                                                                                                                                                                               |
+| `type`                                     | `string`           | `Notice`, `Rule`, `Proposed Rule`, `Presidential Document`, `Correction`, `Sunshine Act Document` or `Uncategorized Document` (case-insensitive). OR several with `\|`. An unknown type is an error, not an empty page.                                          |
+| `agency`                                   | `string`           | A Tango agency name, abbreviation, code or organization key, e.g. `EPA`. Matches a document when any agency it lists falls within that organization, so a department includes its sub-agencies. OR several with `\|`.                                            |
+| `fr_agency`                                | `string`           | The Federal Register's own agency slug, e.g. `environmental-protection-agency`. OR several with `\|`.                                                                                                                                                            |
+| `publication_date_after` / `_before`       | `string`           | Publication date range (`YYYY-MM-DD`).                                                                                                                                                                                                                           |
+| `effective_on_after` / `_before`           | `string`           | Effective date range (`YYYY-MM-DD`).                                                                                                                                                                                                                             |
+| `comments_close_on_after` / `_before`      | `string`           | Comment-deadline range (`YYYY-MM-DD`).                                                                                                                                                                                                                           |
+| `comments_open`                            | `boolean`          | `true` for documents whose comment period closes today or later, `false` for those already closed. Documents with no comment deadline match neither.                                                                                                             |
+| `cfr_title`                                | `string \| number` | A CFR title number, e.g. `40`.                                                                                                                                                                                                                                   |
+| `cfr_part`                                 | `string \| number` | A CFR part number, e.g. `52`. Requires `cfr_title`, and both must match the same CFR reference, so `cfr_title: 40, cfr_part: 52` finds 40 CFR 52.                                                                                                                |
+| `significant`                              | `boolean`          | Significant under Executive Order 12866.                                                                                                                                                                                                                         |
+| `rin`                                      | `string`           | A Regulation Identifier Number, e.g. `2060-AV16`. OR several with `\|`.                                                                                                                                                                                          |
+| `executive_order_number`                   | `string \| number` | Exact executive order number.                                                                                                                                                                                                                                    |
+| `ordering`                                 | `string`           | `publication_date` (default `-publication_date`), `effective_on`, `comments_close_on`, `document_number` or `rank`.                                                                                                                                              |
+
+`rank` ordering requires a non-empty `search`. The standard `page` / `limit` / `shape` / `flat` / `flatLists` / `joiner` options apply, and the list defaults to `ShapeConfig.FEDERAL_REGISTER_MINIMAL`.
+
+Documents published before 2008 are mostly `Uncategorized Document`, so a `type` filter undercounts that era.
+
+### `getFederalRegisterDocument(uuid, options?)`
+
+```ts
+const document = await client.getFederalRegisterDocument("00000000-0000-0000-0000-000000000001", {
+  shape: "uuid,document_number,title,full_text",
+});
+```
+
+Takes the document's `uuid`, not its `document_number`. To look one up by number, use `listFederalRegisterDocuments({ document_number })`. Defaults to `ShapeConfig.FEDERAL_REGISTER_COMPREHENSIVE`.
+
+- `agencies`, `cfr_references`, `dockets` and `topics` are the Federal Register's own structures, served as published. `agencies` carries Federal Register agency slugs, not Tango organization keys.
+- `full_text`, the document's plain text, is available on this method only and only when named in `shape`. It can run to several MB, so neither default shape includes it.
+- `publication_date`, `effective_on`, `comments_close_on` and `signing_date` are parsed to `Date`. The `FederalRegisterDocument` interface in `@makegov/tango-node/models` lists every field.
+
+---
+
 ## IT Dashboard
 
 ### `listItDashboard(options?)`
@@ -465,6 +545,8 @@ const investment = await client.getItDashboard("023-000001234");
 ```
 
 `listItDashboard` also accepts `previous_uii` as a typed filter, for tracing an investment across UII renumbering.
+
+`agency` takes a Tango agency name, abbreviation, code or organization key (e.g. `EPA`) and matches the whole organization, so a department includes its sub-agencies; OR several with `|`. It is available at every plan and requires Tango API 5.3.0.
 
 ---
 
@@ -662,9 +744,12 @@ const exclusions = await client.listExclusions({
 });
 ```
 
-Typed filters: `uei`, `entity_uei`, `cage_code`, `npi`, `classification_type`, `exclusion_type`, `exclusion_program`, `excluding_agency_code`, `excluding_agency_name`, `active`, `delisted`, `activate_date_after` / `activate_date_before`, `termination_date_after` / `termination_date_before`, `update_date_after` / `update_date_before`, `search`, `ordering`.
+Typed filters: `uei`, `entity_uei`, `cage_code`, `npi`, `classification_type`, `exclusion_type`, `exclusion_program`, `excluding_agency_code`, `excluding_agency_name`, `agency`, `active`, `delisted`, `activate_date_after` / `activate_date_before`, `termination_date_after` / `termination_date_before`, `update_date_after` / `update_date_before`, `search`, `ordering`.
 
 `is_currently_excluded` is **derived at query time** — filter with `active: true` for records currently in effect rather than shaping on it.
+
+`agency` scopes by the excluding agency: it takes a Tango agency name, abbreviation, code or organization key and matches the whole organization, so a department includes its sub-agencies (Tango API 5.3.0).
+The `organization(...)` expand and `organization_id` are accepted in `shape`.
 
 ---
 
@@ -682,7 +767,7 @@ const topics = await client.listSbirTopics({
 });
 ```
 
-Typed filters: `topic_number`, `solicitation_number`, `agency`, `activity`, `year`, `doc_source`, `open_date_after` / `open_date_before`, `close_date_after` / `close_date_before`, `release_date_after` / `release_date_before`, `search`, `ordering`.
+Typed filters: `topic_number`, `solicitation_number`, `agency`, `activity`, `year`, `doc_source`, `cycle_name` (exact DSIP solicitation cycle, e.g. `DOD_SBIR_2026_P1_CBZ`; Tango API 5.3.1), `open_date_after` / `open_date_before`, `close_date_after` / `close_date_before`, `release_date_after` / `release_date_before`, `search`, `ordering`.
 
 ### `listSbirSolicitations(options?)` / `getSbirSolicitation(solicitationId, options?)`
 
