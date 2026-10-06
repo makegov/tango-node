@@ -50,6 +50,8 @@ export interface PaginatedResponse<T> {
   /**
    * Response-level metadata the API attached to this page, when present.
    * Currently carries agency-filter diagnostics: `resolved_filters` maps each agency filter to the organizations its `|`-separated tokens resolved to (or `null`), and `warnings` lists human-readable notes about tokens that were dropped or matched loosely.
+   * Each `resolved_filters` entry that resolved also carries `matched_by` (Tango API 5.9.0+), saying how the token matched: `"key"` (an organization UUID), `"code"` (a 3-digit CGAC or 4-digit FPDS code), `"name"` (the organization's name, including a department's everyday name, a spelling variant or a rename), `"alias"` (an abbreviation or the organization's own alias) or `"fuzzy"` (a looser text match, worth checking against the resolved `name`).
+   * An entry that did not resolve has no `matched_by`.
    * See `agencyWarnings`, `unresolvedAgencyTokens`, and `resolvedAgencies` for the parsed views.
    * Optional (like the other three diagnostics) so pre-existing code constructing a `PaginatedResponse` still compiles; responses built by the client always populate it.
    */

@@ -1123,3 +1123,24 @@ if (resp.agencyWarnings.length > 0) {
   console.warn("resolved to:", resp.resolvedAgencies);
 }
 ```
+
+Each entry of `meta.resolved_filters[<filter name>]` that resolved also says how its token matched, in `matched_by` (Tango API 5.9.0+):
+
+- `key` — an organization UUID.
+- `code` — a 3-digit CGAC or 4-digit FPDS code.
+- `name` — the organization's name, including a department's everyday name, a spelling variant or a rename.
+- `alias` — an abbreviation or the organization's own alias.
+- `fuzzy` — a looser text match, worth checking against the resolved `name`.
+
+An entry that did not resolve has no `matched_by`.
+`meta` is typed `Record<string, unknown>`, so narrow it before reading:
+
+```ts
+type ResolvedEntry = { token: string; matched_by?: string; resolved: { name: string } | null };
+const filters = (resp.meta?.resolved_filters ?? {}) as Record<string, ResolvedEntry[]>;
+for (const entry of filters.awarding_agency ?? []) {
+  if (entry.matched_by === "fuzzy") {
+    console.warn(`${entry.token} loosely matched ${entry.resolved?.name}`);
+  }
+}
+```

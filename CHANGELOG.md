@@ -10,6 +10,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`matched_by` on agency-filter diagnostics** (Tango API 5.9.0; parity with tango-python). Each entry of `PaginatedResponse.meta.resolved_filters[<filter name>]` that resolved now says how its token matched: `key` (an organization UUID), `code` (a 3-digit CGAC or 4-digit FPDS code), `name` (the organization's name, including a department's everyday name, a spelling variant or a rename), `alias` (an abbreviation or the organization's own alias) or `fuzzy` (a looser text match, worth checking against the resolved name). An entry that did not resolve has no `matched_by`. `meta` is passed through as the API sends it, so no code change was needed to receive the field; it is now documented on the interface and in `docs/API_REFERENCE.md` and pinned by a test. `agencyWarnings`, `unresolvedAgencyTokens` and `resolvedAgencies` are unchanged.
+
 - **Boards-of-contract-appeals decisions** (Tango API 4.26.0). `listContractAppeals(options)` and `getContractAppeal(uuid, options)` over `/api/contract_appeals/`, with every filter the API accepts declared as a typed option on `ListContractAppealsOptions` (`search`, `board`, `docket`, `appellant`, `judge`, `decision_type`, the `decision_date_after` / `_before` pair, `listed`, `document_id`, `ordering`), the new `ContractAppealRecord` return type, and a registered `ContractAppeal` shape schema so the typed shape API resolves the resource's fields.
 
   These are Contract Disputes Act decisions from the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests remain the separate `listProtests()` resource, and the two do not overlap.
