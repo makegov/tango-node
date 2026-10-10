@@ -437,6 +437,23 @@ for (const attachment of request.attachments ?? []) {
 
 Returns an `EbuyRequestRecord`. The default shape is every field plus `organization(*)` (the buying office, in the same shape as other resources' awarding office) and `attachments(*)`. A request outside your contract scope throws `TangoNotFoundError`, the same as an id that does not exist.
 
+**Reading a document's text — `attachments(extracted_text)`** (Tango API 5.9.1+):
+
+```ts
+const request = await client.getEbuyRequest("RFQ1835158", {
+  shape: "rfq_id,attachments(doc_seq_num,doc_name,extracted_text)",
+});
+for (const attachment of request.attachments ?? []) {
+  if ("extracted_text" in attachment) console.log(attachment.doc_name, attachment.extracted_text);
+}
+```
+
+`extracted_text` is the text extracted from an attachment's document. Three behaviors to know:
+
+- **It must be named.** Ask for it alone or alongside other attachment fields.
+- **Neither the default detail shape nor `attachments(*)` carries it.**
+- **The key is absent rather than null** for an attachment with no text: a link, an empty scan, or a document not yet extracted. Check with `in` rather than for a nullish value.
+
 ### `getEbuyAttachmentUrl(rfqId, docSeqNum)`
 
 ```ts

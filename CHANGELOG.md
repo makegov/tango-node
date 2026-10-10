@@ -18,6 +18,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
   `getEbuyAttachmentUrl()` returns the short-lived presigned URL the download endpoint redirects to, without following it. An attachment that is an external link throws the new `TangoEbuyAttachmentLinkError`, a `TangoValidationError` whose `url` is the link target. The HTTP client gained `getRedirectLocation()` to support it.
 
+  `attachments(extracted_text)` returns the text extracted from an attachment's document (Tango API 5.9.1). The field joins `EbuyAttachmentRecord` and the `EbuyAttachment` shape schema. It must be named: the default detail shape and `attachments(*)` do not carry it. The key is absent rather than null for a link, an empty scan, or a document not yet extracted.
+
 - **Boards-of-contract-appeals decisions** (Tango API 4.26.0). `listContractAppeals(options)` and `getContractAppeal(uuid, options)` over `/api/contract_appeals/`, with every filter the API accepts declared as a typed option on `ListContractAppealsOptions` (`search`, `board`, `docket`, `appellant`, `judge`, `decision_type`, the `decision_date_after` / `_before` pair, `listed`, `document_id`, `ordering`), the new `ContractAppealRecord` return type, and a registered `ContractAppeal` shape schema so the typed shape API resolves the resource's fields.
 
   These are Contract Disputes Act decisions from the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests remain the separate `listProtests()` resource, and the two do not overlap.
@@ -50,7 +52,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
-- New **GSA eBuy** section in `docs/API_REFERENCE.md` covering all four methods, the full filter table, and the data caveats (the frozen `status`, the empty-list-not-error scoping, the short-lived attachment URL). `README.md`'s method and error lists gained the new methods and error.
+- New **GSA eBuy** section in `docs/API_REFERENCE.md` covering all four methods, the full filter table, and the data caveats (the frozen `status`, the empty-list-not-error scoping, the short-lived attachment URL, the named-only `attachments(extracted_text)`). `README.md`'s method and error lists gained the new methods and error.
 - New **Contract Appeals** section in `docs/API_REFERENCE.md` covering both methods, the full filter table, and the two properties that catch people out (the core-subset default and the tier-gated, absent-rather-than-null `decision_text`). `README.md`'s method list gained both methods.
 - New **State & Local (SLED) — Beta** section in `docs/API_REFERENCE.md` covering all six methods, both defaults that surprise people, and the new `ShapeConfig` constants.
 - `docs/WEBHOOKS.md` troubleshooting gained the date-lapse rule and its one exception. An exclusion or a DIBBS solicitation reaching its date fires nothing, because open/closed is derived at query time — but `alerts.sled_opportunity.match` **does** fire on a closing, since SLED liveness is a stored column a fifteen-minute sweep writes.

@@ -236,6 +236,12 @@ export interface EbuyAttachmentRecord {
   is_link?: boolean;
   /** ISO datetime. */
   doc_session_date?: string | null;
+  /**
+   * The text extracted from the attachment's document. Requires Tango API 5.9.1+ and must be **named explicitly** — `attachments(*)` and the default detail shape do not carry it.
+   *
+   * The key is ABSENT rather than null for an attachment with no text: a link, an empty scan, or a document not yet extracted. Check with `in` rather than for a nullish value.
+   */
+  extracted_text?: string | null;
   [key: string]: unknown;
 }
 
