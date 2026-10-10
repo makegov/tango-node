@@ -170,6 +170,29 @@ describe("TangoClient — eBuy requests", () => {
     expect(p.get("flat_lists")).toBe("true");
   });
 
+  it("getEbuyRequest passes attachments(extracted_text) through and keeps the key absent where the API omits it", async () => {
+    const shape = "rfq_id,attachments(doc_seq_num,is_link,extracted_text)";
+    const body: EbuyRequestRecord = {
+      rfq_id: "RFQ1835158",
+      attachments: [
+        { doc_seq_num: 3852759, is_link: false, extracted_text: "Statement of work." },
+        { doc_seq_num: 3852760, is_link: true },
+      ],
+    };
+    const { client, calls } = makeClient({ body });
+    const request = await client.getEbuyRequest("RFQ1835158", { shape });
+    expect(params(calls).get("shape")).toBe(shape);
+    const [document, link] = request.attachments ?? [];
+    expect(document.extracted_text).toBe("Statement of work.");
+    expect("extracted_text" in link).toBe(false);
+  });
+
+  it("listEbuyRequests passes attachments(extracted_text) through", async () => {
+    const { client, calls } = makeClient();
+    await client.listEbuyRequests({ shape: "rfq_id,attachments(extracted_text)" });
+    expect(params(calls).get("shape")).toBe("rfq_id,attachments(extracted_text)");
+  });
+
   it("getEbuyRequest rejects an empty id before issuing a request", async () => {
     const { client, calls } = makeClient();
     await expect(client.getEbuyRequest("")).rejects.toThrow(TangoValidationError);
@@ -253,6 +276,12 @@ describe("EbuyRequest shape schema", () => {
     expect(spec.isList).toBe(true);
     expect(spec.nestedModel).toBe("EbuyAttachment");
     expect(registry.getField("EbuyAttachment", "doc_seq_num").type).toBe("int");
+  });
+
+  it("extracted_text is an optional string leaf on EbuyAttachment", () => {
+    const spec = registry.getField("EbuyAttachment", "extracted_text");
+    expect(spec.type).toBe("str");
+    expect(spec.isOptional).toBe(true);
   });
 
   it("organization nests the shared office schema", () => {

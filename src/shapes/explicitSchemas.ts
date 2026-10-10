@@ -5781,6 +5781,14 @@ export const EBUY_ATTACHMENT_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  // Served only when named: the API leaves it out of `attachments(*)`, so no default shape may list it.
+  extracted_text: {
+    name: "extracted_text",
+    type: "str",
+    isOptional: true,
+    isList: false,
+    nestedModel: null,
+  },
 };
 
 // GSA eBuy request. `status` is frozen at the last-seen state, and the contract number a request was posted under is never returned.
