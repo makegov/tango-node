@@ -203,9 +203,10 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 - `getForecast(id, options)` / `getOpportunity(opportunityId, options)` / `getNotice(noticeId, options)` / `getGrant(grantId, options)`
 - `searchOpportunityAttachments(options)`
 
-**GSA eLibrary / Protests / Contract Appeals / IT Dashboard / LCATs**
+**GSA eLibrary / GSA eBuy / Protests / Contract Appeals / IT Dashboard / LCATs**
 
 - `listGsaElibraryContracts(options)` / `getGsaElibraryContract(uuid, options)`
+- `listEbuyRequests(options)` / `getEbuyRequest(rfqId, options)` / `getEbuyAttachmentUrl(rfqId, docSeqNum)` / `getEbuyAccess()`
 - `listProtests(options)` / `getProtest(caseId)`
 - `listContractAppeals(options)` / `getContractAppeal(uuid, options)`
 - `listItDashboard(options)` / `getItDashboard(uii)`
@@ -291,6 +292,7 @@ Errors are surfaced as typed exceptions, aligned with the Python SDK:
 - `TangoAuthError` – Authentication problems (e.g., invalid API key, 401).
 - `TangoNotFoundError` – Resource not found (404).
 - `TangoValidationError` – Invalid request parameters (400). Exposes the API's structured 400 payload via `issues` and `availableFields` (see the [API Reference](docs/API_REFERENCE.md#error-types)).
+- `TangoEbuyAttachmentLinkError` – A `TangoValidationError` subclass thrown by `getEbuyAttachmentUrl()` when the attachment is an external link; its `url` is the link target.
 - `TangoRateLimitError` – Rate limit exceeded (429).
 - `TangoTimeoutError` – Request exceeded the configured `timeoutMs`.
 

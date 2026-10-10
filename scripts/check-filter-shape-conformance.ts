@@ -69,8 +69,7 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   offices: "listOffices",
   protests: "listProtests",
   contract_appeals: "listContractAppeals",
-  // eBuy requests are published by the API but not yet ported — baselined as a tracked gap.
-  "ebuy/requests": null,
+  "ebuy/requests": "listEbuyRequests",
   psc: "listPsc",
   mas_sins: "listMasSins",
   departments: "listDepartments",

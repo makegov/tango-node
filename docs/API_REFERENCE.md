@@ -383,6 +383,100 @@ const contract = await client.getGsaElibraryContract("00000000-0000-0000-0000-00
 
 ---
 
+## GSA eBuy
+
+Requests for quotes, proposals and information (RFQs, RFPs, RFIs) posted to GSA eBuy under GSA schedule contracts. Requires the Pro tier or above; below it the request endpoints return 403.
+
+eBuy results are scoped to the GSA schedule contracts linked to your account. A caller with no linked contract gets an **empty list, not an error** — call `getEbuyAccess()` to tell "no access" from "no matches".
+
+### `listEbuyRequests(options?)`
+
+```ts
+const requests = await client.listEbuyRequests({
+  sin: "54151S",
+  status: "Open",
+  close_date_after: "2026-10-01",
+  limit: 25,
+});
+```
+
+#### Parameters (GSA eBuy)
+
+| Name                           | Type     | Description                                                                                                                                |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `search`                       | `string` | Full-text search over title, description, reference number, request id and attachment text. Ranks by relevance unless `ordering` is given. |
+| `rfq_id`                       | `string` | eBuy request id, exact (e.g. `RFQ1835158`).                                                                                                |
+| `reference_number`             | `string` | The buyer's own solicitation number; dashed and undashed spellings both match.                                                             |
+| `request_type`                 | `string` | `RFQ`, `RFP` or `RFI`.                                                                                                                     |
+| `status`                       | `string` | `Open` or `Cancelled` — frozen at the last-seen state (see below).                                                                         |
+| `sin`                          | `string` | Special Item Number the request was posted under.                                                                                          |
+| `schedule`                     | `string` | GSA schedule the request was posted under.                                                                                                 |
+| `buyer_agency`                 | `string` | Buying department as fed, free text.                                                                                                       |
+| `agency`                       | `string` | Agency name, abbreviation or code, including every sub-agency and office beneath it (Tango API 5.3.0+).                                    |
+| `contract_number`              | `string` | Narrow to one of your own linked contracts. A contract you do not hold returns nothing rather than an error.                               |
+| `issue_date_after` / `_before` | `string` | `YYYY-MM-DD`, inclusive.                                                                                                                   |
+| `close_date_after` / `_before` | `string` | `YYYY-MM-DD`, inclusive.                                                                                                                   |
+| `ordering`                     | `string` | `issue_date` (default `-issue_date`), `close_date`, `last_seen`, or `modified`; prefix `-` for descending.                                 |
+
+Every filter except `contract_number` and the date bounds accepts `|` for OR. The standard `page` / `limit` / `shape` / `flat` / `flatLists` / `joiner` options apply. The default list shape is `rfq_id,request_type,title,schedule,sin,status,buyer_name,buyer_agency,buyer_agency_code,reference_number,issue_date,close_date,attachment_count,link_count,last_seen`.
+
+Three properties of the data worth knowing:
+
+- **`status` is frozen at the last-seen state.** eBuy only carries currently-active requests, so a request that closes stops appearing rather than getting a final row. `Open` means "open the last time it was seen" — use `last_seen` for staleness.
+- **The contract number a request was posted under is never returned** in any payload.
+- **`buyer_agency_code`** and several buyer and contracting-officer fields are sparse on older requests.
+
+### `getEbuyRequest(rfqId, options?)`
+
+```ts
+const request = await client.getEbuyRequest("RFQ1835158");
+for (const attachment of request.attachments ?? []) {
+  console.log(attachment.doc_seq_num, attachment.doc_name, attachment.is_link);
+}
+```
+
+Returns an `EbuyRequestRecord`. The default shape is every field plus `organization(*)` (the buying office, in the same shape as other resources' awarding office) and `attachments(*)`. A request outside your contract scope throws `TangoNotFoundError`, the same as an id that does not exist.
+
+**Reading a document's text — `attachments(extracted_text)`** (Tango API 5.9.1+):
+
+```ts
+const request = await client.getEbuyRequest("RFQ1835158", {
+  shape: "rfq_id,attachments(doc_seq_num,doc_name,extracted_text)",
+});
+for (const attachment of request.attachments ?? []) {
+  if ("extracted_text" in attachment) console.log(attachment.doc_name, attachment.extracted_text);
+}
+```
+
+`extracted_text` is the text extracted from an attachment's document. Three behaviors to know:
+
+- **It must be named.** Ask for it alone or alongside other attachment fields.
+- **Neither the default detail shape nor `attachments(*)` carries it.**
+- **The key is absent rather than null** for an attachment with no text: a link, an empty scan, or a document not yet extracted. Check with `in` rather than for a nullish value.
+
+### `getEbuyAttachmentUrl(rfqId, docSeqNum)`
+
+```ts
+const url = await client.getEbuyAttachmentUrl("RFQ1835158", 3852759);
+const res = await fetch(url);
+```
+
+Returns a presigned download URL for one attachment without downloading it. The URL expires after about five minutes, so fetch it promptly rather than storing it.
+
+- An attachment with `is_link: true` is an external link, not a stored document: the call throws `TangoEbuyAttachmentLinkError`, whose `url` is the link target.
+- A document that has not been captured yet throws `TangoNotFoundError`.
+
+### `getEbuyAccess()`
+
+```ts
+const access = await client.getEbuyAccess();
+// { enabled: false, reason: "no_contract_grant", contracts: [] }
+```
+
+Returns `{ enabled, reason, contracts }`. `reason` is `"tier_required"` below the Pro tier, `"no_contract_grant"` when no contract is linked to your account, and `null` when `enabled` is true; `tier_required` wins when both apply. `contracts` lists your own active grants, sorted.
+
+---
+
 ## Protests
 
 ### `listProtests(options?)`
@@ -1059,6 +1153,7 @@ All thrown by async methods:
 - `TangoRateLimitError`
 - `TangoTimeoutError`
 - `TangoValidationError`
+- `TangoEbuyAttachmentLinkError` (a `TangoValidationError` with a `url`)
 - `ShapeError`
 - `ShapeParseError`
 - `ShapeValidationError`

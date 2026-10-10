@@ -12,6 +12,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - **`matched_by` on agency-filter diagnostics** (Tango API 5.9.0; parity with tango-python). Each entry of `PaginatedResponse.meta.resolved_filters[<filter name>]` that resolved now says how its token matched: `key` (an organization UUID), `code` (a 3-digit CGAC or 4-digit FPDS code), `name` (the organization's name, including a department's everyday name, a spelling variant or a rename), `alias` (an abbreviation or the organization's own alias) or `fuzzy` (a looser text match, worth checking against the resolved name). An entry that did not resolve has no `matched_by`. `meta` is passed through as the API sends it, so no code change was needed to receive the field; it is now documented on the interface and in `docs/API_REFERENCE.md` and pinned by a test. `agencyWarnings`, `unresolvedAgencyTokens` and `resolvedAgencies` are unchanged.
 
+- **GSA eBuy requests** (Tango API 5.1.0). Four methods: `listEbuyRequests(options)` over `/api/ebuy/requests/`, `getEbuyRequest(rfqId, options)`, `getEbuyAttachmentUrl(rfqId, docSeqNum)` and `getEbuyAccess()`. Every filter the API accepts is a typed option on `ListEbuyRequestsOptions` (`search`, `rfq_id`, `reference_number`, `request_type`, `status`, `sin`, `schedule`, `buyer_agency`, `agency`, `contract_number`, the `issue_date_*` and `close_date_*` bounds, `ordering`; `agency` needs Tango API 5.3.0), with new `EbuyRequestRecord`, `EbuyAttachmentRecord` and `EbuyAccess` types and registered `EbuyRequest` / `EbuyAttachment` shape schemas.
+
+  Results are scoped to the GSA schedule contracts linked to the caller's account, and an account with none gets an empty list rather than an error; `getEbuyAccess()` reports `enabled`, a `reason` (`tier_required` or `no_contract_grant`) and the caller's own `contracts`. `status` is frozen at the last-seen state, so `Open` means "open the last time it was seen" — `last_seen` is the staleness signal.
+
+  `getEbuyAttachmentUrl()` returns the short-lived presigned URL the download endpoint redirects to, without following it. An attachment that is an external link throws the new `TangoEbuyAttachmentLinkError`, a `TangoValidationError` whose `url` is the link target. The HTTP client gained `getRedirectLocation()` to support it.
+
+  `attachments(extracted_text)` returns the text extracted from an attachment's document (Tango API 5.9.1). The field joins `EbuyAttachmentRecord` and the `EbuyAttachment` shape schema. It must be named: the default detail shape and `attachments(*)` do not carry it. The key is absent rather than null for a link, an empty scan, or a document not yet extracted.
+
 - **Boards-of-contract-appeals decisions** (Tango API 4.26.0). `listContractAppeals(options)` and `getContractAppeal(uuid, options)` over `/api/contract_appeals/`, with every filter the API accepts declared as a typed option on `ListContractAppealsOptions` (`search`, `board`, `docket`, `appellant`, `judge`, `decision_type`, the `decision_date_after` / `_before` pair, `listed`, `document_id`, `ordering`), the new `ContractAppealRecord` return type, and a registered `ContractAppeal` shape schema so the typed shape API resolves the resource's fields.
 
   These are Contract Disputes Act decisions from the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests remain the separate `listProtests()` resource, and the two do not overlap.
@@ -31,7 +39,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Re-vendored `contracts/filter_shape_contract.json` (schema_version 2, 48 resources) and regenerated `src/shapes/generatedOverlay.ts` from it — 359 fields across 25 containers, 73 nested schemas.
-- Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win. eBuy requests are in the contract without an SDK method yet, so it is baselined as a tracked gap.
+- Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win.
+- Wrapping eBuy maps `ebuy/requests` in the conformance gate and removes it from both coverage baselines.
 - Baselined 14 reverse-shape-coverage gaps in `contracts/shape_coverage_baseline.json`, matching tango-python. All 14 are the nested sub-resource routes above, which reuse the parent resource's model rather than carrying one of their own; none is SLED, and none is a regression — they became visible only with the re-vendored contract.
 
 ### Fixed
@@ -43,6 +52,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
+- New **GSA eBuy** section in `docs/API_REFERENCE.md` covering all four methods, the full filter table, and the data caveats (the frozen `status`, the empty-list-not-error scoping, the short-lived attachment URL, the named-only `attachments(extracted_text)`). `README.md`'s method and error lists gained the new methods and error.
 - New **Contract Appeals** section in `docs/API_REFERENCE.md` covering both methods, the full filter table, and the two properties that catch people out (the core-subset default and the tier-gated, absent-rather-than-null `decision_text`). `README.md`'s method list gained both methods.
 - New **State & Local (SLED) — Beta** section in `docs/API_REFERENCE.md` covering all six methods, both defaults that surprise people, and the new `ShapeConfig` constants.
 - `docs/WEBHOOKS.md` troubleshooting gained the date-lapse rule and its one exception. An exclusion or a DIBBS solicitation reaching its date fires nothing, because open/closed is derived at query time — but `alerts.sled_opportunity.match` **does** fire on a closing, since SLED liveness is a stored column a fifteen-minute sweep writes.

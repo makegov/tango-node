@@ -67,6 +67,7 @@ export const RESOURCE_TO_MODEL: Record<string, string> = {
   budget_accounts: "BudgetAccount",
   protests: "Protest",
   contract_appeals: "ContractAppeal",
+  "ebuy/requests": "EbuyRequest",
   offices: "Office",
   assistance_listings: "AssistanceListing",
   business_types: "BusinessType",
