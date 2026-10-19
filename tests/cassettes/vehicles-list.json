@@ -4,7 +4,7 @@
     {
       "request": {
         "method": "GET",
-        "url": "https://tango.makegov.com/api/vehicles/?limit=3&page=1&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
+        "url": "https://tango.makegov.com/api/vehicles/?limit=3&page=1&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cholder_count%2Corder_winner_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date"
       },
       "response": {
         "status": 200,
@@ -23,10 +23,12 @@
         },
         "body": {
           "count": 20749,
-          "next": "https://tango.makegov.com/api/vehicles/?limit=3&page=2&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date",
+          "next": "https://tango.makegov.com/api/vehicles/?limit=3&page=2&shape=uuid%2Csolicitation_identifier%2Cis_synthetic_solicitation%2Cprogram_acronym%2Corganization_id%2Corganization%2Cvehicle_type%2Cdescription%2Cidv_count%2Cholder_count%2Corder_winner_count%2Cawardee_count%2Corder_count%2Ctotal_obligated%2Cvehicle_obligations%2Cvehicle_contracts_value%2Clatest_award_date%2Csolicitation_title%2Csolicitation_date",
           "previous": null,
           "results": [
             {
+              "holder_count": 2,
+              "order_winner_count": 2,
               "awardee_count": 2,
               "description": [
                 "CATTLE AND SWINE BACKTAG CEMENT",
@@ -60,6 +62,8 @@
               }
             },
             {
+              "holder_count": 2,
+              "order_winner_count": 1,
               "awardee_count": 1,
               "description": [
                 "WIRED TELEPHONY SERVICES"
@@ -92,6 +96,8 @@
               }
             },
             {
+              "holder_count": 3,
+              "order_winner_count": 3,
               "awardee_count": 3,
               "description": [
                 "INDEFINITE QUANTITY ARCHITECTURAL ENGINEERING CONTRACT FOR THE MID WEST AREA.",

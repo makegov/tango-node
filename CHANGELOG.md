@@ -38,6 +38,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
   `attachments(extracted_text)` returns the text extracted from an attachment's document (Tango API 5.9.1). The field joins `EbuyAttachmentRecord` and the `EbuyAttachment` shape schema. It must be named: the default detail shape and `attachments(*)` do not carry it. The key is absent rather than null for a link, an empty scan, or a document not yet extracted.
 
+- **Vehicle company counts** (Tango API 5.8.0). `Vehicle` gains `holder_count` (distinct companies holding one of the vehicle's IDVs) and `order_winner_count` (distinct companies that have won a task order under it), and both join the `VEHICLES_MINIMAL` and `VEHICLES_COMPREHENSIVE` defaults next to `awardee_count`, so `listVehicles()` and `getVehicle()` return them without a custom `shape`. Neither is orderable or filterable.
+
 - **Boards-of-contract-appeals decisions** (Tango API 4.26.0). `listContractAppeals(options)` and `getContractAppeal(uuid, options)` over `/api/contract_appeals/`, with every filter the API accepts declared as a typed option on `ListContractAppealsOptions` (`search`, `board`, `docket`, `appellant`, `judge`, `decision_type`, the `decision_date_after` / `_before` pair, `listed`, `document_id`, `ordering`), the new `ContractAppealRecord` return type, and a registered `ContractAppeal` shape schema so the typed shape API resolves the resource's fields.
 
   These are Contract Disputes Act decisions from the CBCA (civilian) and the ASBCA (defense) — a dispute under an existing contract, not a challenge to an award. Bid protests remain the separate `listProtests()` resource, and the two do not overlap.
@@ -61,6 +63,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Re-vendored the contract for Tango API 5.1.0 and regenerated the overlay, which now merges a model's expand when two resources embed it instead of letting the narrower copy win.
 - Wrapping eBuy maps `ebuy/requests` in the conformance gate and removes it from both coverage baselines.
 - Baselined 14 reverse-shape-coverage gaps in `contracts/shape_coverage_baseline.json`, matching tango-python. All 14 are the nested sub-resource routes above, which reuse the parent resource's model rather than carrying one of their own; none is SLED, and none is a regression — they became visible only with the re-vendored contract.
+
+### Deprecated
+
+- `Vehicle.awardee_count` is deprecated in favor of `order_winner_count`, which carries the same value. The API keeps serving it as an alias until its next major version.
 
 ### Fixed
 
