@@ -80,6 +80,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **API errors now carry the server's reason** (parity with tango-python). A 403 or other non-2xx response the SDK had no dedicated error class for threw `TangoAPIError("API request failed with status 403")`, so a caller refused for a G2X-only shape field or a plan-gated filter couldn't tell why without digging into `responseData`. The message now ends with the API's own explanation (`API request failed with status 403: G2X shape fields are not allowed for your account.`), and the parsed body stays on `responseData`. Non-JSON bodies, such as a proxy's 502 page, keep the old message.
 - **`attachments(name,doc_role,doc_role_alt)` no longer throws `ShapeValidationError`** on `getOpportunity`, `listOpportunities`, `getNotice` and `listNotices`; the API serves both fields on the Pro plan and above when they are named. New `OpportunityAttachment` and `AttachmentDocRole` types cover the six roles and are used on `Opportunity` and `Notice`.
 - **SLED solicitations accept `delisted_at` and `meta(jurisdiction_declared)`**, which were rejected client-side. `SledOpportunity` and `SledMetaPayload` carry the new fields, and `status_reason` now documents `delisted`.
 - **`ProtestRecord` types `agency` and `protester` as the strings the API returns**, and gains `title`, `docket_url`, `decision_url`, `organization`, `dockets` and `decisions`. The never-served `docket` property is deprecated in favor of `dockets`.

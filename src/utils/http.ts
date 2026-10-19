@@ -65,13 +65,32 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Where a list response body carries its `X-Results-CountType` header value. */
+export const COUNT_TYPE_KEY: unique symbol = Symbol("tango.countType");
+
+/**
+ * The server's own explanation from an error body, e.g. why a 403 refused the request.
+ *
+ * The API sends either `{"detail": "..."}` or a structured body such as a tier gate's `{"error": "...", "code": "tier_required", ...}`, sometimes nested under `detail`.
+ */
+function errorReason(data: unknown): string | null {
+  if (!isRecord(data)) return null;
+  for (const body of [data, data.detail]) {
+    if (typeof body === "string" && body) return body;
+    if (isRecord(body)) {
+      for (const key of ["error", "message", "detail"]) {
+        const value = body[key];
+        if (typeof value === "string" && value) return value;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Parse a `Retry-After` header. Accepts both a delta-seconds form and an
  * HTTP-date form. Returns milliseconds, or `null` if header is missing/invalid.
  */
-/** Where a list response body carries its `X-Results-CountType` header value. */
-export const COUNT_TYPE_KEY: unique symbol = Symbol("tango.countType");
-
 function parseRetryAfter(headers: Headers | undefined | null): number | null {
   if (!headers) return null;
   const raw = headers.get("retry-after") ?? headers.get("Retry-After");
@@ -322,7 +341,9 @@ export class HttpClient {
     }
 
     if (!res.ok) {
-      const e = new TangoAPIError(`API request failed with status ${res.status}`, res.status, data);
+      const reason = errorReason(data);
+      const message = `API request failed with status ${res.status}`;
+      const e = new TangoAPIError(reason ? `${message}: ${reason}` : message, res.status, data);
       if (isRetryableStatus(res.status)) {
         (e as unknown as Record<string, unknown>).__retryable = true;
         if (retryAfterMs !== null) {
