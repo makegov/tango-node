@@ -89,3 +89,32 @@ describe("typed filters added through Tango API 5.8.0", () => {
     });
   });
 });
+
+describe("typed filters added in Tango API 5.10.0 and 5.11.0", () => {
+  it.each([
+    ["listContracts", "/api/contracts/"],
+    ["listIdvs", "/api/idvs/"],
+  ] as const)("%s sends commercial_item_acquisition_procedures", async (method, expectedPath) => {
+    const { client, urls } = makeClient();
+    await client[method]({ commercial_item_acquisition_procedures: "A|E" });
+    const { path, params } = sent(urls);
+    expect(path).toBe(expectedPath);
+    expect(params.get("commercial_item_acquisition_procedures")).toBe("A|E");
+  });
+
+  it("listIdvAwards sends commercial_item_acquisition_procedures to the child-award route", async () => {
+    const { client, urls } = makeClient();
+    await client.listIdvAwards("IDV-KEY", { commercial_item_acquisition_procedures: "E" });
+    const { path, params } = sent(urls);
+    expect(path).toBe("/api/idvs/IDV-KEY/awards/");
+    expect(params.get("commercial_item_acquisition_procedures")).toBe("E");
+  });
+
+  it("listContracts maps a pipe-joined recipient_uei to uei unchanged", async () => {
+    const { client, urls } = makeClient();
+    await client.listContracts({ recipient_uei: "ABCDEFGHJKL1|ZYXWVUTSRQP9" });
+    const { params } = sent(urls);
+    expect(params.get("uei")).toBe("ABCDEFGHJKL1|ZYXWVUTSRQP9");
+    expect(params.has("recipient_uei")).toBe(false);
+  });
+});

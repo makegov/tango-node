@@ -314,6 +314,24 @@ export const TRANSACTION_SCHEMA: FieldSchemaMap = {
   },
 };
 
+// One entry of an award's `obligations_by_fiscal_year`: the obligations dated in one federal fiscal year, rounded to cents.
+export const FISCAL_YEAR_OBLIGATION_SCHEMA: FieldSchemaMap = {
+  fiscal_year: {
+    name: "fiscal_year",
+    type: "int",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+  obligated: {
+    name: "obligated",
+    type: "Decimal",
+    isOptional: false,
+    isList: false,
+    nestedModel: null,
+  },
+};
+
 export const DEPARTMENT_SCHEMA: FieldSchemaMap = {
   abbreviation: {
     name: "abbreviation",
@@ -995,6 +1013,14 @@ export const CONTRACT_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: null,
+  },
+  /** Obligations per federal fiscal year, oldest first, each rounded to cents. Always null on IDVs and OT IDVs. Requires Tango API 5.11.0. */
+  obligations_by_fiscal_year: {
+    name: "obligations_by_fiscal_year",
+    type: "dict",
+    isOptional: true,
+    isList: true,
+    nestedModel: "FiscalYearObligation",
   },
 };
 
@@ -2356,6 +2382,14 @@ export const IDV_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: null,
   },
+  /** Obligations per federal fiscal year, oldest first, each rounded to cents. Always null on IDVs and OT IDVs. Requires Tango API 5.11.0. */
+  obligations_by_fiscal_year: {
+    name: "obligations_by_fiscal_year",
+    type: "dict",
+    isOptional: true,
+    isList: true,
+    nestedModel: "FiscalYearObligation",
+  },
 };
 
 export const VEHICLE_SCHEMA: FieldSchemaMap = {
@@ -2876,6 +2910,14 @@ export const OTA_SCHEMA: FieldSchemaMap = {
     isList: false,
     nestedModel: "RecipientProfile",
   },
+  /** Obligations per federal fiscal year, oldest first, each rounded to cents. Always null on IDVs and OT IDVs. Requires Tango API 5.11.0. */
+  obligations_by_fiscal_year: {
+    name: "obligations_by_fiscal_year",
+    type: "dict",
+    isOptional: true,
+    isList: true,
+    nestedModel: "FiscalYearObligation",
+  },
 };
 
 // OTIDV (Other Transaction IDV) - IDV-like
@@ -2935,6 +2977,14 @@ export const OTIDV_SCHEMA: FieldSchemaMap = {
     isOptional: true,
     isList: false,
     nestedModel: "RecipientProfile",
+  },
+  /** Obligations per federal fiscal year, oldest first, each rounded to cents. Always null on IDVs and OT IDVs. Requires Tango API 5.11.0. */
+  obligations_by_fiscal_year: {
+    name: "obligations_by_fiscal_year",
+    type: "dict",
+    isOptional: true,
+    isList: true,
+    nestedModel: "FiscalYearObligation",
   },
 };
 
@@ -6464,6 +6514,7 @@ export const EXPLICIT_SCHEMAS: ExplicitSchemas = {
   LegislativeMandates: LEGISLATIVE_MANDATES_SCHEMA,
   SubawardsSummary: SUBAWARDS_SUMMARY_SCHEMA,
   Transaction: TRANSACTION_SCHEMA,
+  FiscalYearObligation: FISCAL_YEAR_OBLIGATION_SCHEMA,
   Department: DEPARTMENT_SCHEMA,
   Contact: CONTACT_SCHEMA,
   AwardOffice: AWARD_OFFICE_SCHEMA,

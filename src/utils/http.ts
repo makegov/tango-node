@@ -69,6 +69,9 @@ function sleep(ms: number): Promise<void> {
  * Parse a `Retry-After` header. Accepts both a delta-seconds form and an
  * HTTP-date form. Returns milliseconds, or `null` if header is missing/invalid.
  */
+/** Where a list response body carries its `X-Results-CountType` header value. */
+export const COUNT_TYPE_KEY: unique symbol = Symbol("tango.countType");
+
 function parseRetryAfter(headers: Headers | undefined | null): number | null {
   if (!headers) return null;
   const raw = headers.get("retry-after") ?? headers.get("Retry-After");
@@ -332,6 +335,12 @@ export class HttpClient {
     if (res.ok && isRecord(data) && typeof data.error === "string") {
       // The API occasionally signals errors in a 200 payload; surface as TangoAPIError.
       throw new TangoAPIError(data.error, res.status, data);
+    }
+
+    // Stamp a list body with its own count type so each `PaginatedResponse` reads this response's header, not the shared `lastResponseHeaders`. A symbol key survives object spread and stays out of JSON.
+    const countType = getHeader(res.headers, "x-results-counttype");
+    if (countType && isRecord(data) && "count" in data) {
+      (data as Record<PropertyKey, unknown>)[COUNT_TYPE_KEY] = countType.toLowerCase();
     }
 
     return (data ?? {}) as T;

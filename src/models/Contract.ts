@@ -52,6 +52,16 @@ export interface ParentAwardReference {
 }
 
 /**
+ * One entry of an award's `obligations_by_fiscal_year` expand (Tango API 5.11.0): the obligations dated in one federal fiscal year, rounded to cents.
+ *
+ * `obligated` arrives as a JSON number; the client's shaped response parses it to a decimal string, as it does every money field. A de-obligation nets against its own year, so a year can be zero or negative.
+ */
+export interface FiscalYearObligation {
+  fiscal_year: number;
+  obligated: string | number;
+}
+
+/**
  * Contract list/detail item.
  *
  * `/api/contracts/` uses shape-on-demand: which fields appear in a response
@@ -80,6 +90,8 @@ export interface Contract {
   legislative_mandates?: LegislativeMandates;
   place_of_performance?: PlaceOfPerformance;
   subawards_summary?: SubawardsSummary;
+  /** Obligations per federal fiscal year, oldest first. Returned only when named in `shape`. The API sends null for a contract with no dated transactions, which the client's shaped response reads as `[]`, as it does for every nested list. Requires Tango API 5.11.0. */
+  obligations_by_fiscal_year?: FiscalYearObligation[] | null;
 
   /** @deprecated Never returned by the API; removed in v2.0.0. */
   id?: string;

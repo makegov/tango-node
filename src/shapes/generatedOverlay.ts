@@ -62,6 +62,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     doc_role: f("doc_role", "str"),
     doc_role_alt: f("doc_role_alt", "str"),
     extracted_text: f("extracted_text", "str"),
+    extraction_status: f("extraction_status", "str"),
     file_size: f("file_size", "int"),
     mime_type: f("mime_type", "str"),
     name: f("name", "str"),
@@ -75,6 +76,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     doc_role: f("doc_role", "str"),
     doc_role_alt: f("doc_role_alt", "str"),
     extracted_text: f("extracted_text", "str"),
+    extraction_status: f("extraction_status", "str"),
     file_size: f("file_size", "int"),
     mime_type: f("mime_type", "str"),
     name: f("name", "str"),
@@ -85,6 +87,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
   },
   Attachments3: {
     attachment_id: f("attachment_id", "str"),
+    extraction_status: f("extraction_status", "str"),
     file_size: f("file_size", "str"),
     mime_type: f("mime_type", "str"),
     name: f("name", "str"),
@@ -98,6 +101,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     doc_role: f("doc_role", "str"),
     doc_role_alt: f("doc_role_alt", "str"),
     extracted_text: f("extracted_text", "str"),
+    extraction_status: f("extraction_status", "str"),
     file_size: f("file_size", "str"),
     mime_type: f("mime_type", "str"),
     name: f("name", "str"),
@@ -431,6 +435,10 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
   NoticeType: {
     code: f("code", "str"),
     type: f("type", "str"),
+  },
+  ObligationsByFiscalYear: {
+    fiscal_year: f("fiscal_year", "str"),
+    obligated: f("obligated", "str"),
   },
   Officers2: {
     highly_compensated_officer_1_amount: f("highly_compensated_officer_1_amount", "Decimal"),

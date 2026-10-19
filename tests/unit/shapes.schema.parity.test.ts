@@ -42,8 +42,8 @@ describe("Ported explicit schemas — parity with Python SDK", () => {
     expect(ORGANIZATION_SCHEMA.level.type).toBe("int");
   });
 
-  it("OTA_SCHEMA has 7 fields including recipient expansion", () => {
-    expect(Object.keys(OTA_SCHEMA)).toHaveLength(7);
+  it("OTA_SCHEMA has 8 fields including recipient expansion", () => {
+    expect(Object.keys(OTA_SCHEMA)).toHaveLength(8);
     expect(OTA_SCHEMA.key.isOptional).toBe(false);
     expect(OTA_SCHEMA.piid).toBeDefined();
     expect(OTA_SCHEMA.total_contract_value.type).toBe("Decimal");
@@ -51,8 +51,8 @@ describe("Ported explicit schemas — parity with Python SDK", () => {
     expect(OTA_SCHEMA.recipient.nestedModel).toBe("RecipientProfile");
   });
 
-  it("OTIDV_SCHEMA has 8 fields including idv_type and recipient", () => {
-    expect(Object.keys(OTIDV_SCHEMA)).toHaveLength(8);
+  it("OTIDV_SCHEMA has 9 fields including idv_type and recipient", () => {
+    expect(Object.keys(OTIDV_SCHEMA)).toHaveLength(9);
     expect(OTIDV_SCHEMA.key.isOptional).toBe(false);
     expect(OTIDV_SCHEMA.idv_type).toBeDefined();
     expect(OTIDV_SCHEMA.idv_type.type).toBe("dict");

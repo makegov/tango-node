@@ -13,6 +13,8 @@ export interface OpportunityAttachment {
   posted_date?: string | null;
   url?: string | null;
   extracted_text?: string | null;
+  /** Where text extraction stands for this attachment: `pending`, `extracting`, `completed`, `failed` or `unsupported`, so you can tell why `extracted_text` is missing. Treat it as an open string. Requires Tango API 5.11.0. */
+  extraction_status?: "pending" | "extracting" | "completed" | "failed" | "unsupported" | (string & {}) | null;
   /**
    * The document's role in the package. Requires a Pro plan or above and must be named explicitly — `attachments(*)` does not carry it.
    *
