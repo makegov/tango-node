@@ -32,17 +32,30 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          # Full history so the push's `before` commit is reachable for the diff.
+          fetch-depth: 0
 
       - name: Detect changed paths
         id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          base=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)
-          external=$(git diff --name-only "$base" HEAD -- 'docs' 'README.md' 'CHANGELOG.md' | paste -sd, -)
+          paths=(docs README.md CHANGELOG.md)
+          if [ "$EVENT_NAME" = "push" ] && [[ -n "$BEFORE" && ! "$BEFORE" =~ ^0+$ ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            external=$(git diff --name-only "$BEFORE" "$SHA" -- "${paths[@]}" | paste -sd, -)
+            has_external=$([ -n "$external" ] && echo true || echo false)
+          else
+            # No usable push range (manual run, new branch, or a force-push whose `before` is gone): report the last commit's paths and dispatch regardless.
+            base=$(git rev-parse "$SHA~1" 2>/dev/null || git rev-parse "$SHA")
+            external=$(git diff --name-only "$base" "$SHA" -- "${paths[@]}" | paste -sd, -)
+            has_external=true
+          fi
           {
             echo "external=$external"
-            echo "has_external=$([ -n "$external" ] && echo true || echo false)"
+            echo "has_external=$has_external"
           } >> "$GITHUB_OUTPUT"
 
       - name: Dispatch to docs composer (makegov/docs)
@@ -50,9 +63,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DOCS_DISPATCH_TOKEN }}
           TARGET: ${{ vars.DOCS_TARGET_REPO || 'makegov/docs' }}
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_REF: ${{ github.sha }}
+          CHANGED_PATHS: ${{ steps.changes.outputs.external }}
         run: |
+          set -euo pipefail
           gh api "repos/$TARGET/dispatches" \
             -f event_type=external_updated \
-            -f "client_payload[source_repo]=${{ github.repository }}" \
-            -f "client_payload[source_ref]=${{ github.sha }}" \
-            -f "client_payload[changed_paths]=${{ steps.changes.outputs.external }}"
+            -f "client_payload[source_repo]=$SOURCE_REPO" \
+            -f "client_payload[source_ref]=$SOURCE_REF" \
+            -f "client_payload[changed_paths]=$CHANGED_PATHS"
