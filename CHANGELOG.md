@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-19
+
 ### Added
 
 - **`obligations_by_fiscal_year(fiscal_year, obligated)` shape expand on contracts, IDVs, OTAs and OT IDVs** (Tango API 5.11.0; parity with tango-python). Returns the award's obligations per federal fiscal year, oldest first, each rounded to cents. The new `FiscalYearObligation` model type and schema carry `fiscal_year` as an integer and `obligated` as a decimal, which the shaped response normalizes to a string like every money field. The API always sends `null` on IDVs and OT IDVs, whose transactions report a running lifetime total; the shaped contract and IDV methods read a `null` nested list as `[]`, as they do for every nested list.
