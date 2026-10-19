@@ -345,3 +345,55 @@ describe("HttpClient — structured 400 payloads", () => {
     expect(validation.availableFields).toEqual({ fields: ["key", "piid"] });
   });
 });
+
+describe("HttpClient — error reason on statuses without a dedicated error", () => {
+  const rejectionFor = async (status: number, text: string): Promise<TangoAPIError> => {
+    const client = new HttpClient({
+      baseUrl: "https://example.test",
+      retries: 0,
+      fetchImpl: async (): Promise<any> => ({
+        ok: false,
+        status,
+        async text() {
+          return text;
+        },
+      }),
+    });
+    const err = await client.get("/api/contracts/").catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(TangoAPIError);
+    return err as TangoAPIError;
+  };
+
+  it("appends the server's reason and keeps the parsed body", async () => {
+    const body = { detail: "G2X shape fields are not allowed for your account." };
+    const err = await rejectionFor(403, JSON.stringify(body));
+
+    expect(err.message).toBe("API request failed with status 403: G2X shape fields are not allowed for your account.");
+    expect(err.statusCode).toBe(403);
+    expect(err.responseData).toEqual(body);
+  });
+
+  it.each([
+    { error: "The 'psc' filter requires a Small plan or higher.", code: "tier_required" },
+    { detail: { error: "The 'psc' filter requires a Small plan or higher.", code: "tier_required" } },
+  ])("reads a tier gate's reason flat or nested under detail (%j)", async (body) => {
+    const err = await rejectionFor(403, JSON.stringify(body));
+
+    expect(err.message).toBe("API request failed with status 403: The 'psc' filter requires a Small plan or higher.");
+  });
+
+  it("keeps the bare message for a JSON body with no reason", async () => {
+    const body = { code: "forbidden" };
+    const err = await rejectionFor(403, JSON.stringify(body));
+
+    expect(err.message).toBe("API request failed with status 403");
+    expect(err.responseData).toEqual(body);
+  });
+
+  it("keeps the bare message for a non-JSON body", async () => {
+    const err = await rejectionFor(502, "<html>Bad Gateway</html>");
+
+    expect(err.message).toBe("API request failed with status 502");
+    expect(err.responseData).toBeNull();
+  });
+});

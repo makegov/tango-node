@@ -4,7 +4,7 @@ import { ModelFactory } from "./shapes/factory.js";
 import { ShapeParser } from "./shapes/parser.js";
 import type { ShapeSpec } from "./shapes/types.js";
 import { isRecord } from "./utils/guards.js";
-import { HttpClient } from "./utils/http.js";
+import { COUNT_TYPE_KEY, HttpClient } from "./utils/http.js";
 import { unflattenResponse } from "./utils/unflatten.js";
 import {
   AgencyRecord,
@@ -111,9 +111,12 @@ function buildPaginatedResponse<T = AnyRecord>(raw: AnyRecord): PaginatedRespons
   const pageMetadata = isRecord(pageMetadataVal) ? pageMetadataVal : null;
   const meta = isRecord(metaVal) ? metaVal : null;
   const cursor = extractCursorFromUrl(next);
+  const countTypeVal = (raw as Record<PropertyKey, unknown> | null)?.[COUNT_TYPE_KEY];
+  const countType = typeof countTypeVal === "string" ? countTypeVal : null;
 
   return {
     count,
+    countType,
     next,
     previous,
     pageMetadata,
@@ -218,10 +221,14 @@ export interface ListContractsOptions extends ListOptionsBase {
   psc_code?: string; // SDK-friendly alias mapped to `psc`
   recipient?: string;
   recipient_name?: string; // SDK-friendly alias mapped to `recipient`
+  /** Vendor UEI. Several UEIs joined by `|` match awards to any of them, up to 500 (Tango API 5.11.0). */
   uei?: string;
-  recipient_uei?: string; // SDK-friendly alias mapped to `uei`
+  /** SDK-friendly alias mapped to `uei`. Several UEIs joined by `|` match awards to any of them, up to 500 (Tango API 5.11.0). */
+  recipient_uei?: string;
   set_aside?: string;
   set_aside_type?: string; // SDK-friendly alias mapped to `set_aside`
+  /** FPDS commercial item acquisition procedures code, case-insensitive: `A` (commercial products/services), `B` (products or services pursuant to FAR 12.102(f)), `C` (services pursuant to FAR 12.102(g)), `D` (commercial procedures not used) or `E` (DoD Section 803 Commercial Solutions Opening). Multi-value OR via `|`, e.g. `"A|E"`; an unknown or multi-character code matches nothing. Not offered on OTAs or OT IDVs. Requires Tango API 5.10.0. */
+  commercial_item_acquisition_procedures?: string;
 
   // Search + ordering
   search?: string;
@@ -313,7 +320,10 @@ export interface ListIdvsOptions {
   search?: string;
   set_aside?: string;
   solicitation_identifier?: string;
+  /** Vendor UEI. Several UEIs joined by `|` match awards to any of them, up to 500 (Tango API 5.11.0). */
   uei?: string;
+  /** FPDS commercial item acquisition procedures code, case-insensitive: `A` (commercial products/services), `B` (products or services pursuant to FAR 12.102(f)), `C` (services pursuant to FAR 12.102(g)), `D` (commercial procedures not used) or `E` (DoD Section 803 Commercial Solutions Opening). Multi-value OR via `|`, e.g. `"A|E"`; an unknown or multi-character code matches nothing. Not offered on OTAs or OT IDVs. Requires Tango API 5.10.0. */
+  commercial_item_acquisition_procedures?: string;
 
   [key: string]: unknown;
 }
@@ -889,6 +899,7 @@ export interface ListDepartmentsOptions extends ListOptionsBase {
 export interface ListOtasOptions extends ListOptionsBase {
   cursor?: string | null;
   joiner?: string;
+  /** Awardee UEI. Several UEIs joined by `|` match awards to any of them, up to 500 (Tango API 5.11.0). */
   uei?: string;
   /** Exact award key (the detail-endpoint identifier). */
   key?: string;

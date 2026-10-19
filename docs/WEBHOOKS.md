@@ -79,6 +79,9 @@ console.log(info.event_types);
 // [{ event_type: "alerts.contract.match", description: "...", schema_version: 1 }, ...]
 ```
 
+The list is served by the API, so the SDK hardcodes no event types and a new one needs no SDK release.
+`alerts.federal_register.match` and `alerts.ebuy_request.match` are among them, so `createWebhookAlert({ query_type: "federal_register", ... })` and `query_type: "ebuy_request"` work.
+
 ### 2. See what a payload looks like
 
 ```ts

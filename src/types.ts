@@ -44,6 +44,13 @@ export interface TangoClientOptions {
 
 export interface PaginatedResponse<T> {
   count: number;
+  /**
+   * Whether `count` is `"exact"` or `"approximate"`, read from this response's `X-Results-CountType` header; `null` when the API does not send it.
+   * Past 1,000 matches the contract, IDV, opportunity and notice lists may return a query-planner estimate as `count`, which can be well off; this is how to tell the two apart.
+   * It is taken from each response itself, so concurrent calls on one client cannot see each other's value the way `lastResponseHeaders` can.
+   * Optional so pre-existing code constructing a `PaginatedResponse` still compiles; responses built by the client always populate it.
+   */
+  countType?: "exact" | "approximate" | (string & {}) | null;
   next: string | null;
   previous: string | null;
   pageMetadata: Record<string, unknown> | null;

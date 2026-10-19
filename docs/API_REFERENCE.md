@@ -83,6 +83,32 @@ These mirror the Python SDK:
 `key` is also a typed filter — pass a contract key (or several separated by `|`) to fetch specific records through the list endpoint.
 The same `key` filter exists on `listIdvs`, `listOtas`, and `listOtidvs`.
 
+`recipient_uei` (and `uei` on `listIdvs`, `listOtas` and `listOtidvs`) accepts several UEIs joined by `|`, matching awards to any of them, up to 500 (Tango API 5.11.0).
+The SDK passes the value through unchanged.
+
+`commercial_item_acquisition_procedures` filters by the FPDS commercial item acquisition procedures code (Tango API 5.10.0): `A` (commercial products/services), `B` (products or services pursuant to FAR 12.102(f)), `C` (services pursuant to FAR 12.102(g)), `D` (commercial procedures not used) or `E` (DoD Section 803 Commercial Solutions Opening).
+Codes are case-insensitive and pipe-separated for OR, e.g. `"A|E"`; an unknown or multi-character code matches nothing.
+It is also typed on `listIdvs`, `listIdvAwards` and `listIdvChildIdvs`, but the API does not offer it on OTAs or OT IDVs.
+
+**Obligations by fiscal year — `obligations_by_fiscal_year(fiscal_year, obligated)`** (Tango API 5.11.0):
+
+```ts
+import type { FiscalYearObligation } from "@makegov/tango-node/models";
+
+const resp = await client.listContracts({
+  piid: "SOME_PIID",
+  shape: "key,piid,obligated,obligations_by_fiscal_year(fiscal_year,obligated)",
+});
+for (const year of (resp.results[0].obligations_by_fiscal_year ?? []) as FiscalYearObligation[]) {
+  console.log(year.fiscal_year, year.obligated); // number, decimal string
+}
+```
+
+- Sums the award's transactions per federal fiscal year (October 1 starts the next fiscal year), oldest year first, each rounded to cents. A de-obligation nets against its own year, so a year can be zero or negative.
+- Returned only when named: no default shape includes it.
+- The same expand works on `listIdvs()`, `listOtas()`, `listOtidvs()` and the `get*` methods. On IDVs and OT IDVs the API always sends `null`, because their transactions report a running lifetime total rather than each action's obligation.
+- The API also sends `null` for a contract or OTA with no dated transactions. On the shaped methods (`listContracts`, `getContract`, `listIdvs`, `getIdv` and the IDV child lists) the client reads a `null` nested list as `[]`, as it does for every nested list; `listOtas()` and `listOtidvs()` return the API's JSON as-is.
+
 Sorting:
 
 ```ts
@@ -264,6 +290,9 @@ const page = await client.listOpportunities({
   shape: "opportunity_id,title,meta(attachments_count,files_count,links_count)",
 });
 ```
+
+**Extraction status.** `attachments(extraction_status)` reports where text extraction stands for each attachment: `pending`, `extracting`, `completed`, `failed` or `unsupported`, so you can tell why `extracted_text` is missing (Tango API 5.11.0).
+It works on notices too, and like every attachment field it must be named, e.g. `shape: "opportunity_id,attachments(name,extracted_text,extraction_status)"`.
 
 ---
 
@@ -1299,6 +1328,7 @@ All list endpoints return:
 ```ts
 interface PaginatedResponse<T> {
   count: number;
+  countType: "exact" | "approximate" | null;
   next: string | null;
   previous: string | null;
   pageMetadata: Record<string, unknown> | null;
@@ -1312,6 +1342,10 @@ interface PaginatedResponse<T> {
 ```
 
 You can follow `next` / `previous` manually, pass `cursor` back on keyset-paginated endpoints, or use the `iterate*` helpers.
+
+`countType` says whether `count` is `"exact"` or `"approximate"`, read from the API's `X-Results-CountType` header on every list method; it is `null` when the API does not send it.
+Past 1,000 matches the contract, IDV, opportunity and notice lists may return a query-planner estimate as `count`, which can be well off; this is how to tell the two apart.
+It is taken from each response itself, so concurrent calls on one client cannot see each other's value the way `client.lastResponseHeaders` can.
 
 ### Response `meta` and agency-filter diagnostics
 

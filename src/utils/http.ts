@@ -65,6 +65,28 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Where a list response body carries its `X-Results-CountType` header value. */
+export const COUNT_TYPE_KEY: unique symbol = Symbol("tango.countType");
+
+/**
+ * The server's own explanation from an error body, e.g. why a 403 refused the request.
+ *
+ * The API sends either `{"detail": "..."}` or a structured body such as a tier gate's `{"error": "...", "code": "tier_required", ...}`, sometimes nested under `detail`.
+ */
+function errorReason(data: unknown): string | null {
+  if (!isRecord(data)) return null;
+  for (const body of [data, data.detail]) {
+    if (typeof body === "string" && body) return body;
+    if (isRecord(body)) {
+      for (const key of ["error", "message", "detail"]) {
+        const value = body[key];
+        if (typeof value === "string" && value) return value;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Parse a `Retry-After` header. Accepts both a delta-seconds form and an
  * HTTP-date form. Returns milliseconds, or `null` if header is missing/invalid.
@@ -319,7 +341,9 @@ export class HttpClient {
     }
 
     if (!res.ok) {
-      const e = new TangoAPIError(`API request failed with status ${res.status}`, res.status, data);
+      const reason = errorReason(data);
+      const message = `API request failed with status ${res.status}`;
+      const e = new TangoAPIError(reason ? `${message}: ${reason}` : message, res.status, data);
       if (isRetryableStatus(res.status)) {
         (e as unknown as Record<string, unknown>).__retryable = true;
         if (retryAfterMs !== null) {
@@ -332,6 +356,12 @@ export class HttpClient {
     if (res.ok && isRecord(data) && typeof data.error === "string") {
       // The API occasionally signals errors in a 200 payload; surface as TangoAPIError.
       throw new TangoAPIError(data.error, res.status, data);
+    }
+
+    // Stamp a list body with its own count type so each `PaginatedResponse` reads this response's header, not the shared `lastResponseHeaders`. A symbol key survives object spread and stays out of JSON.
+    const countType = getHeader(res.headers, "x-results-counttype");
+    if (countType && isRecord(data) && "count" in data) {
+      (data as Record<PropertyKey, unknown>)[COUNT_TYPE_KEY] = countType.toLowerCase();
     }
 
     return (data ?? {}) as T;

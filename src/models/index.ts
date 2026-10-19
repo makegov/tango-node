@@ -2,6 +2,7 @@ export type { Agency } from "./Agency.js";
 export type { BudgetAccount, BudgetSourceAnomaly, BudgetSourceAnomalyRow, BudgetSourceAnomalySource } from "./BudgetAccount.js";
 export type {
   Contract,
+  FiscalYearObligation,
   OrganizationOfficePayload,
   PlaceOfPerformance,
   SubawardsSummary,

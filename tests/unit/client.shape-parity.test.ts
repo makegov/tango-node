@@ -170,3 +170,35 @@ describe("fields the API added between 5.3.0 and 5.8.0", () => {
     expect(new URL(calls[0].url).searchParams.get("shape")).toBe(shape);
   });
 });
+
+describe("fields the API added in 5.11.0", () => {
+  const SHAPE = "title,attachments(name,extracted_text,extraction_status)";
+  const ATTACHMENTS_WITH_STATUS = [
+    { name: "Statement of Work.pdf", extracted_text: "Scope of work", extraction_status: "completed" },
+    { name: "Drawings.dwg", extracted_text: null, extraction_status: "unsupported" },
+  ];
+
+  it("getOpportunity shapes attachments(extraction_status)", async () => {
+    const { client, calls } = makeClient({ title: "Base ops", attachments: ATTACHMENTS_WITH_STATUS });
+    const opp = await client.getOpportunity("opp-1", { shape: SHAPE });
+
+    expect(new URL(calls[0].url).searchParams.get("shape")).toBe(SHAPE);
+    expect(opp.attachments).toEqual(ATTACHMENTS_WITH_STATUS);
+  });
+
+  it("listNotices shapes attachments(extraction_status)", async () => {
+    const { client } = makeClient(page({ title: "Base ops", attachments: ATTACHMENTS_WITH_STATUS }));
+    const resp = await client.listNotices({ shape: SHAPE });
+
+    expect(resp.results[0].attachments).toEqual(ATTACHMENTS_WITH_STATUS);
+  });
+
+  it("listVehicles shapes opportunity(meta(files_count,links_count))", async () => {
+    const shape = "uuid,opportunity(opportunity_id,meta(files_count,links_count))";
+    const record = { uuid: "veh-1", opportunity: { opportunity_id: "opp-1", meta: { files_count: 4, links_count: null } } };
+    const { client } = makeClient(page(record));
+    const resp = await client.listVehicles({ shape });
+
+    expect(resp.results[0].opportunity).toEqual(record.opportunity);
+  });
+});
