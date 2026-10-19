@@ -1080,8 +1080,6 @@ export const GENERATED_OVERLAY: Record<string, FieldSchemaMap> = {
     organization: f("organization", "dict", false, "AwardingOffice"),
   },
   Vehicle: {
-    holder_count: f("holder_count", "int"),
     name: f("name", "str"),
-    order_winner_count: f("order_winner_count", "int"),
   },
 };
