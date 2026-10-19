@@ -12,6 +12,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - Dev-dependency security update: vitest and @vitest/coverage-v8 move to 4.1.12, which also brings @vitest/mocker to its patched release. The published package is unaffected; its only runtime dependency remains `commander`.
 
+### Fixed
+
+- **`rateLimitInfo.limitType` now says which limit a 429 hit.** It only read an `X-RateLimit-Type` header the API never sends, so it was always `null`. On a 429 it now reads the rate's name from the API's detail (`Rate limit exceeded for daily. Please try again in 16 hours, 58 minutes.`) and reports `"daily"` or `"burst"`, matching tango-python's `limit_type`; a per-endpoint premium daily budget reports `"daily"`. It is `null` when the detail names neither, and an `X-RateLimit-Type` header still wins if one is sent. `TangoRateLimitError` gains the same `limitType`, plus `detail` with the API's message.
+
 ## [1.4.0] - 2026-10-19
 
 ### Added

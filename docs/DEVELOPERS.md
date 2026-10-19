@@ -441,6 +441,8 @@ The resource key you passed doesn't exist in the API.
 
 You've hit the API's rate limit. Back off and retry. The `timeoutMs` constructor option controls per-request timeout; rate limiting is an API-side concern.
 
+`limitType` says which limit you hit: `"daily"` (resets at midnight UTC) or `"burst"` (clears within a minute), or `null` when the API didn't say. `detail` is the API's own message, such as `Rate limit exceeded for daily. Please try again in 16 hours, 58 minutes.` The same `limitType` lands on `client.rateLimitInfo`.
+
 ### Debugging HTTP
 
 Pass a custom `fetchImpl` during development to log requests:

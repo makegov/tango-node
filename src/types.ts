@@ -101,7 +101,7 @@ export interface RateLimitInfo {
   resetIn: number | null;
   /** Server's `Retry-After` header value, in seconds, when present. */
   retryAfter: number | null;
-  /** Rate-limit tier label, if the server reports one (X-RateLimit-Type). */
+  /** Which limit a 429 hit (`"daily"` or `"burst"`), from the `X-RateLimit-Type` header or else the 429's detail; `null` on other responses unless the header is sent. */
   limitType: string | null;
 }
 
