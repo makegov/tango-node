@@ -275,7 +275,8 @@ export class HttpClient {
     // Snapshot response metadata for observability (rate_limit_info /
     // last_response_headers parity with the Python SDK).
     this.lastResponseHeaders = headersToRecord(res.headers);
-    this.rateLimitInfo = parseRateLimit(res.headers);
+    const rateLimitInfo = parseRateLimit(res.headers);
+    this.rateLimitInfo = rateLimitInfo;
 
     if (redirect === "manual" && res.status >= 300 && res.status < 400) {
       const location = getHeader(res.headers, "location");
@@ -332,7 +333,8 @@ export class HttpClient {
     }
 
     if (res.status === 429) {
-      const e = new TangoRateLimitError("Rate limit exceeded", res.status, data);
+      const e = new TangoRateLimitError("Rate limit exceeded", res.status, data, rateLimitInfo.limitType);
+      rateLimitInfo.limitType = e.limitType;
       (e as unknown as Record<string, unknown>).__retryable = true;
       if (retryAfterMs !== null) {
         (e as unknown as Record<string, unknown>).__retryAfterMs = retryAfterMs;

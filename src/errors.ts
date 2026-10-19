@@ -74,10 +74,41 @@ export class TangoEbuyAttachmentLinkError extends TangoValidationError {
   }
 }
 
+// The API names the tripped rate in its 429 detail: "Rate limit exceeded for daily. Please try again in 16 hours, 58 minutes."
+const RATE_NAME = /exceeded for ([\w-]+)/i;
+
+/** Which limit a 429's detail names: `"daily"`, `"burst"`, or `null` when it names neither. */
+function limitTypeFromDetail(detail: string): string | null {
+  // Read the rate's name, not the whole sentence: a daily lockout's wait reads "16 hours, 58 minutes", and "minute" there is not a burst.
+  const match = RATE_NAME.exec(detail);
+  const text = (match ? match[1] : detail).toLowerCase();
+  if (text.includes("daily") || /\bday\b/.test(text)) return "daily";
+  if (text.includes("burst") || text.includes("minute")) return "burst";
+  return null;
+}
+
 export class TangoRateLimitError extends TangoAPIError {
-  constructor(message = "Rate limit exceeded", statusCode?: number, responseData?: unknown) {
+  private readonly headerLimitType: string | null;
+
+  /** `limitType` is the server's `X-RateLimit-Type` header, which takes precedence over the body's detail when present. */
+  constructor(message = "Rate limit exceeded", statusCode?: number, responseData?: unknown, limitType?: string | null) {
     super(message, statusCode, responseData);
     this.name = "TangoRateLimitError";
+    this.headerLimitType = limitType || null;
+  }
+
+  /** Human-readable detail from the API response, when present. */
+  get detail(): string | null {
+    const data = this.responseData;
+    if (!isRecord(data)) return null;
+    return typeof data.detail === "string" ? data.detail : null;
+  }
+
+  /** Which limit was hit: `"daily"` or `"burst"`, from the `X-RateLimit-Type` header or else the response's detail; `null` when neither says. */
+  get limitType(): string | null {
+    if (this.headerLimitType) return this.headerLimitType;
+    const detail = this.detail;
+    return detail ? limitTypeFromDetail(detail) : null;
   }
 }
 
