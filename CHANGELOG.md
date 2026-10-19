@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-19
+
 ### Changed
 
 - Dev-dependency security update: vitest and @vitest/coverage-v8 move to 4.1.12, which also brings @vitest/mocker to its patched release. The published package is unaffected; its only runtime dependency remains `commander`.
