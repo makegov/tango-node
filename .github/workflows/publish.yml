@@ -34,8 +34,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Trusted publishing authenticates with this job's OIDC token instead of a stored npm token, and needs npm 11.5.1 or later.
+      - name: Upgrade npm
+        run: npm install -g npm@11
+
       - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.TANGO_NPM_TOKEN }}
         run: npm publish --access public --provenance
 
