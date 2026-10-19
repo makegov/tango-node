@@ -94,3 +94,79 @@ describe("SLED delisting and jurisdiction provenance", () => {
     expect((row.meta as Record<string, unknown>).jurisdiction_declared).toBe(false);
   });
 });
+
+describe("attachment file and link counts (Tango API 5.9.0)", () => {
+  const OPPORTUNITY_SHAPE = "opportunity_id,meta(attachments_count,files_count,links_count)";
+  const NOTICE_SHAPE = "notice_id,attachment_count,file_count,link_count";
+
+  it("getOpportunity shapes meta(files_count,links_count) beside attachments_count", async () => {
+    const record = { opportunity_id: "opp-1", meta: { attachments_count: 6, files_count: 4, links_count: 1 } };
+    const { client, calls } = makeClient(record);
+    const opp = await client.getOpportunity("opp-1", { shape: OPPORTUNITY_SHAPE });
+
+    expect(new URL(calls[0].url).searchParams.get("shape")).toBe(OPPORTUNITY_SHAPE);
+    expect(opp.meta).toEqual({ attachments_count: 6, files_count: 4, links_count: 1 });
+  });
+
+  it("listOpportunities keeps an uncounted opportunity's counts null rather than zero", async () => {
+    const record = { opportunity_id: "opp-2", meta: { attachments_count: 3, files_count: null, links_count: null } };
+    const { client } = makeClient(page(record));
+    const resp = await client.listOpportunities({ shape: OPPORTUNITY_SHAPE });
+
+    expect(resp.results[0].meta).toEqual({ attachments_count: 3, files_count: null, links_count: null });
+  });
+
+  it("getNotice shapes file_count and link_count beside attachment_count", async () => {
+    const record = { notice_id: "notice-1", attachment_count: 6, file_count: 4, link_count: 1 };
+    const { client, calls } = makeClient(record);
+    const notice = await client.getNotice("notice-1", { shape: NOTICE_SHAPE });
+
+    expect(new URL(calls[0].url).searchParams.get("shape")).toBe(NOTICE_SHAPE);
+    expect(notice).toMatchObject(record);
+  });
+
+  it("listNotices keeps an uncounted notice's counts null rather than zero", async () => {
+    const record = { notice_id: "notice-2", attachment_count: 3, file_count: null, link_count: null };
+    const { client } = makeClient(page(record));
+    const resp = await client.listNotices({ shape: NOTICE_SHAPE });
+
+    expect(resp.results[0]).toMatchObject(record);
+  });
+});
+
+describe("fields the API added between 5.3.0 and 5.8.0", () => {
+  it("listOpportunities shapes the award leaves and the awards expand", async () => {
+    const shape = "opportunity_id,awarded,award_count,awardee_uei,awards(award_number,award_date,awardee_uei)";
+    const record = {
+      opportunity_id: "opp-1",
+      awarded: true,
+      award_count: 2,
+      awardee_uei: "ABCDEFGHJKL1",
+      awards: [
+        { award_number: "W912DY26C0001", award_date: "2026-05-04", awardee_uei: "ABCDEFGHJKL1" },
+        { award_number: "W912DY26C0002", award_date: "2026-05-11", awardee_uei: "ZYXWVUTSRQP9" },
+      ],
+    };
+    const { client } = makeClient(page(record));
+    const row = (await client.listOpportunities({ shape })).results[0];
+
+    expect(row.awarded).toBe(true);
+    expect(row.award_count).toBe(2);
+    expect(row.awards).toEqual([
+      { award_number: "W912DY26C0001", award_date: new Date("2026-05-04"), awardee_uei: "ABCDEFGHJKL1" },
+      { award_number: "W912DY26C0002", award_date: new Date("2026-05-11"), awardee_uei: "ZYXWVUTSRQP9" },
+    ]);
+  });
+
+  it.each([
+    ["listExclusions", "exclusion_key,organization_id,organization(agency_name,department_name)"],
+    ["listSbirTopics", "topic_id,cycle_name,organization(agency_code,agency_name)"],
+    ["listSbirSolicitations", "solicitation_id,organization(organization_id,agency_name)"],
+    ["listVehicles", "uuid,holder_count,order_winner_count"],
+  ] as const)("%s accepts %s", async (method, shape) => {
+    const { client, calls } = makeClient(page({}));
+    await client[method]({ shape });
+
+    expect(new URL(calls[0].url).searchParams.get("shape")).toBe(shape);
+  });
+});
