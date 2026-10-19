@@ -6,6 +6,7 @@
  */
 
 import { TangoClient } from "../../src/client.js";
+import type { BudgetAccount } from "../../src/models/index.js";
 
 type RecordedCall = { url: string; init?: RequestInit | undefined };
 
@@ -333,6 +334,67 @@ describe("TangoClient — filter-surface catch-up", () => {
     await client.listBudgetAccounts({ fiscal_year_gte: 2021, fiscal_year__gte: 2023 });
     expect(calls[0].url).toContain("fiscal_year__gte=2023");
     expect(calls[0].url).not.toContain("2021");
+  });
+
+  it("listBudgetAccounts sends account_category, account_category__in and agency", async () => {
+    const { client, calls } = makeClient();
+    await client.listBudgetAccounts({ account_category: "budgetary", account_category__in: "budgetary,credit_financing", agency: "DOD" });
+    const params = new URL(calls[0].url).searchParams;
+    expect(params.get("account_category")).toBe("budgetary");
+    expect(params.get("account_category__in")).toBe("budgetary,credit_financing");
+    expect(params.get("agency")).toBe("DOD");
+  });
+
+  it("listBudgetAccounts sends the data_through_period filters and returns the field as served", async () => {
+    const { client, calls } = makeClient({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [
+        { federal_account_symbol: "097-0100", fiscal_year: 2026, data_through_period: 9 },
+        { federal_account_symbol: "097-4000", fiscal_year: 2026, data_through_period: null },
+      ],
+    });
+    const resp = await client.listBudgetAccounts({
+      data_through_period: 9,
+      data_through_period__gte: 3,
+      data_through_period__lte: 11,
+      data_through_period__isnull: false,
+    });
+    const params = new URL(calls[0].url).searchParams;
+    expect(params.get("data_through_period")).toBe("9");
+    expect(params.get("data_through_period__gte")).toBe("3");
+    expect(params.get("data_through_period__lte")).toBe("11");
+    expect(params.get("data_through_period__isnull")).toBe("false");
+    expect((resp.results as BudgetAccount[]).map((r) => r.data_through_period)).toEqual([9, null]);
+  });
+
+  it("listBudgetAccounts returns source_anomalies as served", async () => {
+    const anomaly = {
+      code: "contract_exceeds_obligations",
+      field: "contract_obligated",
+      bound_field: "obligated_total",
+      action: "capped",
+      reported_value: 1200,
+      served_value: 1000,
+      affected_fields: ["contract_share_of_obligated"],
+      source: { dataset: "file_c", fiscal_year: 2025, rows: [{ fiscal_period: 6, piid: "ABC123", transaction_obligated_amount: 1200 }] },
+    };
+    const { client } = makeClient({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [
+        { federal_account_symbol: "097-0100", account_category: "budgetary", source_anomalies: [anomaly] },
+        { federal_account_symbol: "097-4000", account_category: "credit_financing", source_anomalies: [] },
+      ],
+    });
+    const resp = await client.listBudgetAccounts();
+    const rows = resp.results as BudgetAccount[];
+    expect(rows[0].source_anomalies).toEqual([anomaly]);
+    expect(rows[0].source_anomalies?.[0].source?.rows?.[0].piid).toBe("ABC123");
+    expect(rows[1].source_anomalies).toEqual([]);
+    expect(rows[1].account_category).toBe("credit_financing");
   });
 
   it("listNaics sends the employee_limit filters", async () => {

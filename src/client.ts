@@ -420,6 +420,7 @@ export interface ListGrantsOptions extends ListOptionsBase {
  * Budget account list options — matches `tango_python.TangoClient.list_budget_accounts`.
  *
  * Every numeric lifecycle/ratio field exposes an exact / `__gte` / `__lte` triplet, and any of them is a valid `ordering` target (e.g. `ordering: "-unobligated_balance"` ranks by largest headroom first).
+ * With no `ordering`, rows come back newest fiscal year first, then by `enacted_ba` descending with null `enacted_ba` last.
  */
 export interface ListBudgetAccountsOptions extends ListOptionsBase {
   // Identity / categorical filters (`__in` variants take a comma-separated list)
