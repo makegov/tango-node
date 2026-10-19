@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-19
+
 ### Added
 
 - **`obligations_by_fiscal_year(fiscal_year, obligated)` shape expand on contracts, IDVs, OTAs and OT IDVs** (Tango API 5.11.0; parity with tango-python). Returns the award's obligations per federal fiscal year, oldest first, each rounded to cents. The new `FiscalYearObligation` model type and schema carry `fiscal_year` as an integer and `obligated` as a decimal, which the shaped response normalizes to a string like every money field. The API always sends `null` on IDVs and OT IDVs, whose transactions report a running lifetime total; the shaped contract and IDV methods read a `null` nested list as `[]`, as they do for every nested list.
@@ -67,6 +69,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Re-vendored `contracts/filter_shape_contract.json` for Tango API 5.11.0 and regenerated the overlay.
+- Dev-dependency security update via `npm audit fix`: js-yaml, brace-expansion and source-map-js move to their patched releases. The published package is unaffected; its only runtime dependency remains `commander`.
 - Documented that `recipient_uei` on `listContracts()` (and `uei` on `listIdvs()`, `listOtas()` and `listOtidvs()`) accepts several UEIs joined by `|`, up to 500 (Tango API 5.11.0); the SDK already passed the value through unchanged.
 - Re-vendored the contract for Tango API 5.9.0 (51 resources) and regenerated the overlay: 385 fields across 28 containers, 76 nested schemas. `contracts/observed_shape_types.json` is re-vendored from tango-python as well, so the new fields carry the types the API returns (`awards` is a list, `awarded` a boolean, `data_through_period` an integer) instead of types guessed from their names.
 - Re-vendored `contracts/filter_shape_contract.json` (schema_version 2, 48 resources) and regenerated `src/shapes/generatedOverlay.ts` from it — 359 fields across 25 containers, 73 nested schemas.
