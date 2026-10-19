@@ -32,26 +32,32 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          # Full history so the push's `before` commit is reachable for the diff.
           fetch-depth: 0
 
+      # Every `${{ }}` value reaches the scripts through `env:`, never inline, so a file name or event field cannot inject shell.
       - name: Detect changed paths
         id: changes
         env:
           EVENT_NAME: ${{ github.event_name }}
           BEFORE: ${{ github.event.before }}
-          SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          paths=(docs README.md CHANGELOG.md)
-          if [ "$EVENT_NAME" = "push" ] && [[ -n "$BEFORE" && ! "$BEFORE" =~ ^0+$ ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            external=$(git diff --name-only "$BEFORE" "$SHA" -- "${paths[@]}" | paste -sd, -)
-            has_external=$([ -n "$external" ] && echo true || echo false)
+          # The empty-tree object: diffing against it lists every tracked file.
+          empty_tree=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+          if [ "$EVENT_NAME" = "push" ] && [ -n "$BEFORE" ] && ! echo "$BEFORE" | grep -qx '0*' && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            base="$BEFORE"
+          elif git rev-parse --verify -q HEAD~1 >/dev/null; then
+            # New branch, force-push whose old tip is gone, or a manual run.
+            base=HEAD~1
           else
-            # No usable push range (manual run, new branch, or a force-push whose `before` is gone): report the last commit's paths and dispatch regardless.
-            base=$(git rev-parse "$SHA~1" 2>/dev/null || git rev-parse "$SHA")
-            external=$(git diff --name-only "$base" "$SHA" -- "${paths[@]}" | paste -sd, -)
+            base="$empty_tree"
+          fi
+          external=$(git diff --name-only "$base" HEAD -- 'docs' 'README.md' 'CHANGELOG.md' | paste -sd, -)
+          # A manual run always dispatches: that is why someone runs it by hand.
+          if [ -n "$external" ] || [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             has_external=true
+          else
+            has_external=false
           fi
           {
             echo "external=$external"
@@ -67,7 +73,6 @@ jobs:
           SOURCE_REF: ${{ github.sha }}
           CHANGED_PATHS: ${{ steps.changes.outputs.external }}
         run: |
-          set -euo pipefail
           gh api "repos/$TARGET/dispatches" \
             -f event_type=external_updated \
             -f "client_payload[source_repo]=$SOURCE_REPO" \
