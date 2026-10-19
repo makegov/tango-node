@@ -58,14 +58,6 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     type: f("type", "str"),
   },
   Attachments: {
-    doc_name: f("doc_name", "str"),
-    doc_path: f("doc_path", "str"),
-    doc_seq_num: f("doc_seq_num", "str"),
-    doc_session_date: f("doc_session_date", "date"),
-    doc_type: f("doc_type", "str"),
-    is_link: f("is_link", "bool"),
-  },
-  Attachments2: {
     attachment_id: f("attachment_id", "str"),
     doc_role: f("doc_role", "str"),
     doc_role_alt: f("doc_role_alt", "str"),
@@ -78,7 +70,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     type: f("type", "str"),
     url: f("url", "str"),
   },
-  Attachments3: {
+  Attachments2: {
     attachment_id: f("attachment_id", "str"),
     doc_role: f("doc_role", "str"),
     doc_role_alt: f("doc_role_alt", "str"),
@@ -91,7 +83,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     type: f("type", "str"),
     url: f("url", "str"),
   },
-  Attachments4: {
+  Attachments3: {
     attachment_id: f("attachment_id", "str"),
     file_size: f("file_size", "str"),
     mime_type: f("mime_type", "str"),
@@ -101,7 +93,7 @@ export const GENERATED_NESTED: Record<string, FieldSchemaMap> = {
     type: f("type", "str"),
     url: f("url", "str"),
   },
-  Attachments5: {
+  Attachments4: {
     attachment_id: f("attachment_id", "str"),
     doc_role: f("doc_role", "str"),
     doc_role_alt: f("doc_role_alt", "str"),
@@ -922,7 +914,7 @@ export const GENERATED_OVERLAY: Record<string, FieldSchemaMap> = {
   Notice: {
     address: f("address", "dict", false, "Address"),
     archive: f("archive", "dict", false, "Archive"),
-    attachments: f("attachments", "dict", true, "Attachments2"),
+    attachments: f("attachments", "dict", true, "Attachments"),
     award_amount: f("award_amount", "str"),
     award_date: f("award_date", "date"),
     awardee: f("awardee", "str"),
@@ -992,7 +984,7 @@ export const GENERATED_OVERLAY: Record<string, FieldSchemaMap> = {
     agency: f("agency", "dict", false, "Agency3"),
     agency_id: f("agency_id", "str"),
     archive_date: f("archive_date", "date"),
-    attachments: f("attachments", "dict", true, "Attachments5"),
+    attachments: f("attachments", "dict", true, "Attachments4"),
     award_amount: f("award_amount", "str"),
     award_count: f("award_count", "int"),
     award_date: f("award_date", "date"),
