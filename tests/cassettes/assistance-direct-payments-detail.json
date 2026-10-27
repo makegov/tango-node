@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/direct_payments/?limit=1&shape=key"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "994",
+          "x-ratelimit-burst-reset": "40",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999683",
+          "x-ratelimit-daily-reset": "41628",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "994",
+          "x-ratelimit-reset": "40",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "count": 56739924,
+          "next": "https://tango.makegov.com/api/assistance/direct_payments/?limit=1&shape=key&cursor=WyIyMDI2LTEwLTIyIiwgImQxMjI3ZmYzLWY4ZDEtNWRjMy05MDE0LTI1NzJmMzhjY2MyNiJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTEwLTIyIiwgImQxMjI3ZmYzLWY4ZDEtNWRjMy05MDE0LTI1NzJmMzhjY2MyNiJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "key": "ASST_NON_12CCCEAUCEU5253218_012"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/direct_payments/ASST_NON_12CCCEAUCEU5253218_012/?shape=key%2Ctransactions_count%2Clistings_count%2Clistings%28*%29"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "993",
+          "x-ratelimit-burst-reset": "39",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999682",
+          "x-ratelimit-daily-reset": "41627",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "993",
+          "x-ratelimit-reset": "39",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "key": "ASST_NON_12CCCEAUCEU5253218_012",
+          "listings": [
+            {
+              "is_primary": true,
+              "obligated": 45412.85,
+              "pragmatic_obligations": 45412.85,
+              "non_federal_funding_amount": null,
+              "indirect_cost_federal_share_amount": 0,
+              "face_value_of_loan": 0,
+              "loan_subsidy_cost": 0,
+              "transactions_count": 1,
+              "first_action_date": "2026-10-22",
+              "last_action_date": "2026-10-22",
+              "cfda_number": "10.051"
+            }
+          ],
+          "listings_count": 1,
+          "transactions_count": 1
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/direct_payments/ASST_NON_12CCCEAUCEU5253218_012/transactions/?limit=100&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "992",
+          "x-ratelimit-burst-reset": "39",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999681",
+          "x-ratelimit-daily-reset": "41627",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "992",
+          "x-ratelimit-reset": "39",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "count": 1,
+          "next": null,
+          "previous": null,
+          "results": [
+            {
+              "key": "12D2_12CCCEAUCEU5253218_-NONE-_10.051_-NONE-",
+              "modification_number": null,
+              "transaction_date": "2026-10-22",
+              "action_type": "A1",
+              "assistance_type_code": "F006",
+              "correction_delete_indicator": null,
+              "cfda_number": "10.051",
+              "obligated": 45412.85,
+              "pragmatic_obligations": 45412.85,
+              "non_federal_funding_amount": null,
+              "indirect_cost_federal_share_amount": 0,
+              "face_value_of_loan": 0,
+              "loan_subsidy_cost": 0,
+              "award_amount_basis": null,
+              "award_recipient_basis": null,
+              "action_date_fiscal_year": 2027,
+              "last_modified_date": "2026-10-23T14:19:37Z",
+              "initial_report_date": "2026-10-23T14:19:37Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/direct_payments/ASST_NON_12CCCEAUCEU5253218_012/listings/?limit=25&page=1"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "991",
+          "x-ratelimit-burst-reset": "38",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999680",
+          "x-ratelimit-daily-reset": "41626",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "991",
+          "x-ratelimit-reset": "38",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "count": 1,
+          "next": null,
+          "previous": null,
+          "results": [
+            {
+              "cfda_number": "10.051",
+              "is_primary": true,
+              "obligated": 45412.85,
+              "pragmatic_obligations": 45412.85,
+              "non_federal_funding_amount": null,
+              "indirect_cost_federal_share_amount": 0,
+              "face_value_of_loan": 0,
+              "loan_subsidy_cost": 0,
+              "transactions_count": 1,
+              "first_action_date": "2026-10-22",
+              "last_action_date": "2026-10-22"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

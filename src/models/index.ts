@@ -1,4 +1,17 @@
 export type { Agency } from "./Agency.js";
+export type {
+  AssistanceAward,
+  AssistanceAwardGroup,
+  AssistanceAwardListing,
+  AssistanceCodeDescription,
+  AssistanceListingRef,
+  AssistanceOfficers,
+  AssistancePeriodOfPerformance,
+  AssistancePlaceOfPerformance,
+  AssistanceRecipient,
+  AssistanceRecipientAddress,
+  AssistanceTransaction,
+} from "./AssistanceAward.js";
 export type { BudgetAccount, BudgetSourceAnomaly, BudgetSourceAnomalyRow, BudgetSourceAnomalySource } from "./BudgetAccount.js";
 export type {
   Contract,

@@ -18,6 +18,7 @@ import {
   TangoClientOptions,
   ValidateResult,
 } from "./types.js";
+import type { AssistanceAwardGroup, AssistanceAwardListing, AssistanceTransaction } from "./models/AssistanceAward.js";
 import type {
   WebhookAlert,
   WebhookAlertCreateInput,
@@ -845,7 +846,11 @@ export type IterableListMethod =
   | "listSbirTopics"
   | "listSbirSolicitations"
   | "listSledOpportunities"
-  | "listSledForecasts";
+  | "listSledForecasts"
+  | "listAssistanceGrants"
+  | "listAssistanceLoans"
+  | "listAssistanceDirectPayments"
+  | "listAssistanceOther";
 
 // ---------------------------------------------------------------------------
 // Read-method option interfaces (lookups + awards completeness + other)
@@ -1107,6 +1112,98 @@ export interface ListEbuyRequestsOptions extends ListOptionsBase {
   /** Sort field (issue_date, close_date, last_seen, modified); prefix `-` for descending. Defaults to `-issue_date`. */
   ordering?: string;
   [key: string]: unknown;
+}
+
+/**
+ * Filters for the four financial-assistance award lists: `listAssistanceGrants`, `listAssistanceLoans`, `listAssistanceDirectPayments` and `listAssistanceOther`.
+ *
+ * The lists are cursor-paginated (keyset): pass the `cursor` from a previous page's response, or use the matching `iterate*` method. Filters are sent under the API's own param names. An unknown param, or a one-character `search`, `awarding_agency` or `funding_agency`, returns 400. Requires Tango API 5.12.0.
+ */
+export interface ListAssistanceAwardsOptions {
+  /** Page size, capped at 100. Defaults to 25. */
+  limit?: number;
+  /** Keyset cursor from a previous page's `next` URL (exposed as `cursor` on the response). */
+  cursor?: string | null;
+  shape?: string | null;
+  flat?: boolean;
+  flatLists?: boolean;
+  /** Separator for flattened keys. Only meaningful alongside `flat`. */
+  joiner?: string;
+
+  /** Award key, exact. Multi-value OR via `|`. */
+  key?: string;
+  /** Federal Award Identification Number, exact. Multi-value OR via `|`. */
+  fain?: string;
+  /** Unique Record Identifier, carried by aggregate records, exact. Multi-value OR via `|`. */
+  uri?: string;
+  /** The funding opportunity number the award was made under, as on the Grants.gov opportunity, exact. Multi-value OR via `|`. */
+  funding_opportunity_number?: string;
+
+  /** Recipient UEI, exact. Multi-value OR via `|`. */
+  uei?: string;
+  /** Recipient name or UEI. Each term matches the recipients closest to it by name among those with an award in this group; a term under three characters returns 400. Multi-value OR via `|` only (not the word `OR`). To pin one recipient, filter on `uei`. */
+  recipient?: string;
+
+  /** Awarding agency by code, name or abbreviation (best-effort matching). Multi-value OR via `|`. */
+  awarding_agency?: string;
+  /** Funding agency or department, matched like `awarding_agency`. Multi-value OR via `|`. */
+  funding_agency?: string;
+
+  /** The award's primary assistance listing (CFDA) number, e.g. `93.778`. Multi-value OR via `|`. */
+  cfda_number?: string;
+  /** GSDM assistance type code (`F001`-`F010`), case-insensitive. Multi-value OR via `|`. A code outside the group's types matches nothing. */
+  assistance_type?: string;
+  /** Record type: `1` aggregate, `2` non-aggregate, `3` individual recipient (PII-redacted). Multi-value OR via `|`. */
+  record_type?: string;
+  /** Business funds indicator: `NON` (not Recovery Act) or `REC` (Recovery Act), case-insensitive. */
+  business_funds_indicator?: string;
+  /** Disaster Emergency Fund Code, e.g. `L`, case-insensitive; matches the code as a whole within the award's list. Multi-value OR via `|`. */
+  disaster_emergency_fund_code?: string;
+
+  /** Award date, exact (YYYY-MM-DD). */
+  award_date?: string;
+  /** Award date on or after (YYYY-MM-DD). */
+  award_date_gte?: string;
+  /** Award date on or before (YYYY-MM-DD). */
+  award_date_lte?: string;
+  /** Federal fiscal year of the award, exact. */
+  fiscal_year?: number | string;
+  fiscal_year_gte?: number | string;
+  fiscal_year_lte?: number | string;
+  /** Period of performance start date on or after (YYYY-MM-DD). */
+  pop_start_date_gte?: string;
+  /** Period of performance start date on or before (YYYY-MM-DD). */
+  pop_start_date_lte?: string;
+  /** Period of performance current end date on or after (YYYY-MM-DD). */
+  pop_end_date_gte?: string;
+  /** Period of performance current end date on or before (YYYY-MM-DD). */
+  pop_end_date_lte?: string;
+
+  /** Place of performance state code, e.g. `VA`, case-insensitive. Multi-value OR via `|`. */
+  pop_state?: string;
+  /** Place of performance country code, ISO 3166 alpha-3, e.g. `USA`, case-insensitive. Multi-value OR via `|`. */
+  pop_country?: string;
+  /** Place of performance five-digit ZIP code, exact. Multi-value OR via `|`. */
+  pop_zip?: string;
+
+  /** Obligated amount greater than or equal to (USD). */
+  obligated_gte?: number | string;
+  /** Obligated amount less than or equal to (USD). */
+  obligated_lte?: number | string;
+
+  /** Full-text search over identifiers, recipient names, assistance listing titles and award descriptions. Web-search syntax: `a b`, `a or b`, `a -b`. */
+  search?: string;
+  /** `award_date`, `obligated` or `pragmatic_obligations`; prefix `-` for descending. Defaults to `-award_date`. Order by `pragmatic_obligations` to compare across groups. */
+  ordering?: string;
+
+  [key: string]: unknown;
+}
+
+/** Pagination for an assistance award's `/transactions/` and `/listings/` sub-routes, which are page-numbered. */
+export interface AssistanceAwardSubresourceOptions {
+  page?: number;
+  /** Page size. `/transactions/` defaults to 100 and caps at 500; `/listings/` defaults to 25 here and caps at 100. */
+  limit?: number;
 }
 
 export interface ListItDashboardOptions {
@@ -2275,6 +2372,22 @@ export class TangoClient {
     return this.iterate<Record<string, unknown>>("listSledForecasts", options);
   }
 
+  iterateAssistanceGrants(options: ListAssistanceAwardsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listAssistanceGrants", options);
+  }
+
+  iterateAssistanceLoans(options: ListAssistanceAwardsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listAssistanceLoans", options);
+  }
+
+  iterateAssistanceDirectPayments(options: ListAssistanceAwardsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listAssistanceDirectPayments", options);
+  }
+
+  iterateAssistanceOther(options: ListAssistanceAwardsOptions = {}): AsyncIterableIterator<Record<string, unknown>> {
+    return this.iterate<Record<string, unknown>>("listAssistanceOther", options);
+  }
+
   // ---------------------------------------------------------------------------
   // Lookups
   // ---------------------------------------------------------------------------
@@ -2863,6 +2976,200 @@ export class TangoClient {
       ShapeConfig.FEDERAL_REGISTER_COMPREHENSIVE,
       options,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Financial-assistance awards (`/api/assistance/{group}/`)
+  //
+  // Four groups by GSDM assistance type, one shape, one filter set. The lists
+  // are cursor-paginated; the `/transactions/` and `/listings/` sub-routes are
+  // page-numbered.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * List grant and cooperative-agreement awards (`/api/assistance/grants/`; assistance types `F001`, `F002`). Requires Tango API 5.12.0.
+   *
+   * These are awards an agency has already obligated, from USAspending. Grant opportunities you can apply for are `listGrants()`; an award's `funding_opportunity_number` names the opportunity it was made under.
+   */
+  async listAssistanceGrants(options: ListAssistanceAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._assistanceAwardList("grants", options);
+  }
+
+  /** Get a grant or cooperative-agreement award by `key` (`/api/assistance/grants/{key}/`). A retired key resolves to the award that carries it now. */
+  async getAssistanceGrant(
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    return this._assistanceAwardGet("grants", key, options);
+  }
+
+  /** List a grant award's transactions, latest first (`/api/assistance/grants/{key}/transactions/`). */
+  async listAssistanceGrantTransactions(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceTransaction>> {
+    return this._assistanceAwardTransactions("grants", key, options);
+  }
+
+  /** List a grant award's money by assistance listing, primary listing first (`/api/assistance/grants/{key}/listings/`). */
+  async listAssistanceGrantListings(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceAwardListing>> {
+    return this._assistanceAwardListings("grants", key, options);
+  }
+
+  /**
+   * List loan awards (`/api/assistance/loans/`; direct loans and loan guarantees, `F003`, `F004`). Requires Tango API 5.12.0.
+   *
+   * On a loan, `pragmatic_obligations` is the subsidy cost, the figure comparable with the other groups; `face_value_of_loan` is the loan's face value.
+   */
+  async listAssistanceLoans(options: ListAssistanceAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._assistanceAwardList("loans", options);
+  }
+
+  /** Get a loan award by `key` (`/api/assistance/loans/{key}/`). A retired key resolves to the award that carries it now. */
+  async getAssistanceLoan(
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    return this._assistanceAwardGet("loans", key, options);
+  }
+
+  /** List a loan award's transactions, latest first (`/api/assistance/loans/{key}/transactions/`). */
+  async listAssistanceLoanTransactions(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceTransaction>> {
+    return this._assistanceAwardTransactions("loans", key, options);
+  }
+
+  /** List a loan award's money by assistance listing, primary listing first (`/api/assistance/loans/{key}/listings/`). */
+  async listAssistanceLoanListings(key: string, options: AssistanceAwardSubresourceOptions = {}): Promise<PaginatedResponse<AssistanceAwardListing>> {
+    return this._assistanceAwardListings("loans", key, options);
+  }
+
+  /** List direct-payment awards (`/api/assistance/direct_payments/`; direct payments for specified or unrestricted use, `F006`, `F007`). Requires Tango API 5.12.0. */
+  async listAssistanceDirectPayments(options: ListAssistanceAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._assistanceAwardList("direct_payments", options);
+  }
+
+  /** Get a direct-payment award by `key` (`/api/assistance/direct_payments/{key}/`). A retired key resolves to the award that carries it now. */
+  async getAssistanceDirectPayment(
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    return this._assistanceAwardGet("direct_payments", key, options);
+  }
+
+  /** List a direct-payment award's transactions, latest first (`/api/assistance/direct_payments/{key}/transactions/`). */
+  async listAssistanceDirectPaymentTransactions(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceTransaction>> {
+    return this._assistanceAwardTransactions("direct_payments", key, options);
+  }
+
+  /** List a direct-payment award's money by assistance listing, primary listing first (`/api/assistance/direct_payments/{key}/listings/`). */
+  async listAssistanceDirectPaymentListings(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceAwardListing>> {
+    return this._assistanceAwardListings("direct_payments", key, options);
+  }
+
+  /** List other assistance awards (`/api/assistance/other/`; insurance, asset forfeiture, property sales and other financial assistance, `F005`, `F008`-`F010`). Requires Tango API 5.12.0. */
+  async listAssistanceOther(options: ListAssistanceAwardsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._assistanceAwardList("other", options);
+  }
+
+  /** Get an other-assistance award by `key` (`/api/assistance/other/{key}/`). A retired key resolves to the award that carries it now. */
+  async getAssistanceOther(
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    return this._assistanceAwardGet("other", key, options);
+  }
+
+  /** List an other-assistance award's transactions, latest first (`/api/assistance/other/{key}/transactions/`). */
+  async listAssistanceOtherTransactions(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceTransaction>> {
+    return this._assistanceAwardTransactions("other", key, options);
+  }
+
+  /** List an other-assistance award's money by assistance listing, primary listing first (`/api/assistance/other/{key}/listings/`). */
+  async listAssistanceOtherListings(
+    key: string,
+    options: AssistanceAwardSubresourceOptions = {},
+  ): Promise<PaginatedResponse<AssistanceAwardListing>> {
+    return this._assistanceAwardListings("other", key, options);
+  }
+
+  /** Cursor-paginated shaped list shared by the four groups. `page` is dropped: the lists are keyset-only. */
+  private async _assistanceAwardList(
+    group: AssistanceAwardGroup,
+    options: ListAssistanceAwardsOptions,
+  ): Promise<PaginatedResponse<Record<string, unknown>>> {
+    const { page: _page, cursor, limit = 25, shape, flat = false, flatLists = false, joiner = ".", ...filters } = options;
+    void _page;
+
+    const params: AnyRecord = { limit: Math.min(limit, 100) };
+    if (cursor) params.cursor = cursor;
+
+    const shapeToUse = shape ?? ShapeConfig.ASSISTANCE_AWARDS_MINIMAL;
+    const shapeSpec = this.parseShape(shapeToUse, flat, flatLists);
+    if (shapeToUse) {
+      params.shape = shapeToUse;
+      if (flat) {
+        params.flat = "true";
+        if (joiner) params.joiner = joiner;
+      }
+      if (flatLists) params.flat_lists = "true";
+    }
+
+    for (const [k, v] of Object.entries(filters)) {
+      if (v !== undefined && v !== null) params[k] = v;
+    }
+
+    const data = await this.http.get<AnyRecord>(`/api/assistance/${group}/`, params);
+    const rawResults = Array.isArray(data?.results) ? (data.results as AnyRecord[]) : [];
+    const results = this.materializeList("AssistanceAward", shapeSpec, rawResults, flat, joiner);
+    return buildPaginatedResponse<AnyRecord>({ ...data, results });
+  }
+
+  private async _assistanceAwardGet(
+    group: AssistanceAwardGroup,
+    key: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string },
+  ): Promise<Record<string, unknown>> {
+    if (!key) throw new TangoValidationError("Assistance award key is required");
+    return this._shapedGet(`/api/assistance/${group}/${encodeURIComponent(key)}/`, "AssistanceAward", ShapeConfig.ASSISTANCE_AWARDS_MINIMAL, options);
+  }
+
+  private async _assistanceAwardTransactions(
+    group: AssistanceAwardGroup,
+    key: string,
+    options: AssistanceAwardSubresourceOptions,
+  ): Promise<PaginatedResponse<AssistanceTransaction>> {
+    if (!key) throw new TangoValidationError("Assistance award key is required");
+    const { page = 1, limit = 100 } = options;
+    const params: AnyRecord = { page, limit: Math.min(limit, 500) };
+    const data = await this.http.get<AnyRecord>(`/api/assistance/${group}/${encodeURIComponent(key)}/transactions/`, params);
+    return buildPaginatedResponse<AssistanceTransaction>(data);
+  }
+
+  private async _assistanceAwardListings(
+    group: AssistanceAwardGroup,
+    key: string,
+    options: AssistanceAwardSubresourceOptions,
+  ): Promise<PaginatedResponse<AssistanceAwardListing>> {
+    if (!key) throw new TangoValidationError("Assistance award key is required");
+    const { page = 1, limit = 25 } = options;
+    const params: AnyRecord = { page, limit: Math.min(limit, 100) };
+    const data = await this.http.get<AnyRecord>(`/api/assistance/${group}/${encodeURIComponent(key)}/listings/`, params);
+    return buildPaginatedResponse<AssistanceAwardListing>(data);
   }
 
   /**

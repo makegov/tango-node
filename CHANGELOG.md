@@ -8,6 +8,16 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Financial-assistance awards** (Tango API 5.12.0). USAspending's grant, loan, direct-payment and other assistance awards, one endpoint per group under `/api/assistance/`. Each group gets a cursor-paginated list, a get by `key`, and the award's `/transactions/` and `/listings/` sub-routes: `listAssistanceGrants` / `getAssistanceGrant` / `listAssistanceGrantTransactions` / `listAssistanceGrantListings`, and the same four for `Loan(s)`, `DirectPayment(s)` and `Other`, plus `iterateAssistanceGrants`, `iterateAssistanceLoans`, `iterateAssistanceDirectPayments` and `iterateAssistanceOther`. All 30 of the API's filters are typed on `ListAssistanceAwardsOptions` under the API's own names, including `fain`, `uri`, `cfda_number`, `assistance_type`, `record_type`, `disaster_emergency_fund_code`, `funding_opportunity_number`, `pop_state` / `pop_country` / `pop_zip` and `obligated_gte` / `obligated_lte`. The four groups share one `AssistanceAward` model interface and shape schema, and the `ShapeConfig.ASSISTANCE_AWARDS_MINIMAL` default, which is the API's own default shape.
+
+  The lists are keyset-only, so they take a `cursor` and ignore `page`; the sub-routes are page-numbered, with transactions capped at 500 per page and listings at 100. A retired award key still resolves to the award that carries it now. To compare dollar amounts across groups, use `pragmatic_obligations`: the obligation for grants and payments, the subsidy cost for loans. These are awards already obligated; grant opportunities remain `listGrants()`.
+
+### Changed
+
+- The vendored API contract (`contracts/filter_shape_contract.json`) moves from Tango API 5.11.0 to 5.12.1. The four assistance resources are the only difference.
+
 ## [1.4.1] - 2026-10-19
 
 ### Changed

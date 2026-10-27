@@ -186,6 +186,13 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 - `listOtas(options)` / `getOta(key)` / `listOtidvs(options)` / `getOtidv(key)` / `listOtidvAwards(key, options)`
 - `listSubawards(options)` / `getSubaward(key)`
 
+**Financial-Assistance Awards** (grants, loans, direct payments, other)
+
+- `listAssistanceGrants(options)` / `getAssistanceGrant(key, options)` / `listAssistanceGrantTransactions(key, options)` / `listAssistanceGrantListings(key, options)`
+- `listAssistanceLoans(options)` / `getAssistanceLoan(key, options)` / `listAssistanceLoanTransactions(key, options)` / `listAssistanceLoanListings(key, options)`
+- `listAssistanceDirectPayments(options)` / `getAssistanceDirectPayment(key, options)` / `listAssistanceDirectPaymentTransactions(key, options)` / `listAssistanceDirectPaymentListings(key, options)`
+- `listAssistanceOther(options)` / `getAssistanceOther(key, options)` / `listAssistanceOtherTransactions(key, options)` / `listAssistanceOtherListings(key, options)`
+
 **Vehicles**
 
 - `listVehicles(options)` / `getVehicle(uuid, options)` / `listVehicleAwardees(uuid, options)` / `listVehicleOrders(uuid, options)`
@@ -258,6 +265,7 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 - `iterateGrants` / `iterateForecasts` / `iterateIdvs` / `iterateVehicles`
 - `iterateDibbsRfqs` / `iterateDibbsRfps` / `iterateDibbsAwards`
 - `iterateExclusions` / `iterateSbirTopics` / `iterateSbirSolicitations`
+- `iterateAssistanceGrants` / `iterateAssistanceLoans` / `iterateAssistanceDirectPayments` / `iterateAssistanceOther`
 
 **Utility**
 

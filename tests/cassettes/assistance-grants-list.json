@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/grants/?limit=2&shape=key%2Cfain%2Curi%2Caward_date%2Cfiscal_year%2Cassistance_type%28code%2Cdescription%29%2Crecord_type%2Ccfda_number%2Cassistance_listing%28number%2Ctitle%29%2Ctitle%2Cobligated%2Cpragmatic_obligations%2Cface_value_of_loan%2Cloan_subsidy_cost%2Cawarding_office%28*%29%2Cfunding_office%28*%29%2Crecipient%28*%29%2Cplace_of_performance%28*%29%2Cperiod_of_performance%28start_date%2Ccurrent_end_date%29"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "998",
+          "x-ratelimit-burst-reset": "42",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999687",
+          "x-ratelimit-daily-reset": "41630",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "998",
+          "x-ratelimit-reset": "42",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "count": 5759909,
+          "next": "https://tango.makegov.com/api/assistance/grants/?limit=2&shape=key%2Cfain%2Curi%2Caward_date%2Cfiscal_year%2Cassistance_type%28code%2Cdescription%29%2Crecord_type%2Ccfda_number%2Cassistance_listing%28number%2Ctitle%29%2Ctitle%2Cobligated%2Cpragmatic_obligations%2Cface_value_of_loan%2Cloan_subsidy_cost%2Cawarding_office%28%2A%29%2Cfunding_office%28%2A%29%2Crecipient%28%2A%29%2Cplace_of_performance%28%2A%29%2Cperiod_of_performance%28start_date%2Ccurrent_end_date%29&cursor=WyIyMDI2LTEwLTE2IiwgImIxZjg5ZjMwLWNiYjItNTdjOC04MDg2LTc0OGE4OGJmNzU4MSJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTEwLTE2IiwgImIxZjg5ZjMwLWNiYjItNTdjOC04MDg2LTc0OGE4OGJmNzU4MSJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "assistance_listing": {
+                "number": "20.823",
+                "title": "Port Infrastructure Development Program"
+              },
+              "assistance_type": {
+                "code": "F001",
+                "description": "Grant"
+              },
+              "award_date": "2026-10-19",
+              "awarding_office": {
+                "organization_id": "261f885d-c8b6-5e0d-b2f8-e0799a4e1de2",
+                "office_code": "69A334",
+                "office_name": "MARITIME ADMINISTRATION",
+                "agency_code": "6938",
+                "agency_name": "MARITIME ADMINISTRATION",
+                "department_code": "069",
+                "department_name": "TRANSPORTATION, DEPARTMENT OF"
+              },
+              "cfda_number": "20.823",
+              "face_value_of_loan": 0,
+              "fain": "693JF72640002",
+              "fiscal_year": 2027,
+              "funding_office": {
+                "organization_id": "261f885d-c8b6-5e0d-b2f8-e0799a4e1de2",
+                "office_code": "69A334",
+                "office_name": "MARITIME ADMINISTRATION",
+                "agency_code": "6938",
+                "agency_name": "MARITIME ADMINISTRATION",
+                "department_code": "069",
+                "department_name": "TRANSPORTATION, DEPARTMENT OF"
+              },
+              "key": "ASST_NON_693JF72640002_069",
+              "loan_subsidy_cost": 0,
+              "obligated": 2000000,
+              "period_of_performance": {
+                "start_date": "2026-10-19",
+                "current_end_date": "2029-04-30"
+              },
+              "place_of_performance": {
+                "city_name": "MOBILE",
+                "code": "AL36633",
+                "country": "USA",
+                "county_fips": "01097",
+                "county_name": "MOBILE",
+                "foreign_location": null,
+                "scope": "SINGLE ZIP CODE",
+                "state_code": "AL",
+                "state_fips": "01",
+                "state_name": "ALABAMA",
+                "zip_code": "36633",
+                "zip_plus_four": "1588"
+              },
+              "pragmatic_obligations": 2000000,
+              "recipient": {
+                "uuid": "88f47661-874f-5298-8b0b-0971be0c746d",
+                "uei": "HS97F2C9NME3",
+                "duns": null,
+                "legal_business_name": "ALABAMA PORT AUTHORITY",
+                "legal_business_name_raw": "ALABAMA PORT AUTHORITY",
+                "county": "MOBILE",
+                "congressional_district": "AL-02",
+                "congressional_district_original": "AL-02",
+                "highest_owner": null,
+                "business_types": [
+                  {
+                    "code": "A",
+                    "description": "State Government"
+                  }
+                ]
+              },
+              "record_type": "2",
+              "title": "AWARD PURPOSE THE PROJECT INCLUDES ELECTRICAL…",
+              "uri": null
+            },
+            {
+              "assistance_listing": {
+                "number": "20.933",
+                "title": "National Infrastructure Investments "
+              },
+              "assistance_type": {
+                "code": "F001",
+                "description": "Grant"
+              },
+              "award_date": "2026-10-16",
+              "awarding_office": {
+                "organization_id": "261f885d-c8b6-5e0d-b2f8-e0799a4e1de2",
+                "office_code": "69A334",
+                "office_name": "MARITIME ADMINISTRATION",
+                "agency_code": "6938",
+                "agency_name": "MARITIME ADMINISTRATION",
+                "department_code": "069",
+                "department_name": "TRANSPORTATION, DEPARTMENT OF"
+              },
+              "cfda_number": "20.933",
+              "face_value_of_loan": 0,
+              "fain": "693JF72440048",
+              "fiscal_year": 2027,
+              "funding_office": {
+                "organization_id": "261f885d-c8b6-5e0d-b2f8-e0799a4e1de2",
+                "office_code": "69A334",
+                "office_name": "MARITIME ADMINISTRATION",
+                "agency_code": "6938",
+                "agency_name": "MARITIME ADMINISTRATION",
+                "department_code": "069",
+                "department_name": "TRANSPORTATION, DEPARTMENT OF"
+              },
+              "key": "ASST_NON_693JF72440048_069",
+              "loan_subsidy_cost": 0,
+              "obligated": 2003532,
+              "period_of_performance": {
+                "start_date": "2026-10-16",
+                "current_end_date": "2028-08-31"
+              },
+              "place_of_performance": {
+                "city_name": "CRISFIELD",
+                "code": "MD21817",
+                "country": "USA",
+                "county_fips": "24039",
+                "county_name": "SOMERSET",
+                "foreign_location": null,
+                "scope": "SINGLE ZIP CODE",
+                "state_code": "MD",
+                "state_fips": "24",
+                "state_name": "MARYLAND",
+                "zip_code": "21817",
+                "zip_plus_four": "1328"
+              },
+              "pragmatic_obligations": 2003532,
+              "recipient": {
+                "uuid": "510bd6cc-9840-5adb-98d1-d8e5f74dff6b",
+                "uei": "EKPQAJKKV549",
+                "duns": null,
+                "legal_business_name": "CITY OF CRISFIELD",
+                "legal_business_name_raw": "CITY OF CRISFIELD",
+                "county": "SOMERSET",
+                "congressional_district": "MD-01",
+                "congressional_district_original": "MD-01",
+                "highest_owner": {
+                  "uei": null,
+                  "duns": null,
+                  "legal_business_name": null,
+                  "legal_business_name_raw": "CITY OF CRISFIELD"
+                },
+                "business_types": [
+                  {
+                    "code": "A",
+                    "description": "State Government"
+                  }
+                ]
+              },
+              "record_type": "2",
+              "title": "AWARD PURPOSE THE PROJECT FUNDS THE FULL ENGINEERING…",
+              "uri": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
