@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "interactions": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/loans/?limit=2&shape=key%2Caward_date"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "997",
+          "x-ratelimit-burst-reset": "41",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999686",
+          "x-ratelimit-daily-reset": "41629",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "997",
+          "x-ratelimit-reset": "41",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "count": 29866842,
+          "next": "https://tango.makegov.com/api/assistance/loans/?limit=2&shape=key%2Caward_date&cursor=WyIyMDI2LTEwLTE1IiwgImZlNWM4ZDcyLWNkZjEtNTFhMi1hMDNkLThiZDlhMzI1ZjUxOCJd",
+          "previous": null,
+          "cursor": "WyIyMDI2LTEwLTE1IiwgImZlNWM4ZDcyLWNkZjEtNTFhMi1hMDNkLThiZDlhMzI1ZjUxOCJd",
+          "previous_cursor": null,
+          "results": [
+            {
+              "award_date": "2026-10-15",
+              "key": "ASST_NON_8606059100_073"
+            },
+            {
+              "award_date": "2026-10-15",
+              "key": "ASST_NON_8605109100_073"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "https://tango.makegov.com/api/assistance/loans/?cursor=WyIyMDI2LTEwLTE1IiwgImZlNWM4ZDcyLWNkZjEtNTFhMi1hMDNkLThiZDlhMzI1ZjUxOCJd&limit=2&shape=key%2Caward_date"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-burst-limit": "1000",
+          "x-ratelimit-burst-remaining": "996",
+          "x-ratelimit-burst-reset": "41",
+          "x-ratelimit-daily-limit": "2000000",
+          "x-ratelimit-daily-remaining": "1999685",
+          "x-ratelimit-daily-reset": "41629",
+          "x-ratelimit-limit": "1000",
+          "x-ratelimit-remaining": "996",
+          "x-ratelimit-reset": "41",
+          "x-tango-api-version": "5.12.1"
+        },
+        "body": {
+          "count": 29866842,
+          "next": "https://tango.makegov.com/api/assistance/loans/?limit=2&cursor=WyIyMDI2LTEwLTE1IiwgImZkYmVkODk4LTIwZTQtNWZkNC05MDE5LWIwMjE2ZjBkOWQ4MiJd&shape=key%2Caward_date",
+          "previous": "https://tango.makegov.com/api/assistance/loans/?limit=2&cursor=eyJ2IjogWyIyMDI2LTEwLTE1IiwgImZkZGFiODVkLWVmYzctNWJhYi04ZDJmLWJjYWYzMjE3NmJhYSJdLCAiZCI6ICJwcmV2In0%3D&shape=key%2Caward_date",
+          "cursor": "WyIyMDI2LTEwLTE1IiwgImZkYmVkODk4LTIwZTQtNWZkNC05MDE5LWIwMjE2ZjBkOWQ4MiJd",
+          "previous_cursor": "eyJ2IjogWyIyMDI2LTEwLTE1IiwgImZkZGFiODVkLWVmYzctNWJhYi04ZDJmLWJjYWYzMjE3NmJhYSJdLCAiZCI6ICJwcmV2In0=",
+          "results": [
+            {
+              "award_date": "2026-10-15",
+              "key": "ASST_NON_8604959106_073"
+            },
+            {
+              "award_date": "2026-10-15",
+              "key": "ASST_NON_8603699109_073"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

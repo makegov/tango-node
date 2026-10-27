@@ -43,6 +43,14 @@ export const ShapeConfig = {
     "executive_order_number,presidential_document_number,proclamation_number," +
     "comment_url,regulations_dot_gov_url,raw_text_url,body_html_url",
 
+  // Default for the list and get methods of all four assistance award groups (listAssistanceGrants(), getAssistanceGrant(), ...). Mirrors the API's own default.
+  ASSISTANCE_AWARDS_MINIMAL:
+    "key,fain,uri,award_date,fiscal_year,assistance_type(code,description)," +
+    "record_type,cfda_number,assistance_listing(number,title),title," +
+    "obligated,pragmatic_obligations,face_value_of_loan,loan_subsidy_cost," +
+    "awarding_office(*),funding_office(*),recipient(*),place_of_performance(*)," +
+    "period_of_performance(start_date,current_end_date)",
+
   // Default for listGrants()
   GRANTS_MINIMAL: "grant_id,opportunity_number,title,status(*),agency_code",
 

@@ -416,6 +416,91 @@ const subs = await client.listSubawards({ prime_uei: "ABC123DEF456", limit: 25 }
 
 ---
 
+## Financial-Assistance Awards
+
+Federal financial-assistance awards from USAspending, in four groups by GSDM assistance type. Requires Tango API 5.12.0.
+
+| Group                              | Assistance types                                                              | List                             | Detail                            | Transactions                                   | Listings                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------- | -------------------------------- | --------------------------------- | ---------------------------------------------- | ------------------------------------------ |
+| `/api/assistance/grants/`          | `F001` grant, `F002` cooperative agreement                                    | `listAssistanceGrants()`         | `getAssistanceGrant(key)`         | `listAssistanceGrantTransactions(key)`         | `listAssistanceGrantListings(key)`         |
+| `/api/assistance/loans/`           | `F003` direct loan, `F004` loan guarantee                                     | `listAssistanceLoans()`          | `getAssistanceLoan(key)`          | `listAssistanceLoanTransactions(key)`          | `listAssistanceLoanListings(key)`          |
+| `/api/assistance/direct_payments/` | `F006` direct payment for specified use, `F007` with unrestricted use         | `listAssistanceDirectPayments()` | `getAssistanceDirectPayment(key)` | `listAssistanceDirectPaymentTransactions(key)` | `listAssistanceDirectPaymentListings(key)` |
+| `/api/assistance/other/`           | `F005` insurance, `F008` asset forfeiture, `F009` property sale, `F010` other | `listAssistanceOther()`          | `getAssistanceOther(key)`         | `listAssistanceOtherTransactions(key)`         | `listAssistanceOtherListings(key)`         |
+
+All four groups take the same filters and return the same shape. These are awards already obligated; grant opportunities you can apply for are `listGrants()`.
+
+### `listAssistanceGrants(options?)` (and the other three lists)
+
+```ts
+const grants = await client.listAssistanceGrants({
+  cfda_number: "93.778",
+  pop_state: "VA",
+  fiscal_year: 2026,
+  ordering: "-obligated",
+  limit: 25,
+});
+
+for (const award of grants.results) {
+  console.log(award.key, award.award_date, award.obligated, (award.recipient as { legal_business_name?: string } | null)?.legal_business_name);
+}
+
+const next = await client.listAssistanceGrants({ cfda_number: "93.778", cursor: grants.cursor });
+```
+
+The lists are cursor-paginated: pass the previous page's `cursor`, or walk them with `iterateAssistanceGrants()` / `iterateAssistanceLoans()` / `iterateAssistanceDirectPayments()` / `iterateAssistanceOther()`. `page` is not accepted. `limit` caps at 100. Every list defaults to `ShapeConfig.ASSISTANCE_AWARDS_MINIMAL`, the API's own default shape.
+
+#### Parameters (financial-assistance awards)
+
+| Name                                       | Type               | Description                                                                                                                                       |
+| ------------------------------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`                                      | `string`           | Award key, exact. OR several with `\|`.                                                                                                           |
+| `fain`                                     | `string`           | Federal Award Identification Number, exact. OR several with `\|`.                                                                                 |
+| `uri`                                      | `string`           | Unique Record Identifier, carried by aggregate records, exact. OR several with `\|`.                                                              |
+| `funding_opportunity_number`               | `string`           | The funding opportunity number the award was made under, as on the Grants.gov opportunity. OR several with `\|`.                                  |
+| `uei`                                      | `string`           | Recipient UEI, exact. OR several with `\|`.                                                                                                       |
+| `recipient`                                | `string`           | Recipient name or UEI; each term matches the recipients closest to it by name. A term under three characters returns 400. OR several with `\|`.   |
+| `awarding_agency` / `funding_agency`       | `string`           | Agency code, name or abbreviation (best-effort matching). OR several with `\|`.                                                                   |
+| `cfda_number`                              | `string`           | The award's primary assistance listing (CFDA) number, e.g. `93.778`. OR several with `\|`.                                                        |
+| `assistance_type`                          | `string`           | GSDM assistance type code (`F001`-`F010`), case-insensitive. OR several with `\|`.                                                                |
+| `record_type`                              | `string`           | `1` aggregate, `2` non-aggregate, `3` individual recipient (PII-redacted). OR several with `\|`.                                                  |
+| `business_funds_indicator`                 | `string`           | `NON` (not Recovery Act) or `REC` (Recovery Act), case-insensitive.                                                                               |
+| `disaster_emergency_fund_code`             | `string`           | Disaster Emergency Fund Code, e.g. `L`, case-insensitive. OR several with `\|`.                                                                   |
+| `award_date` / `award_date_gte` / `_lte`   | `string`           | Award date, exact or range (`YYYY-MM-DD`).                                                                                                        |
+| `fiscal_year` / `fiscal_year_gte` / `_lte` | `number \| string` | Federal fiscal year of the award, exact or range.                                                                                                 |
+| `pop_start_date_gte` / `_lte`              | `string`           | Period of performance start date range (`YYYY-MM-DD`).                                                                                            |
+| `pop_end_date_gte` / `_lte`                | `string`           | Period of performance current end date range (`YYYY-MM-DD`).                                                                                      |
+| `pop_state` / `pop_country` / `pop_zip`    | `string`           | Place of performance state code, ISO 3166 alpha-3 country code, or five-digit ZIP. OR several with `\|`.                                          |
+| `obligated_gte` / `obligated_lte`          | `number \| string` | Obligated amount range (USD).                                                                                                                     |
+| `search`                                   | `string`           | Full-text search over identifiers, recipient names, assistance listing titles and award descriptions. Web-search syntax: `a b`, `a or b`, `a -b`. |
+| `ordering`                                 | `string`           | `award_date` (default `-award_date`), `obligated` or `pragmatic_obligations`.                                                                     |
+
+To compare dollar amounts across the four groups, read or order by `pragmatic_obligations`: it's the obligation for grants and payments, and the subsidy cost for loans.
+
+### `getAssistanceGrant(key, options?)` (and the other three)
+
+```ts
+const award = await client.getAssistanceGrant("ASST_NON_693JF72440048_069", {
+  shape: "key,fain,obligated,recipient(uei,legal_business_name),listings(*),obligations_by_fiscal_year(*)",
+});
+```
+
+Takes the award's `key`. A retired key (one in the award's `former_award_keys`) returns the award that carries it now, with its current `key` in the body. An award lives under one group's endpoint; if its assistance type moves to another group, its old URL returns 404. Defaults to `ShapeConfig.ASSISTANCE_AWARDS_MINIMAL`.
+
+- `recipient` is a shared recipient record under `Entity`'s field names, and is `null` on aggregate and PII-redacted records (record types `1` and `3`). Its `business_types` are USAspending's recipient-type codes, not SAM.gov's.
+- `listings(...)`, `transactions(...)`, `officers(...)`, `recipient_address(...)` and `obligations_by_fiscal_year(...)` are available only when named in `shape`.
+- Dates are parsed to `Date` and money fields to decimal strings. The `AssistanceAward` interface in `@makegov/tango-node/models` lists every field.
+
+### `listAssistanceGrantTransactions(key, options?)` / `listAssistanceGrantListings(key, options?)` (and the other three)
+
+```ts
+const transactions = await client.listAssistanceGrantTransactions("ASST_NON_693JF72440048_069", { limit: 100 });
+const listings = await client.listAssistanceGrantListings("ASST_NON_693JF72440048_069");
+```
+
+An award's transactions, latest first, and its money broken out by assistance listing, primary listing first. Both are page-numbered (`page`, `limit`) and unshaped: rows come back as the API sends them, typed `AssistanceTransaction` and `AssistanceAwardListing`. Transactions default to 100 per page and cap at 500; listings default to 25 and cap at 100.
+
+---
+
 ## GSA eLibrary Contracts
 
 ### `listGsaElibraryContracts(options?)`

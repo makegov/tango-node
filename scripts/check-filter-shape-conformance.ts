@@ -70,6 +70,10 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   protests: "listProtests",
   contract_appeals: "listContractAppeals",
   federal_register: "listFederalRegisterDocuments",
+  "assistance/grants": "listAssistanceGrants",
+  "assistance/loans": "listAssistanceLoans",
+  "assistance/direct_payments": "listAssistanceDirectPayments",
+  "assistance/other": "listAssistanceOther",
   "ebuy/requests": "listEbuyRequests",
   psc: "listPsc",
   mas_sins: "listMasSins",
@@ -144,6 +148,7 @@ const SHAPE_CONFIG_ENTRIES: ShapeEntry[] = [
   { shapeName: "EXCLUSIONS_MINIMAL", modelName: "Exclusion" },
   { shapeName: "SBIR_TOPICS_MINIMAL", modelName: "SbirTopic" },
   { shapeName: "SBIR_SOLICITATIONS_MINIMAL", modelName: "SbirSolicitation" },
+  { shapeName: "ASSISTANCE_AWARDS_MINIMAL", modelName: "AssistanceAward" },
 ];
 
 // ---------------------------------------------------------------------------
