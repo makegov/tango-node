@@ -577,6 +577,8 @@ export interface ListDibbsRfqsOptions extends ListOptionsBase {
   joiner?: string;
   nsn?: string;
   part_number?: string;
+  /** Federal Supply Class: the first four digits of the NSN. Exactly four digits; OR several with `|`, e.g. `"6515|6530"`. */
+  fsc?: string;
   solicitation?: string;
   purchase_request?: string;
   organization?: string;
@@ -603,6 +605,8 @@ export interface ListDibbsRfpsOptions extends ListOptionsBase {
   joiner?: string;
   nsn?: string;
   part_number?: string;
+  /** Federal Supply Class: the first four digits of the NSN. Exactly four digits; OR several with `|`, e.g. `"6515|6530"`. */
+  fsc?: string;
   solicitation?: string;
   organization?: string;
   buyer_code?: string;
@@ -629,6 +633,8 @@ export interface ListDibbsAwardsOptions extends ListOptionsBase {
   purchase_request?: string;
   nsn?: string;
   part_number?: string;
+  /** Federal Supply Class: the first four digits of the NSN. Exactly four digits; OR several with `|`, e.g. `"6515|6530"`. */
+  fsc?: string;
   awardee_cage?: string;
   entity?: string;
   organization?: string;

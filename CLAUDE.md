@@ -48,6 +48,7 @@ npm run coverage               # single pass with v8 coverage
 npm run check-conformance      # SDK filters/shapes -> contract
 npm run check-shape-coverage   # contract shape fields -> SDK schemas
 npm run generate-shape-overlay # regenerate src/shapes/generatedOverlay.ts
+npm run vendor-contract -- PATH # re-vendor the contract from an upstream copy (projected to what the SDK consumes)
 ```
 
 ### Tests

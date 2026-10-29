@@ -537,7 +537,8 @@ Shrink the baselines as gaps close — never grow them to silence a legitimate f
 It honors the same `TANGO_CONTRACT_PATH` env var / `--contract` flag as the two check scripts.
 CI regenerates the overlay and fails on any diff against the committed file, so a contract refresh or curated-schema change that alters generator output must land alongside a rerun of `npm run generate-shape-overlay`.
 
-To refresh the vendored contract, copy `contracts/filter_shape_contract.json` from the tango API repo, regenerate the overlay, and re-run both gates.
+To refresh the vendored contract, run `npm run vendor-contract -- <path to the upstream contract>` (`-` reads stdin), then regenerate the overlay and re-run both gates.
+The script (`scripts/vendor-contract.ts`) vendors only the parts of the upstream contract the SDK consumes, dropping server-side implementation details; `--check` compares the vendored file against a source without writing.
 When the `TANGO_API_REPO_ACCESS_TOKEN` secret is configured, CI additionally runs both gates as hard checks against the fresh contract at tango HEAD, and emits a re-vendor warning when the vendored copy has drifted.
 
 ### Lint and type-check

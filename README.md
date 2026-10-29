@@ -397,6 +397,7 @@ Useful scripts:
 - `npm run check-conformance` – SDK filters/shapes vs the vendored API contract.
 - `npm run check-shape-coverage` – Reverse gate: every contract shape field is captured by the SDK.
 - `npm run generate-shape-overlay` – Regenerate `src/shapes/generatedOverlay.ts` from the vendored contract.
+- `npm run vendor-contract -- PATH` – Re-vendor `contracts/filter_shape_contract.json` from an upstream copy, keeping only what the SDK consumes.
 
 See [docs/DEVELOPERS.md](docs/DEVELOPERS.md) for the conformance architecture and the cassette record/replay workflow.
 

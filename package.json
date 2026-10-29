@@ -1,6 +1,6 @@
 {
   "name": "@makegov/tango-node",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Official Node.js SDK for the Tango API – dynamic response shaping, typed models, and full endpoint coverage.",
   "type": "module",
   "main": "./dist/index.js",
@@ -43,6 +43,7 @@
     "check-conformance": "tsx scripts/check-filter-shape-conformance.ts",
     "check-shape-coverage": "tsx scripts/check-shape-coverage.ts",
     "generate-shape-overlay": "tsx scripts/generate-shape-overlay.ts",
+    "vendor-contract": "tsx scripts/vendor-contract.ts",
     "prepare": "npm run build",
     "prepublishOnly": "npm run lint && npm run test && npm run build"
   },
