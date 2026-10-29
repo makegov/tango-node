@@ -14,6 +14,8 @@ const UPSTREAM = {
       basename: "widget",
       docs_file: "internal/widgets.md",
       docs_params: ["name"],
+      swagger_params: ["name"],
+      swagger_has_key: true,
       runtime: {
         viewset: "internal.module.View",
         filter_params: ["name", "kind"],
@@ -42,7 +44,7 @@ function collectKeys(value: unknown, out: Set<string> = new Set()): Set<string> 
   return out;
 }
 
-const DROPPED = ["generated_from", "policy", "unmapped_resources", "docs_file", "docs_params", "viewset", "class", "filter_class"];
+const DROPPED = ["generated_from", "policy", "unmapped_resources", "docs_file", "docs_params", "swagger_has_key", "viewset", "class", "filter_class"];
 
 describe("vendor-contract projection", () => {
   it("drops the server-side keys", () => {
@@ -58,6 +60,7 @@ describe("vendor-contract projection", () => {
           resource_key: "widgets",
           prefix: "widgets",
           basename: "widget",
+          swagger_params: ["name"],
           runtime: {
             filter_params: ["name", "kind"],
             filter_params_detail: { name: { type: "string" }, kind: { type: "choice", choices: ["a", "b"] } },

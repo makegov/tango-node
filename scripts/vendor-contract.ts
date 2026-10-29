@@ -21,7 +21,7 @@ export const VENDORED_CONTRACT_PATH = path.join(REPO_ROOT, "contracts", "filter_
 
 export const DROPPED_TOP_LEVEL_KEYS = ["policy", "unmapped_resources"] as const;
 export const DROPPED_META_KEYS = ["generated_from"] as const;
-export const DROPPED_RESOURCE_KEYS = ["docs_file", "docs_params"] as const;
+export const DROPPED_RESOURCE_KEYS = ["docs_file", "docs_params", "swagger_has_key"] as const;
 export const DROPPED_RUNTIME_KEYS = ["viewset"] as const;
 export const DROPPED_PAGINATION_KEYS = ["class"] as const;
 export const DROPPED_FILTER_DETAIL_KEYS = ["filter_class"] as const;

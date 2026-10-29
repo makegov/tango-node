@@ -61,7 +61,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -795,7 +794,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "agencies_contracts_funding": {
@@ -1520,7 +1518,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "assistance/direct_payments": {
@@ -2042,7 +2039,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "assistance/grants": {
@@ -2564,7 +2560,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "assistance/loans": {
@@ -3086,7 +3081,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "assistance/other": {
@@ -3608,7 +3602,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "assistance_listings": {
@@ -3650,7 +3643,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -4427,7 +4419,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "business_types": {
@@ -4457,7 +4448,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -4592,7 +4582,6 @@
         "shape_supported": true,
         "shape_tier_required": "enterprise_a"
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -5326,7 +5315,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "award_date",
         "award_date_gte",
@@ -5569,7 +5557,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "departments": {
@@ -5609,7 +5596,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -5788,7 +5774,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "dibbs/rfps": {
@@ -5916,7 +5901,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "dibbs/rfqs": {
@@ -6071,7 +6055,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "ebuy/requests": {
@@ -6295,7 +6278,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "entities": {
@@ -6718,7 +6700,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -7451,7 +7432,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "entities_idvs": {
@@ -8036,7 +8016,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "entities_lcats": {
@@ -8215,7 +8194,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "entities_otas": {
@@ -8543,7 +8521,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "entities_otidvs": {
@@ -8850,7 +8827,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "entities_subawards": {
@@ -9061,7 +9037,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "events": {
@@ -9120,7 +9095,6 @@
         "shape_supported": false,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "exclusions": {
@@ -9339,7 +9313,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -9542,7 +9515,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -9743,7 +9715,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -10100,7 +10071,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -10207,7 +10177,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "contract_number",
         "flat",
@@ -10808,7 +10777,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "award_date",
         "award_date_gte",
@@ -11564,7 +11532,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "idvs_idvs": {
@@ -12149,7 +12116,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "idvs_lcats": {
@@ -12328,7 +12294,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "itdashboard": {
@@ -12581,7 +12546,6 @@
         "shape_supported": true,
         "shape_tier_required": "business"
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "mas_sins": {
@@ -12643,7 +12607,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -12737,7 +12700,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "employee_limit",
         "employee_limit_gte",
@@ -12802,7 +12764,6 @@
         "shape_supported": false,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "notices": {
@@ -13103,7 +13064,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "agency",
         "department",
@@ -13204,7 +13164,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -13613,7 +13572,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "active",
         "agency",
@@ -13887,7 +13845,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "cgac",
         "flat",
@@ -14229,7 +14186,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "cursor",
         "flat",
@@ -14544,7 +14500,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "cursor",
         "flat",
@@ -14880,7 +14835,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "protests": {
@@ -15166,7 +15120,6 @@
         "shape_supported": true,
         "shape_tier_required": "enterprise_a"
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "psc": {
@@ -15253,7 +15206,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -15447,7 +15399,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "sbir/topics": {
@@ -15668,7 +15619,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "sled/forecasts": {
@@ -15849,7 +15799,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "sled/opportunities": {
@@ -16163,7 +16112,6 @@
         "shape_supported": true,
         "shape_tier_required": "pro"
       },
-      "swagger_has_key": false,
       "swagger_params": []
     },
     "subawards": {
@@ -16374,7 +16322,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "flat",
         "flat_lists",
@@ -17957,7 +17904,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": true,
       "swagger_params": [
         "agency",
         "award_date_after",
@@ -18713,7 +18659,6 @@
         "shape_supported": true,
         "shape_tier_required": null
       },
-      "swagger_has_key": false,
       "swagger_params": []
     }
   }
