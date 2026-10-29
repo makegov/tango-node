@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-29
+
 ### Added
 
 - **`fsc` filter on `listDibbsRfqs()`, `listDibbsRfps()` and `listDibbsAwards()`** (Tango API 5.13.0). Filters by Federal Supply Class, the first four digits of the 13-digit NSN (NSN `6515012345678` is FSC `6515`). Each value must be exactly four digits, and several are OR'd with `|`, e.g. `"6515|6530"`; any other value makes the API return a 400. It combines with every other filter, `nsn` and `part_number` included.
