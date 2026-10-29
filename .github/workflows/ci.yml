@@ -9,8 +9,8 @@ name: CI
 # TANGO_API_REPO_ACCESS_TOKEN is available, the same two checks ALSO run as
 # hard gates against the fresh contract at makegov/tango HEAD, plus a warning
 # annotation when the vendored copy has drifted (re-vendor reminder). Refresh
-# the vendored contract by copying contracts/filter_shape_contract.json from
-# makegov/tango.
+# the vendored contract with `npm run vendor-contract -- <upstream contract>`,
+# which vendors only the parts of the contract the SDK consumes.
 on:
   push:
     branches: [ main ]
@@ -114,8 +114,8 @@ jobs:
       - name: Warn when the vendored contract has drifted from tango HEAD
         if: steps.gate.outputs.ready == 'true'
         run: |
-          if ! diff -q contracts/filter_shape_contract.json tango-api/contracts/filter_shape_contract.json >/dev/null; then
-            echo "::warning::Vendored contract differs from makegov/tango HEAD. Re-vendor contracts/filter_shape_contract.json and regenerate the overlay."
+          if ! npx tsx scripts/vendor-contract.ts tango-api/contracts/filter_shape_contract.json --check >/dev/null; then
+            echo "::warning::Vendored contract differs from makegov/tango HEAD. Re-vendor with npm run vendor-contract and regenerate the overlay."
           else
             echo "Vendored contract matches makegov/tango HEAD."
           fi

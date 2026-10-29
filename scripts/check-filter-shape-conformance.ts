@@ -159,7 +159,7 @@ interface ResourceManifest {
   runtime?: {
     filter_params?: string[];
     ordering_fields?: string[];
-    pagination?: { class?: string };
+    pagination?: { max_page_size?: number };
   };
 }
 
