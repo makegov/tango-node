@@ -177,6 +177,22 @@ describe("TangoClient — DIBBS awards", () => {
   });
 });
 
+describe("TangoClient — DIBBS fsc filter", () => {
+  it.each([
+    ["listDibbsRfqs", "/api/dibbs/rfqs/"],
+    ["listDibbsRfps", "/api/dibbs/rfps/"],
+    ["listDibbsAwards", "/api/dibbs/awards/"],
+  ] as const)("%s sends fsc as-is, pipe-separated OR intact", async (method, route) => {
+    const { client, calls } = makeClient();
+    await client[method]({ fsc: "6515|6530", nsn: "6515012345678" });
+
+    expect(calls[0].url).toContain(route);
+    const p = params(calls);
+    expect(p.get("fsc")).toBe("6515|6530");
+    expect(p.get("nsn")).toBe("6515012345678");
+  });
+});
+
 describe("TangoClient — exclusions", () => {
   it("listExclusions hits /api/exclusions/ with filters under API param names", async () => {
     const { client, calls } = makeClient();

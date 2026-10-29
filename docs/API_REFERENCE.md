@@ -764,7 +764,7 @@ const rfqs = await client.listDibbsRfqs({
 });
 ```
 
-Typed filters: `nsn`, `part_number`, `solicitation`, `purchase_request`, `organization`, `status_code`, `set_aside`, `open`, `quantity_min` / `quantity_max`, `issue_date_after` / `issue_date_before`, `return_by_date_after` / `return_by_date_before`, `search`, `ordering`.
+Typed filters: `nsn`, `part_number`, `fsc`, `solicitation`, `purchase_request`, `organization`, `status_code`, `set_aside`, `open`, `quantity_min` / `quantity_max`, `issue_date_after` / `issue_date_before`, `return_by_date_after` / `return_by_date_before`, `search`, `ordering`.
 
 ### `listDibbsRfps(options?)` / `getDibbsRfp(uuid, options?)`
 
@@ -772,7 +772,7 @@ Typed filters: `nsn`, `part_number`, `solicitation`, `purchase_request`, `organi
 const rfps = await client.listDibbsRfps({ open: true, limit: 25 });
 ```
 
-Typed filters: `nsn`, `part_number`, `solicitation`, `organization`, `buyer_code`, `open`, `issued_date_after` / `issued_date_before`, `closes_date_after` / `closes_date_before`, `search`, `ordering`.
+Typed filters: `nsn`, `part_number`, `fsc`, `solicitation`, `organization`, `buyer_code`, `open`, `issued_date_after` / `issued_date_before`, `closes_date_after` / `closes_date_before`, `search`, `ordering`.
 
 ### `listDibbsAwards(options?)` / `getDibbsAward(uuid, options?)`
 
@@ -780,7 +780,7 @@ Typed filters: `nsn`, `part_number`, `solicitation`, `organization`, `buyer_code
 const awards = await client.listDibbsAwards({ awardee_cage: "1ABC2", limit: 25 });
 ```
 
-Typed filters: `award_number`, `delivery_order_number`, `solicitation`, `purchase_request`, `nsn`, `part_number`, `awardee_cage`, `entity`, `organization`, `total_contract_price_min` / `total_contract_price_max`, `award_date_after` / `award_date_before`, `posted_date_after` / `posted_date_before`, `search`, `ordering`.
+Typed filters: `award_number`, `delivery_order_number`, `solicitation`, `purchase_request`, `nsn`, `part_number`, `fsc`, `awardee_cage`, `entity`, `organization`, `total_contract_price_min` / `total_contract_price_max`, `award_date_after` / `award_date_before`, `posted_date_after` / `posted_date_before`, `search`, `ordering`.
 
 Two API behaviors worth knowing:
 

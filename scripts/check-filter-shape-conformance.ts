@@ -103,6 +103,11 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   // Genuinely absent from the SDK: content endpoints with no shaping and no list method — permanently baselined.
   events: null,
   news: null,
+  // Not yet ported: financial-assistance awards, baselined in contracts/conformance_baseline.json.
+  "assistance/direct_payments": null,
+  "assistance/grants": null,
+  "assistance/loans": null,
+  "assistance/other": null,
 };
 
 // ---------------------------------------------------------------------------
