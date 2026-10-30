@@ -27,6 +27,21 @@ export const ShapeConfig = {
   // Default for listProtests()
   PROTESTS_MINIMAL: "case_id,case_number,title,source_system,outcome,filed_date",
 
+  // Default for listAwardAnnouncements(). Mirrors the API's own list default.
+  // `text` is left out on purpose: a paragraph can pass 16,000 characters.
+  AWARD_ANNOUNCEMENTS_MINIMAL:
+    "uuid,source,source_name,source_url,published_date,award_date,title,amount," +
+    "value_kind,action_type,announcement_type,awardee_count,piids,is_modification," +
+    "is_multiple_award,is_withdrawn,awardees(*)",
+
+  // Default for getAwardAnnouncement(). Mirrors the API's own retrieve default.
+  AWARD_ANNOUNCEMENTS_COMPREHENSIVE:
+    "uuid,source,source_name,source_url,published_date,award_date,title,amount," +
+    "value_kind,action_type,announcement_type,awardee_count,piids,is_modification," +
+    "is_multiple_award,is_withdrawn,awardees(*),source_record_id,text,obligated_at_award," +
+    "award_kind,award_uuids,civilian,component,contracting_activity,corrections," +
+    "organization(*)",
+
   // Default for listFederalRegisterDocuments(). Mirrors the API's own list default.
   FEDERAL_REGISTER_MINIMAL:
     "uuid,document_number,publication_date,type,subtype,title,abstract,action," +

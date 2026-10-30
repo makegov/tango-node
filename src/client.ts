@@ -1076,6 +1076,59 @@ export interface ListFederalRegisterDocumentsOptions extends ListOptionsBase {
 }
 
 /**
+ * Award announcement list options.
+ *
+ * Federal award announcements from two sources, named on every row: `official_release` is the Department of War's daily contracts release, and `makegov_generated` rows are written by MakeGov from FPDS data with a language model and are not government text.
+ */
+export interface ListAwardAnnouncementsOptions extends ListOptionsBase {
+  /** Separator for flattened keys. Only meaningful alongside `flat`. */
+  joiner?: string;
+  /** Full-text search over the title and text; a match in the title ranks above a match in the text. Wrap in double quotes for a phrase. Results rank by relevance unless `ordering` is given. */
+  search?: string;
+  /** `official_release` or `makegov_generated`. */
+  source?: "official_release" | "makegov_generated";
+  /** A Tango agency name, abbreviation, code or organization key, e.g. `Navy`. Multi-value OR via `|`. */
+  agency?: string;
+  /** The section header of the official release as printed, e.g. `NAVY`. Case-insensitive exact match, multi-value OR via `|`. Generated announcements have no component. */
+  component?: string;
+  /** Published on or after (YYYY-MM-DD). */
+  published_date_after?: string;
+  /** Published on or before (YYYY-MM-DD). */
+  published_date_before?: string;
+  /** Awarded on or after (YYYY-MM-DD). */
+  award_date_after?: string;
+  /** Awarded on or before (YYYY-MM-DD). */
+  award_date_before?: string;
+  /** Amount at least, in USD. */
+  amount_min?: number | string;
+  /** Amount at most, in USD. */
+  amount_max?: number | string;
+  /** A contract number named in the announcement, e.g. `N00019-25-C-0070` or `N0001925C0070`. Dashes and case are ignored. Multi-value OR via `|`. */
+  piid?: string;
+  /** Case-insensitive substring match on the awardee names, at least 3 characters. */
+  awardee?: string;
+  /** An exact UEI of an awardee. Official releases print no UEI, so this matches only where one was resolved. */
+  uei?: string;
+  /** Action type, e.g. `new_award`. Multi-value OR via `|`. */
+  action_type?: string;
+  /** Announcement type. Multi-value OR via `|`. */
+  announcement_type?: string;
+  /** Announces a civilian award. */
+  civilian?: boolean;
+  /** `true` keeps announcements with at least one small-business awardee, `false` keeps those whose awardees are stated not to be small. Generated announcements state neither, so both exclude them. */
+  small_business?: boolean;
+  /** Announces a modification to an existing contract. */
+  is_modification?: boolean;
+  /** Names more than one awardee. */
+  is_multiple_award?: boolean;
+  /** Include announcements DoD later withdrew, which a list otherwise hides. */
+  include_withdrawn?: boolean;
+  /** Sort field (published_date, amount, rank). Defaults to `-published_date`, or `-rank` under `search`; `rank` requires a non-empty `search`. Announcements with no stated amount sort last under `-amount`. */
+  ordering?: string;
+  [key: string]: unknown;
+}
+
+/**
  * GSA eBuy request list options.
  *
  * Results are scoped to the GSA schedule contracts linked to the caller's account; with no linked contract the list is empty rather than an error, so use `getEbuyAccess()` to tell "no access" from "no matches".
@@ -2867,6 +2920,36 @@ export class TangoClient {
       `/api/federal_register/${encodeURIComponent(uuid)}/`,
       "FederalRegisterDocument",
       ShapeConfig.FEDERAL_REGISTER_COMPREHENSIVE,
+      options,
+    );
+  }
+
+  /**
+   * List award announcements (`/api/news/award_announcements/`). Available at every tier.
+   *
+   * `official_release` rows are the awards of $7.5 million or more that the Department of War publishes in its daily contracts release, with the text as published.
+   * `makegov_generated` rows cover new civilian IDVs of $25 million or more and every new OTA and OT IDV; they are written by MakeGov from FPDS data with a language model and are not government text.
+   *
+   * A generated announcement is dropped when an official release covers the same award. Announcements DoD later withdrew are hidden unless `include_withdrawn` is `true`.
+   */
+  async listAwardAnnouncements(options: ListAwardAnnouncementsOptions = {}): Promise<PaginatedResponse<Record<string, unknown>>> {
+    return this._shapedPaginatedList("/api/news/award_announcements/", "AwardAnnouncement", ShapeConfig.AWARD_ANNOUNCEMENTS_MINIMAL, options);
+  }
+
+  /**
+   * Get a single award announcement by uuid (`/api/news/award_announcements/{uuid}/`).
+   *
+   * A withdrawn announcement stays retrievable here. Check `source` before quoting `text`: `makegov_generated` rows are written by MakeGov from FPDS data with a language model and are not government text.
+   */
+  async getAwardAnnouncement(
+    uuid: string,
+    options: { shape?: string | null; flat?: boolean; flatLists?: boolean; joiner?: string } = {},
+  ): Promise<Record<string, unknown>> {
+    if (!uuid) throw new TangoValidationError("Award announcement uuid is required");
+    return this._shapedGet(
+      `/api/news/award_announcements/${encodeURIComponent(uuid)}/`,
+      "AwardAnnouncement",
+      ShapeConfig.AWARD_ANNOUNCEMENTS_COMPREHENSIVE,
       options,
     );
   }

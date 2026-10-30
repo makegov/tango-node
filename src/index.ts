@@ -31,6 +31,7 @@ export type {
   ListProtestsOptions,
   ListContractAppealsOptions,
   ListFederalRegisterDocumentsOptions,
+  ListAwardAnnouncementsOptions,
   ListEbuyRequestsOptions,
   ListItDashboardOptions,
   ListMetricsOptions,

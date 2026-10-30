@@ -659,6 +659,76 @@ Takes the document's `uuid`, not its `document_number`. To look one up by number
 
 ---
 
+## Award Announcements
+
+Federal award announcements from two sources, named on every row by `source`. Available at every tier.
+
+- `official_release` rows are the awards of $7.5 million or more that the Department of War publishes in its daily contracts release, with the text as published.
+- `makegov_generated` rows cover new civilian IDVs of $25 million or more and every new OTA and OT IDV. They are written by MakeGov from FPDS data with a language model and are not government text.
+
+A generated announcement is dropped when an official release covers the same award.
+
+### `listAwardAnnouncements(options?)`
+
+```ts
+const announcements = await client.listAwardAnnouncements({
+  source: "official_release",
+  agency: "Navy",
+  amount_min: 100000000,
+  ordering: "-amount",
+  limit: 25,
+});
+
+for (const item of announcements.results) {
+  console.log(item.published_date, item.amount, item.value_kind, item.title);
+}
+```
+
+#### Parameters (Award Announcements)
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `search` | `string` | Full-text search over the title and text; a match in the title ranks above a match in the text. Wrap in double quotes for a phrase. |
+| `source` | `string` | `official_release` or `makegov_generated`. |
+| `agency` | `string` | A Tango agency name, abbreviation, code or organization key, e.g. `Navy`. OR several with `\|`. |
+| `component` | `string` | The section header of the official release as printed, e.g. `NAVY`. Case-insensitive exact match; OR several with `\|`. Generated announcements have no component. |
+| `published_date_after` / `_before` | `string` | Publication date range (`YYYY-MM-DD`). |
+| `award_date_after` / `_before` | `string` | Award date range (`YYYY-MM-DD`). |
+| `amount_min` / `amount_max` | `number \| string` | Amount range in USD. |
+| `piid` | `string` | A contract number named in the announcement, e.g. `N00019-25-C-0070` or `N0001925C0070`. Dashes and case are ignored. OR several with `\|`. |
+| `awardee` | `string` | Case-insensitive substring match on the awardee names, at least 3 characters. |
+| `uei` | `string` | An exact UEI of an awardee. Official releases print no UEI, so this matches only where one was resolved. |
+| `action_type` | `string` | Action type, e.g. `new_award`. OR several with `\|`. |
+| `announcement_type` | `string` | Announcement type. OR several with `\|`. |
+| `civilian` | `boolean` | Announces a civilian award. |
+| `small_business` | `boolean` | `true` keeps announcements with at least one small-business awardee, `false` keeps those whose awardees are stated not to be small. Generated announcements state neither, so both exclude them. |
+| `is_modification` | `boolean` | Announces a modification to an existing contract. |
+| `is_multiple_award` | `boolean` | Names more than one awardee. |
+| `include_withdrawn` | `boolean` | Include announcements DoD later withdrew, which a list otherwise hides. |
+| `ordering` | `string` | `published_date` (default `-published_date`, or `-rank` under `search`), `amount` or `rank`. |
+
+`rank` ordering requires a non-empty `search`. Announcements with no stated amount sort last under `-amount`. The standard `page` / `limit` / `shape` / `flat` / `flatLists` / `joiner` options apply, and the list defaults to `ShapeConfig.AWARD_ANNOUNCEMENTS_MINIMAL`.
+
+`amount` is not comparable across `value_kind`s: a ceiling is an upper bound, and a modification value is a change. Compare it only within one kind.
+
+### `getAwardAnnouncement(uuid, options?)`
+
+```ts
+const announcement = await client.getAwardAnnouncement("00000000-0000-0000-0000-000000000001", {
+  shape: "uuid,source,title,text,awardees(name,uei),organization(agency_name,office_name)",
+});
+```
+
+Defaults to `ShapeConfig.AWARD_ANNOUNCEMENTS_COMPREHENSIVE`, and a withdrawn announcement stays retrievable here.
+
+- `text` is in the detail default but not the list default, because a paragraph can pass 16,000 characters. Name it in `shape` to get it on a list.
+- `awardees(...)` and `organization(...)` are the two expands, and only the detail default includes them.
+- `published_date` and `award_date` are parsed to `Date`, and `amount` and `obligated_at_award` are normalized to strings. The `AwardAnnouncement` interface in `@makegov/tango-node/models` lists every field.
+
+Alerts: create one with `createWebhookAlert({ query_type: "award_announcement", ... })`, which delivers `alerts.award_announcement.match`.
+
+---
+
 ## IT Dashboard
 
 ### `listItDashboard(options?)`

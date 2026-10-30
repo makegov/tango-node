@@ -70,6 +70,7 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   protests: "listProtests",
   contract_appeals: "listContractAppeals",
   federal_register: "listFederalRegisterDocuments",
+  "news/award_announcements": "listAwardAnnouncements",
   "ebuy/requests": "listEbuyRequests",
   psc: "listPsc",
   mas_sins: "listMasSins",
@@ -100,9 +101,6 @@ export const RESOURCE_TO_METHOD: Record<string, string | null> = {
   idvs_lcats: "listIdvLcats",
   otidvs_awards: "listOtidvAwards",
   vehicles_orders: "listVehicleOrders",
-  // Genuinely absent from the SDK: content endpoints with no shaping and no list method — permanently baselined.
-  events: null,
-  news: null,
   // Not yet ported: financial-assistance awards, baselined in contracts/conformance_baseline.json.
   "assistance/direct_payments": null,
   "assistance/grants": null,
@@ -149,6 +147,8 @@ const SHAPE_CONFIG_ENTRIES: ShapeEntry[] = [
   { shapeName: "EXCLUSIONS_MINIMAL", modelName: "Exclusion" },
   { shapeName: "SBIR_TOPICS_MINIMAL", modelName: "SbirTopic" },
   { shapeName: "SBIR_SOLICITATIONS_MINIMAL", modelName: "SbirSolicitation" },
+  { shapeName: "AWARD_ANNOUNCEMENTS_MINIMAL", modelName: "AwardAnnouncement" },
+  { shapeName: "AWARD_ANNOUNCEMENTS_COMPREHENSIVE", modelName: "AwardAnnouncement" },
 ];
 
 // ---------------------------------------------------------------------------

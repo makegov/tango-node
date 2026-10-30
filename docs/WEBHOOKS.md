@@ -80,7 +80,7 @@ console.log(info.event_types);
 ```
 
 The list is served by the API, so the SDK hardcodes no event types and a new one needs no SDK release.
-`alerts.federal_register.match` and `alerts.ebuy_request.match` are among them, so `createWebhookAlert({ query_type: "federal_register", ... })` and `query_type: "ebuy_request"` work.
+`alerts.federal_register.match`, `alerts.ebuy_request.match` and `alerts.award_announcement.match` are among them, so `createWebhookAlert({ query_type: "federal_register", ... })`, `query_type: "ebuy_request"` and `query_type: "award_announcement"` work.
 
 ### 2. See what a payload looks like
 

@@ -8,6 +8,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Award announcements** (Tango API 5.14.0). `listAwardAnnouncements(options)` and `getAwardAnnouncement(uuid, options)` over `/api/news/award_announcements/`, plus `AwardAnnouncement` and `AwardAnnouncementAwardee` model types, a registered shape schema with the `awardees(...)` and `organization(...)` expands, and the `AWARD_ANNOUNCEMENTS_MINIMAL` / `AWARD_ANNOUNCEMENTS_COMPREHENSIVE` defaults. Available at every tier. Every row names its `source`: `official_release` is the Department of War's daily contracts release, and `makegov_generated` rows are written by MakeGov from FPDS data with a language model and are not government text. All twenty of the API's filters are typed options on `ListAwardAnnouncementsOptions`, including `source`, `agency`, `piid`, `awardee`, `uei` and `include_withdrawn`, and `ordering` takes `published_date`, `amount` or `rank`. `text` can pass 16,000 characters, so the list default leaves it out and the detail default includes it. A list hides announcements DoD later withdrew unless `include_withdrawn` is `true`; `getAwardAnnouncement()` still returns them. The `alerts.award_announcement.match` event works through `createWebhookAlert({ query_type: "award_announcement", ... })`, which needed no SDK change.
+
 ## [1.5.0] - 2026-10-29
 
 ### Added

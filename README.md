@@ -203,13 +203,14 @@ The Node.js client mirrors the Python SDK's high-level API. Selected highlights:
 - `getForecast(id, options)` / `getOpportunity(opportunityId, options)` / `getNotice(noticeId, options)` / `getGrant(grantId, options)`
 - `searchOpportunityAttachments(options)`
 
-**GSA eLibrary / GSA eBuy / Protests / Contract Appeals / Federal Register / IT Dashboard / LCATs**
+**GSA eLibrary / GSA eBuy / Protests / Contract Appeals / Federal Register / Award Announcements / IT Dashboard / LCATs**
 
 - `listGsaElibraryContracts(options)` / `getGsaElibraryContract(uuid, options)`
 - `listEbuyRequests(options)` / `getEbuyRequest(rfqId, options)` / `getEbuyAttachmentUrl(rfqId, docSeqNum)` / `getEbuyAccess()`
 - `listProtests(options)` / `getProtest(caseId)`
 - `listContractAppeals(options)` / `getContractAppeal(uuid, options)`
 - `listFederalRegisterDocuments(options)` / `getFederalRegisterDocument(uuid, options)`
+- `listAwardAnnouncements(options)` / `getAwardAnnouncement(uuid, options)` (`makegov_generated` rows are written by MakeGov from FPDS data with a language model and are not government text)
 - `listItDashboard(options)` / `getItDashboard(uii)`
 - `listLcats(options)` / `listIdvLcats(key, options)`
 

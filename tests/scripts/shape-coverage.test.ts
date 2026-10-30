@@ -40,7 +40,7 @@ describe("check-shape-coverage script", () => {
     expect(findings[0].name).toBe("no shape tree published");
   });
 
-  it("does not flag a resource that genuinely has no shaping (news/events)", () => {
+  it("does not flag a resource that genuinely has no shaping", () => {
     const findings = collectGaps(contractFor({ shape: null, shape_supported: false }), null);
     expect(findings).toEqual([]);
   });

@@ -136,12 +136,11 @@ describe("check-filter-shape-conformance script", () => {
   });
 
   it("fails against the vendored contract when the baseline is withheld", () => {
-    // Proves the gate has teeth: the permanently-baselined content endpoints
-    // (events, news) error without their baseline entries.
+    // Proves the gate has teeth: the not-yet-ported assistance resources error without their baseline entries.
     const result = runConformance({ manifestPath: VENDORED_CONTRACT, baselinePath: null });
 
     expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.errors.some((e) => /events/.test(e))).toBe(true);
-    expect(result.errors.some((e) => /news/.test(e))).toBe(true);
+    expect(result.errors.some((e) => /assistance\/grants/.test(e))).toBe(true);
+    expect(result.errors.some((e) => /assistance\/loans/.test(e))).toBe(true);
   });
 });
