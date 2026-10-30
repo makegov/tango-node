@@ -68,6 +68,7 @@ export const RESOURCE_TO_MODEL: Record<string, string> = {
   protests: "Protest",
   contract_appeals: "ContractAppeal",
   federal_register: "FederalRegisterDocument",
+  "news/award_announcements": "AwardAnnouncement",
   "ebuy/requests": "EbuyRequest",
   offices: "Office",
   assistance_listings: "AssistanceListing",
@@ -83,8 +84,6 @@ export const RESOURCE_TO_MODEL: Record<string, string> = {
   "sbir/solicitations": "SbirSolicitation",
   "sled/opportunities": "SledOpportunity",
   "sled/forecasts": "SledForecast",
-  events: "Event",
-  news: "News",
 };
 
 // ---------------------------------------------------------------------------

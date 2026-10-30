@@ -1,4 +1,5 @@
 export type { Agency } from "./Agency.js";
+export type { AwardAnnouncement, AwardAnnouncementAwardee } from "./AwardAnnouncement.js";
 export type { BudgetAccount, BudgetSourceAnomaly, BudgetSourceAnomalyRow, BudgetSourceAnomalySource } from "./BudgetAccount.js";
 export type {
   Contract,
